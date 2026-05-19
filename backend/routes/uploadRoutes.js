@@ -1,11 +1,14 @@
 import express from "express";
 import upload from "../middleware/upload.js";
 import cloudinary from "../config/cloudinary.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
+import { chatRateLimit } from "../middleware/rateLimit.js";
 
 const router = express.Router();
 
-// Route to handle file uploads
-router.post("/", upload.single("file"), async (req, res) => {
+// Changed: Protect upload endpoint with auth + rate limiting. Multer already
+// enforces size/type limits in `upload` middleware.
+router.post("/", requireAuth, chatRateLimit, upload.single("file"), async (req, res) => {
     try {
         const file = req.file;
 
@@ -32,18 +35,18 @@ router.post("/", upload.single("file"), async (req, res) => {
         // 2. (OPTIONAL) Use the image (AI, processing, etc.)
         // const aiResponse = await someAIfunction(imageUrl);
 
-        // 3. DELETE IMAGE 🧨
-        // 4. Send response FIRST
-        res.json({
-            url: imageUrl,
-        });
+        // 3. Send response FIRST (don't wait for deletes)
+        res.json({ url: imageUrl });
 
-        // 5. Then delete after delay
+        // 4. Attempt to delete the uploaded image asynchronously. We keep
+        // this behavior but log failures; consider a cleanup job for reliability.
         setTimeout(async () => {
             try {
-                await cloudinary.uploader.destroy(publicId);
+                if (publicId) {
+                    await cloudinary.uploader.destroy(publicId);
+                }
             } catch (err) {
-                console.error("Delete error:", err);
+                console.error("Cloudinary delete error:", err);
             }
         }, 5000);
 

@@ -1,51 +1,22 @@
+// Changed: delegate OpenRouter interaction to the centralized service
+// `getChatResponse` which implements retries and response validation.
 import { getChatResponse } from "../services/openrouterService.js";
 
 export const handleChat = async (req, res) => {
     try {
         const { message, fileUrl } = req.body;
 
-        let content;
+        // Use the service which constructs messages consistently and retries
+        const reply = await getChatResponse(message, fileUrl);
 
-        if (fileUrl) {
-            content = [
-                {
-                    type: "text",
-                    text: message || "Describe this image",
-                },
-                {
-                    type: "image_url",
-                    image_url: {
-                        url: fileUrl,
-                    },
-                },
-            ];
-        } else {
-            content = message;
+        if (!reply) {
+            // Upstream did not return a reply in the expected shape
+            return res.status(502).json({ error: "Upstream service error" });
         }
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-4o-mini",
-                messages: [
-                    {
-                        role: "user",
-                        content,
-                    },
-                ],
-            }),
-        });
-
-        const data = await response.json();
-
-        res.json({
-            reply: data.choices[0].message.content,
-        });
+        res.json({ reply });
     } catch (err) {
+        console.error("Chat failed:", err);
         res.status(500).json({ error: "Chat failed" });
     }
 };
