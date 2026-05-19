@@ -9,10 +9,14 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 const app = express();
 
 // Configure CORS to allow requests from the frontend running on localhost:5173, enabling credentials for cookie handling.
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+// Changed: read allowed origin from env and include Authorization in allowed headers
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
 

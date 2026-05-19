@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:5000";
+// Changed: read backend base URL from Vite env or fall back to localhost for dev
+const BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 export const sendMessageToBackend = async (message, token, fileUrl) => {
     // Send the message and file URL to the backend API
@@ -6,7 +7,8 @@ export const sendMessageToBackend = async (message, token, fileUrl) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            // Only include Authorization header when token is provided
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ message, fileUrl }),
     });
@@ -24,8 +26,7 @@ export const uploadFile = async (file) => {
     // Upload the file to the backend and get the URL
     const formData = new FormData();
     formData.append("file", file);
-
-    const res = await fetch("http://localhost:5000/api/upload", {
+    const res = await fetch(`${BASE_URL}/api/upload`, {
         method: "POST",
         body: formData,
     });
