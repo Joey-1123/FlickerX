@@ -76,7 +76,7 @@ export default function About() {
                     <Shield className="h-5 w-5 text-blue-600 mb-3" />
                     <h3 className="font-semibold mb-2">Secure Access</h3>
                     <p className="text-sm text-gray-500">
-                        Authentication handled securely using Clerk for safe user sessions.
+                        Authentication handled securely using JWT sessions for safe user access.
                     </p>
                 </div>
 

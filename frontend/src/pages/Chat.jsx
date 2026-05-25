@@ -1,16 +1,15 @@
 // Chat.jsx - Main chat interface component
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import ChatNavbar from "../components/Navbar";
 import ChatBox from "../components/ChatBox";
 import ChatInput from "../components/ChatInput";
 import CommandPalette from "../components/CommandPalette";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth } from "../auth/AuthContext";
 import { sendMessageToBackend, uploadFile } from "../services/api";
 
 export default function Chat() {
-
-    const { getToken, isSignedIn } = useAuth();// authentication hooks from Clerk
-    const { user } = useUser();// user data from Clerk
+    const { token, isAuthenticated, user } = useAuth();
 
 
     const [messages, setMessages] = useState([]);// chat messages state
@@ -74,12 +73,12 @@ export default function Chat() {
         // 🚨 Prevent spam clicks
         if (isLoading) return;
 
+        if (!isAuthenticated) return;
+        if (!input.trim() && !file) return;
+
+        setIsLoading(true); // ✅ single source of truth
+
         try {
-            if (!isSignedIn) return;
-            if (!input.trim() && !file) return;
-
-            setIsLoading(true); // ✅ single source of truth
-
             // 🟣 IMAGE GENERATION FLOW
             if (input.trim().toLowerCase().startsWith("/image")) {
                 console.log("✅ IMAGE FLOW TRIGGERED:", input);
@@ -142,13 +141,14 @@ export default function Chat() {
                 }
             ]);
 
-            const token = await getToken();
-            if (!token) throw new Error("Authentication failed");
-
             let fileUrl = null;
 
             if (file) {
-                fileUrl = await uploadFile(file);
+                fileUrl = await uploadFile(file, token);
+            }
+
+            if (!isAuthenticated || !token) {
+                throw new Error("Authentication failed");
             }
 
             const { reply } = await sendMessageToBackend(input, token, fileUrl);
@@ -224,6 +224,10 @@ export default function Chat() {
         setMessages([]);
         localStorage.removeItem("chatMessages");
     };
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
 
     return (
         <>
