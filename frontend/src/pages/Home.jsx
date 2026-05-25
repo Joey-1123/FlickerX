@@ -1,24 +1,18 @@
 // Home.jsx - The landing page with hero section, features, and workflow explanation
 import { Link, useNavigate } from "react-router-dom";
-// Clerk authentication components
-import {
-    SignedOut,
-    SignedIn,
-    SignInButton,
-    useUser,
-} from "@clerk/clerk-react";
+import { useAuth } from "../auth/AuthContext";
 import { useEffect } from "react";
 // Lucide icons
 import { Sparkles, ArrowRight, Brain, CheckCircle2 } from "lucide-react";
 import { MessageSquare, FileText, Terminal } from "lucide-react";
 
 export default function Home() {
-    const { isSignedIn } = useUser();// get authentication status
-    const navigate = useNavigate();// navigation hook from React Router
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (isSignedIn) navigate("/chat");
-    }, [isSignedIn, navigate]);
+        if (isAuthenticated) navigate("/chat");
+    }, [isAuthenticated, navigate]);
 
     return (
         <div className="min-h-screen bg-white text-gray-900 flex flex-col font-sans">
@@ -36,31 +30,30 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-3">
-
-                    <SignedOut>
-                        <SignInButton mode="modal">
-                            <button className="px-4 py-2 text-sm rounded-xl border border-gray-300 hover:bg-gray-50 transition">
+                    {!isAuthenticated ? (
+                        <>
+                            <Link
+                                to="/login"
+                                className="px-4 py-2 text-sm rounded-xl border border-gray-300 hover:bg-gray-50 transition"
+                            >
                                 Login
-                            </button>
-                        </SignInButton>
+                            </Link>
 
-                        <Link
-                            to="/working"
-                            className="px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
-                        >
-                            Working
-                        </Link>
-                    </SignedOut>
-
-                    <SignedIn>
+                            <Link
+                                to="/working"
+                                className="px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
+                            >
+                                Working
+                            </Link>
+                        </>
+                    ) : (
                         <Link
                             to="/chat"
                             className="px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
                         >
                             Go to Chat
                         </Link>
-                    </SignedIn>
-
+                    )}
                 </div>
             </nav>
 
@@ -87,16 +80,15 @@ export default function Home() {
 
                 {/* Buttons */}
                 <div className="flex gap-4 flex-wrap justify-center items-center">
-                    <SignedOut>
-                        <SignInButton mode="modal">
-                            <button className="px-6 py-3 font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all duration-300 flex items-center gap-2">
-                                Start Free
-                                <ArrowRight className="h-4 w-4" />
-                            </button>
-                        </SignInButton>
-                    </SignedOut>
-
-                    <SignedIn>
+                    {!isAuthenticated ? (
+                        <Link
+                            to="/login"
+                            className="px-6 py-3 font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all duration-300 flex items-center gap-2"
+                        >
+                            Start Free
+                            <ArrowRight className="h-4 w-4" />
+                        </Link>
+                    ) : (
                         <Link
                             to="/chat"
                             className="px-6 py-3 font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-500/10 transition-all duration-300 flex items-center gap-2"
@@ -104,7 +96,7 @@ export default function Home() {
                             Open Chat
                             <ArrowRight className="h-4 w-4" />
                         </Link>
-                    </SignedIn>
+                    )}
 
                     <a
                         href="#features"

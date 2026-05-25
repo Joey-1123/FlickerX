@@ -1,0 +1,11 @@
+[
+  {
+    "id": "212bef2f-d3df-4bf1-bb41-982d4aec178f",
+    "email": "xyz@gmail.com",
+    "name": "Joey",
+    "role": "admin",
+    "passwordHash": "$2a$12$8KgF6L96r9.eEFgV0e3oAOVBmD0pVGc2DXdy214QiyP08o5pKDObq",
+    "createdAt": "2026-05-25T06:08:35.900Z",
+    "refreshToken": "c8de8683857b2522935ba1233badad95843e99d2448ebe1d9228bb37ad75418a0ebdc7d137f8d324278fac23d2f769cfef2788e0e5fa21b32df087d65caad02a"
+  }
+]
