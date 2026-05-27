@@ -56,6 +56,7 @@ export const createUser = async ({ email, name, passwordHash }) => {
         name: name?.trim() || normalizedEmail.split("@")[0],
         role,
         passwordHash,
+        systemPrompt: "",
         createdAt: new Date().toISOString(),
     };
 

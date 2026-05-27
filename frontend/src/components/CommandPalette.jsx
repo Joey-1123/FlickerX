@@ -32,8 +32,8 @@ export default function CommandPalette({ open, onClose, onSelect }) {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-start justify-center pt-24 z-50">
-            <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-start justify-center pt-12 sm:pt-24 z-50">
+            <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden max-h-[calc(100vh-8rem)] overflow-y-auto">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">

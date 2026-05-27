@@ -1,8 +1,8 @@
+// Changed: uses service layer instead of direct fetch
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-
-const BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+import { getUsers } from "../services/admin";
 
 export default function Admin() {
     const { token, user, isAuthenticated } = useAuth();
@@ -19,18 +19,8 @@ export default function Admin() {
 
         const fetchAdminData = async () => {
             try {
-                const res = await fetch(`${BASE_URL}/api/admin/users`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const payload = await res.json();
-                if (!res.ok) {
-                    throw new Error(payload?.error || "Unable to load admin data.");
-                }
-                setUsers(payload.users || []);
+                const data = await getUsers(token);
+                setUsers(data);
             } catch (err) {
                 setError(err.message || "Failed to load admin data.");
             } finally {
@@ -51,7 +41,7 @@ export default function Admin() {
 
     return (
         <div className="min-h-screen bg-slate-50 py-10 px-4">
-            <div className="mx-auto max-w-5xl rounded-3xl bg-white p-8 shadow-lg border border-slate-200">
+            <div className="mx-auto max-w-5xl rounded-3xl bg-white p-4 sm:p-8 shadow-lg border border-slate-200">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
@@ -81,10 +71,10 @@ export default function Admin() {
                         <tbody className="divide-y divide-slate-200 bg-white">
                             {users.map((u) => (
                                 <tr key={u.id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 text-sm text-slate-700">{u.name}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-700">{u.email}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-700">{u.role}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">{new Date(u.createdAt).toLocaleString()}</td>
+                                    <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">{u.name}</td>
+                                    <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">{u.email}</td>
+                                    <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">{u.role}</td>
+                                    <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm text-slate-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleString()}</td>
                                 </tr>
                             ))}
                         </tbody>

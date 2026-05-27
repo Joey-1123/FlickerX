@@ -58,7 +58,7 @@ export default function Home() {
             </nav>
 
             {/* Hero Section */}
-            <section className="flex-1 flex flex-col justify-center items-center text-center px-6 max-w-5xl mx-auto py-20">
+            <section className="flex-1 flex flex-col justify-center items-center text-center px-6 max-w-5xl mx-auto py-12 sm:py-20">
                 {/* Top Badge */}
                 <span className="px-4 py-1.5 bg-blue-50/80 text-blue-600 border border-blue-100/60 rounded-full text-xs font-semibold tracking-wide flex items-center gap-2 mb-8 shadow-sm">
                     <Sparkles className="h-3.5 w-3.5 text-blue-600 animate-pulse" />
@@ -108,7 +108,7 @@ export default function Home() {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="py-20 border-t border-gray-100 bg-gray-50/60 backdrop-blur-sm">
+            <section id="features" className="py-12 sm:py-20 border-t border-gray-100 bg-gray-50/60 backdrop-blur-sm">
                 <div className="text-center max-w-2xl mx-auto mb-14 px-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50/80 border border-blue-100/50 px-3 py-1 rounded-md shadow-sm">
                         Features
@@ -166,7 +166,7 @@ export default function Home() {
             </section>
 
             {/* How It Works Section */}
-            <section className="py-20 bg-white/50 backdrop-blur-sm">
+            <section className="py-12 sm:py-20 bg-white/50 backdrop-blur-sm">
                 <div className="text-center max-w-3xl mx-auto mb-16 px-6">
                     <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50/80 border border-blue-100/50 px-3 py-1 rounded-md shadow-sm">
                         Workflow
