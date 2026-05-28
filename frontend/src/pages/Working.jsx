@@ -121,7 +121,7 @@ export default function Working() {
                             <h3 className="text-xs uppercase tracking-wider text-gray-400 mb-1">
                                 Usage
                             </h3>
-                            <code className="block bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700">
+                            <code className="block bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 overflow-x-auto">
                                 {cmd.usage}
                             </code>
                         </div>
@@ -131,7 +131,7 @@ export default function Working() {
                             <h3 className="text-xs uppercase tracking-wider text-gray-400 mb-1">
                                 Example
                             </h3>
-                            <code className="block bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-sm text-gray-700">
+                            <code className="block bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-sm text-gray-700 overflow-x-auto">
                                 {cmd.example}
                             </code>
                         </div>

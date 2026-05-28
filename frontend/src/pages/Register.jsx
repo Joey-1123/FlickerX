@@ -34,7 +34,7 @@ export default function Register() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
-            <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg border border-slate-200">
+            <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-lg border border-slate-200">
                 <h1 className="text-3xl font-bold text-slate-900 mb-4">Create an account</h1>
                 <p className="text-sm text-slate-500 mb-8">
                     Register to securely access FlickerX chat and file intelligence.

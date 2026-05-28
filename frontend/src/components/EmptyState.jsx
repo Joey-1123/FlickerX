@@ -58,7 +58,7 @@ export default function EmptyState({ onActionClick }) {
                     <button
                         key={index}
                         onClick={() => handleClick(item)}
-                        className="group flex flex-col items-start p-5 bg-white border border-gray-200 rounded-2xl text-left hover:border-blue-400 hover:shadow-md active:scale-[0.98] transition-all duration-200"
+                        className="group flex flex-col items-start p-4 sm:p-5 bg-white border border-gray-200 rounded-2xl text-left hover:border-blue-400 hover:shadow-md active:scale-[0.98] transition-all duration-200"
                     >
                         <div className="flex justify-between w-full mb-4">
                             <div className="p-2 rounded-xl bg-blue-50 group-hover:bg-blue-100 transition">

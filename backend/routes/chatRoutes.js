@@ -1,11 +1,11 @@
 import express from "express";
-import { handleChat } from "../controllers/chatController.js";
+import { handleChat, handleChatStream } from "../controllers/chatController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { chatRateLimit } from "../middleware/rateLimit.js";
 
 const router = express.Router();
 
-// Test route to check if the API is working
+// Test route to check if the API is running
 router.get("/", (req, res) => {
   res.send(`
     <h1>FlickerX - Backend</h1>
@@ -15,5 +15,8 @@ router.get("/", (req, res) => {
 
 // Apply authentication and rate limiting middleware to the chat route
 router.post("/", requireAuth, chatRateLimit, handleChat);
+
+// Changed: streaming chat endpoint — returns SSE events
+router.post("/stream", requireAuth, chatRateLimit, handleChatStream);
 
 export default router;

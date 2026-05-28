@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { login as loginRequest, register as registerRequest, refreshAuth, logout as logoutRequest } from "../services/auth";
 
 const AuthContext = createContext(null);
@@ -89,6 +89,29 @@ export function AuthProvider({ children }) {
         setToken(null);
         setUser(null);
     };
+
+    // Changed: auto logout after 2 minutes of inactivity
+    const logoutRef = useRef(logout);
+    logoutRef.current = logout;
+
+    useEffect(() => {
+        if (!token) return;
+
+        let timeout;
+        const reset = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => logoutRef.current(), 2 * 60 * 1000);
+        };
+
+        const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+        events.forEach((e) => window.addEventListener(e, reset));
+        reset();
+
+        return () => {
+            clearTimeout(timeout);
+            events.forEach((e) => window.removeEventListener(e, reset));
+        };
+    }, [token]);
 
     const value = useMemo(
         () => ({ token, user, isAuthenticated: !!token, login, register, logout, loading, error }),

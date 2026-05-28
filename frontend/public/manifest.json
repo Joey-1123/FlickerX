@@ -1,0 +1,12 @@
+{
+  "name": "FlickerX",
+  "short_name": "FlickerX",
+  "description": "AI-powered chat assistant for coding, debugging, and learning",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

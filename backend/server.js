@@ -17,7 +17,9 @@ app.use(
     origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    // Changed: removed "Cookie" from allowedHeaders — credentials:true
+    // already handles cookie transmission automatically.
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -29,6 +31,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/upload", uploadRoutes);
+
+// Changed: centralized error handler catches anything that slips through
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Internal server error" });
+});
 
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found." });

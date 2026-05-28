@@ -4,9 +4,12 @@ import App from "./App.jsx";
 import "./index.css";
 import "./App.css";
 import { AuthProvider } from "./auth/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <AuthProvider>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </AuthProvider>
 );

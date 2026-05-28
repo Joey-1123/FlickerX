@@ -1,6 +1,8 @@
+// Changed: replaced manual validation with zod schemas
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { findUserByEmail, createUser, updateUser, findUserByRefreshToken } from "../services/userService.js";
+import { z } from "zod";
+import { findUserByEmail, findUserById, createUser, updateUser, findUserByRefreshToken, readUsers } from "../services/userService.js";
 import { generateRefreshToken } from "../services/tokenService.js";
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -14,40 +16,81 @@ if (!jwtSecret) {
 
 const normalizeEmail = (email) => String(email).trim().toLowerCase();
 
-const validateEmail = (email) => {
-    const normalized = normalizeEmail(email);
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
-};
+const registerSchema = z.object({
+    email: z.string().email("Please provide a valid email address."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    name: z.string().trim().optional(),
+});
+
+const loginSchema = z.object({
+    email: z.string().email("Please provide a valid email address."),
+    password: z.string().min(1, "Password is required."),
+});
 
 const buildSafeUser = (user) => ({
     id: user.id,
     email: user.email,
     name: user.name,
     role: user.role || "user",
+    systemPrompt: user.systemPrompt || "",
 });
 
+// Changed: fetches full user from DB so systemPrompt is included
 export const getProfile = async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ error: "Unauthorized" });
     }
-    return res.json({ user: req.user });
+    try {
+        const user = await findUserById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        return res.json({ user: buildSafeUser(user) });
+    } catch (err) {
+        console.error("Get profile failed:", err);
+        return res.status(500).json({ error: "Unable to fetch profile." });
+    }
+};
+
+// Changed: allows updating systemPrompt and other profile fields
+const updateProfileSchema = z.object({
+    name: z.string().trim().optional(),
+    systemPrompt: z.string().optional(),
+});
+
+export const updateProfile = async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const parsed = updateProfileSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.errors[0].message });
+    }
+
+    try {
+        const updates = {};
+        if (parsed.data.name !== undefined) updates.name = parsed.data.name;
+        if (parsed.data.systemPrompt !== undefined) updates.systemPrompt = parsed.data.systemPrompt;
+
+        const updated = await updateUser(req.user.id, updates);
+        if (!updated) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        return res.json({ user: buildSafeUser(updated) });
+    } catch (err) {
+        console.error("Update profile failed:", err);
+        return res.status(500).json({ error: "Unable to update profile." });
+    }
 };
 
 export const register = async (req, res) => {
-    const { email, password, name } = req.body;
-    const normalizedEmail = normalizeEmail(email || "");
-
-    if (!normalizedEmail || !password) {
-        return res.status(400).json({ error: "Email and password are required." });
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.errors[0].message });
     }
-
-    if (!validateEmail(normalizedEmail)) {
-        return res.status(400).json({ error: "Please provide a valid email address." });
-    }
-
-    if (password.length < 8) {
-        return res.status(400).json({ error: "Password must be at least 8 characters." });
-    }
+    const { email, password, name } = parsed.data;
+    const normalizedEmail = normalizeEmail(email);
 
     try {
         const existingUser = await findUserByEmail(normalizedEmail);
@@ -58,7 +101,7 @@ export const register = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, saltRounds);
         const newUser = await createUser({
             email: normalizedEmail,
-            name: name?.trim() || normalizedEmail.split("@")[0],
+            name: name || normalizedEmail.split("@")[0],
             passwordHash,
         });
 
@@ -81,12 +124,12 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
-    const normalizedEmail = normalizeEmail(email || "");
-
-    if (!normalizedEmail || !password) {
-        return res.status(400).json({ error: "Email and password are required." });
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.errors[0].message });
     }
+    const { email, password } = parsed.data;
+    const normalizedEmail = normalizeEmail(email);
 
     try {
         const user = await findUserByEmail(normalizedEmail);

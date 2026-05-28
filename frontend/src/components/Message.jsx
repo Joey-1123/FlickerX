@@ -1,75 +1,68 @@
-// This component renders individual chat messages in the conversation. It supports both user and AI messages, displaying text content (with markdown support) and images. The component also includes avatars for the user and AI, and styles messages differently based on the sender.
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { User, Bot, Copy, RefreshCw, Pencil, Star } from "lucide-react";
 
-import { User } from "lucide-react";
-import { Bot } from "lucide-react";
-import { Copy } from "lucide-react";
-
-export default function Message({ role, content, image, user, onCopy, }) {
+// supports pin/star, copy, regenerate, edit
+export default function Message({ role, content, image, user, onCopy, onRegenerate, onEdit, pinned, onTogglePin }) {
     const isUser = role === "user";
 
     return (
-        <div className={`flex w-full mb-4 ${isUser ? "justify-end" : "justify-start"}`}>
-
-            {/* AI Avatar */}
+        <div className={`flex w-full mb-4 ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
             {!isUser && (
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs mr-2 flex-shrink-0 text-white">
+                <div className="w-8 h-8 rounded-full bg-gray-700 dark:bg-gray-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 text-white">
                     <Bot className="h-4 w-4" />
                 </div>
             )}
 
-            {/* Message Bubble */}
             <div
-                className={`
-        relative max-w-[75%] px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm 
-        ${isUser
+                className={`relative max-w-[90%] sm:max-w-[75%] px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                    isUser
                         ? "bg-blue-500 text-white rounded-br-sm"
-                        : "bg-gray-800 text-gray-200 rounded-bl-sm"
-                    }
-    `}
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm"
+                } ${pinned ? "ring-2 ring-yellow-400 dark:ring-yellow-500" : ""}`}
             >
-                {/* TEXT (markdown) */}
                 {content && (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {content}
-                    </ReactMarkdown>
+                    <div className="overflow-x-auto">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {content}
+                        </ReactMarkdown>
+                    </div>
                 )}
 
-                {/* IMAGE (preview + cloudinary URL) */}
                 {image && (
-                    <img
-                        src={image}
-                        alt="Expired!!"
-                        className="max-w-[220px] rounded-lg mt-2"
-                    />
+                    <img src={image} alt="Uploaded" className="max-w-full sm:max-w-[220px] rounded-lg mt-2" />
                 )}
 
-                {/* COPY BUTTON BELOW MESSAGE */}
                 {content && (
-                    <div className="mt-2 flex justify-end">
-                        <button
-                            onClick={() => onCopy(content)}
-                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
-                        >
-                            <Copy className="w-4 h-4" />
-                            Copy
+                    <div className="mt-2 flex items-center gap-2 justify-end">
+                        {/* pin/star toggle */}
+                        {onTogglePin && (
+                            <button onClick={() => onTogglePin()} className="flex items-center gap-1 text-xs text-gray-400 hover:text-yellow-500 transition" title={pinned ? "Unpin" : "Pin"}>
+                                <Star className={`w-3.5 h-3.5 ${pinned ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                            </button>
+                        )}
+                        {!isUser && onRegenerate && (
+                            <button onClick={() => onRegenerate()} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                                <RefreshCw className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                        {isUser && onEdit && (
+                            <button onClick={() => onEdit(content)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                                <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                        <button onClick={() => onCopy(content)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                            <Copy className="w-3.5 h-3.5" />
                         </button>
                     </div>
                 )}
             </div>
 
-
-            {/* User Avatar */}
             {isUser && (
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs ml-2 flex-shrink-0 uppercase font-semibold text-white">
-                    {user?.firstName?.[0] ||
-                        user?.username?.[0] || (
-                            <User className="h-4 w-4" />
-                        )}
+                    {user?.name?.[0] || <User className="h-4 w-4" />}
                 </div>
             )}
-
         </div>
     );
 }
