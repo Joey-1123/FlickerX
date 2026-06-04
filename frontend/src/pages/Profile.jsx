@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { getProfile, updateProfile } from "../services/auth";
-import { Trash2 } from "lucide-react";
+import { getProfile, updateProfile, deleteAccount } from "../services/auth";
+import { Trash2, AlertTriangle } from "lucide-react";
 
 const PRESETS_KEY = "promptPresets";
 
@@ -163,6 +163,31 @@ export default function Profile() {
                         <div className="rounded-3xl border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-800/50 p-6">
                             <p className="text-sm text-slate-500 dark:text-gray-400">User ID</p>
                             <p className="mt-2 text-xs font-medium text-slate-600 dark:text-gray-400 break-all">{profile.id}</p>
+                        </div>
+                        {/* delete account */}
+                        <div className="rounded-3xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/50 p-6">
+                            <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangle className="w-4 h-4 text-red-500" />
+                                <p className="text-sm font-semibold text-red-700 dark:text-red-400">Danger Zone</p>
+                            </div>
+                            <p className="text-xs text-red-600 dark:text-red-400 mb-3">
+                                Permanently delete your account and all associated data. This cannot be undone.
+                            </p>
+                            <button
+                                onClick={async () => {
+                                    if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+                                    try {
+                                        await deleteAccount(token);
+                                        logout();
+                                        navigate("/");
+                                    } catch (err) {
+                                        setError(err.message || "Failed to delete account.");
+                                    }
+                                }}
+                                className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition"
+                            >
+                                Delete Account
+                            </button>
                         </div>
                     </div>
                 ) : (

@@ -16,13 +16,14 @@ app.use(
   cors({
     origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
     credentials: true,
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "OPTIONS"],
     // Changed: removed "Cookie" from allowedHeaders — credentials:true
     // already handles cookie transmission automatically.
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

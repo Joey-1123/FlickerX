@@ -41,7 +41,7 @@ export const findUserByRefreshToken = async (refreshToken) => {
     return users.find((user) => user.refreshToken === refreshToken);
 };
 
-export const createUser = async ({ email, name, passwordHash }) => {
+export const createUser = async ({ email, name, passwordHash, agreeTerms, agreePrivacy, agreeCookies }) => {
     const normalizedEmail = email.trim().toLowerCase();
     const users = await readUsers();
 
@@ -58,6 +58,10 @@ export const createUser = async ({ email, name, passwordHash }) => {
         passwordHash,
         systemPrompt: "",
         createdAt: new Date().toISOString(),
+        agreeTerms: !!agreeTerms,
+        agreePrivacy: !!agreePrivacy,
+        agreeCookies: !!agreeCookies,
+        agreedAt: new Date().toISOString(),
     };
 
     users.push(newUser);
@@ -74,6 +78,26 @@ export const updateUser = async (id, updates) => {
     users[index] = { ...users[index], ...updates };
     await writeUsers(users);
     return users[index];
+};
+
+export const deleteUserById = async (id) => {
+    const users = await readUsers();
+    const filtered = users.filter((user) => user.id !== id);
+    if (filtered.length === users.length) return false;
+    await writeUsers(filtered);
+    return true;
+};
+
+export const updateUserRole = async (id, role) => {
+    if (!["user", "admin"].includes(role)) throw new Error("Invalid role");
+    return updateUser(id, { role });
+};
+
+export const findUserByResetToken = async (resetToken) => {
+    const users = await readUsers();
+    return users.find(
+        (user) => user.resetToken === resetToken && user.resetTokenExpiry > Date.now()
+    );
 };
 
 export { readUsers };

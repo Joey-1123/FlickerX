@@ -28,3 +28,6 @@ dist-ssr
 backend/.env
 
 backend/data/users.json
+
+# UI backups
+frontend/src.bak*

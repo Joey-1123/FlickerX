@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { login as loginRequest, register as registerRequest, refreshAuth, logout as logoutRequest } from "../services/auth";
+import { login as loginRequest, register as registerRequest, refreshAuth, logout as logoutRequest, acceptPolicies as acceptPoliciesRequest } from "../services/auth";
 
 const AuthContext = createContext(null);
 
@@ -72,11 +72,16 @@ export function AuthProvider({ children }) {
         return data;
     };
 
-    const register = async (email, password, name) => {
+    const register = async (email, password, name, agreements = {}) => {
         setError(null);
-        const data = await registerRequest(email, password, name);
+        const data = await registerRequest(email, password, name, agreements);
         setToken(data.token);
         setUser(data.user || parseJwt(data.token));
+        return data;
+    };
+
+    const acceptPolicies = async (agreements) => {
+        const data = await acceptPoliciesRequest(token, agreements);
         return data;
     };
 
@@ -100,7 +105,7 @@ export function AuthProvider({ children }) {
         let timeout;
         const reset = () => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => logoutRef.current(), 2 * 60 * 1000);
+            timeout = setTimeout(() => logoutRef.current(), 30 * 60 * 1000);
         };
 
         const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
@@ -114,7 +119,7 @@ export function AuthProvider({ children }) {
     }, [token]);
 
     const value = useMemo(
-        () => ({ token, user, isAuthenticated: !!token, login, register, logout, loading, error }),
+        () => ({ token, user, isAuthenticated: !!token, login, register, logout, acceptPolicies, loading, error }),
         [token, user, loading, error]
     );
 

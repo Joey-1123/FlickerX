@@ -8,8 +8,13 @@ export default function Register() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
+    const [agreeTerms, setAgreeTerms] = useState(false);
+    const [agreePrivacy, setAgreePrivacy] = useState(false);
+    const [agreeCookies, setAgreeCookies] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+
+    const allAgreed = agreeTerms && agreePrivacy && agreeCookies;
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -20,10 +25,14 @@ export default function Register() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         setErrorMessage("");
+        if (!allAgreed) {
+            setErrorMessage("You must accept all policies to create an account.");
+            return;
+        }
         setIsLoading(true);
 
         try {
-            await register(email, password, name);
+            await register(email, password, name, { agreeTerms, agreePrivacy, agreeCookies });
             navigate("/chat");
         } catch (err) {
             setErrorMessage(err.message || "Unable to register");
@@ -74,6 +83,29 @@ export default function Register() {
                             required
                         />
                     </label>
+                    {/* Agreements */}
+                    <div className="space-y-3 border-t border-slate-200 pt-4 mt-2">
+                        <p className="text-xs font-medium text-slate-600">By creating an account, you agree to:</p>
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                            <span className="text-xs text-slate-600">
+                                <Link to="/policies" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>
+                            </span>
+                        </label>
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                            <span className="text-xs text-slate-600">
+                                <Link to="/policies" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>
+                            </span>
+                        </label>
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" checked={agreeCookies} onChange={(e) => setAgreeCookies(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                            <span className="text-xs text-slate-600">
+                                <Link to="/policies" target="_blank" className="text-blue-600 hover:underline">Cookies Policy</Link>
+                            </span>
+                        </label>
+                    </div>
+
                     {errorMessage ? (
                         <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                             {errorMessage}
@@ -81,7 +113,7 @@ export default function Register() {
                     ) : null}
                     <button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isLoading || !allAgreed}
                         className="w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
                     >
                         {isLoading ? "Creating account..." : "Register"}

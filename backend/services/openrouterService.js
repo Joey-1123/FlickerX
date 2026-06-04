@@ -85,7 +85,7 @@ export const streamChat = async (messages, fileUrl, model, onChunk, userApiKey) 
         if (data === "[DONE]") continue;
         try {
           onChunk(JSON.parse(data));
-        } catch { /* skip malformed */ }
+        }         catch (e) { console.warn("Malformed SSE chunk:", e.message, data); }
       }
     });
 

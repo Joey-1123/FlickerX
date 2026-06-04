@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Sparkles, Bot, FileText, Zap, Shield, Code2 } from "lucide-react";
 
 // About page component with information about FlickerX
@@ -92,7 +93,11 @@ export default function About() {
 
             {/* Footer */}
             <div className="text-center text-gray-400 text-xs pb-10 border-t border-gray-100 pt-6">
-                © {new Date().getFullYear()} FlickerX. Built for smarter conversations.
+                <p>&copy; {new Date().getFullYear()} FlickerX. Built for smarter conversations.</p>
+                <p className="mt-1">
+                    <Link to="/policies" className="text-blue-600 hover:underline">Policies & Terms</Link>
+                </p>
+                <p className="mt-1 text-gray-500">v{import.meta.env.VITE_APP_VERSION || "1.3.Beta"}</p>
             </div>
 
         </div>

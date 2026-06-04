@@ -14,7 +14,7 @@ import {
     createSession, updateSession, deleteSession, generateTitle,
 } from "../utils/sessions";
 import { ALL_MODELS, PREMIUM_MODEL_IDS, VISION_MODELS } from "../utils/models";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme, ACCENT_COLORS } from "../context/ThemeContext";
 
 // rough token estimate: ~4 chars per token
 function estimateTokens(text) {
@@ -30,6 +30,12 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [toast, setToast] = useState(null);
+    const toastTimeoutRef = useRef(null);
+    const showToast = (msg, duration = 2000) => {
+        clearTimeout(toastTimeoutRef.current);
+        setToast(msg);
+        toastTimeoutRef.current = setTimeout(() => setToast(null), duration);
+    };
     const [isCommandOpen, setIsCommandOpen] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [input, setInput] = useState("");
@@ -165,22 +171,19 @@ export default function Chat() {
             const key = parts.slice(2).join(" ");
             localStorage.setItem("userApiKey", key);
             setUserApiKey(key);
-            setToast("API key saved");
-            setTimeout(() => setToast(null), 2000);
+            showToast("API key saved");
             return true;
         }
         if (cmd === "/key" && parts[1] === "clear") {
             localStorage.removeItem("userApiKey");
             setUserApiKey("");
-            setToast("API key cleared");
-            setTimeout(() => setToast(null), 2000);
+            showToast("API key cleared");
             return true;
         }
         if (cmd === "/key" && parts[1] === "status") {
             const stored = localStorage.getItem("userApiKey");
             const display = stored ? `${stored.slice(0, 7)}...${stored.slice(-4)}` : "not set";
-            setToast(`API key: ${display}`);
-            setTimeout(() => setToast(null), 3000);
+            showToast(`API key: ${display}`, 3000);
             return true;
         }
         return false;
@@ -197,8 +200,7 @@ export default function Chat() {
         }
 
         if (PREMIUM_MODEL_IDS.has(model) && !userApiKey) {
-            setToast("Premium models require an API key. Use /key set <your-key>");
-            setTimeout(() => setToast(null), 4000);
+            showToast("Premium models require an API key. Use /key set <your-key>", 4000);
             return;
         }
 
@@ -244,6 +246,7 @@ export default function Chat() {
         setIsLoading(true);
         try {
             const history = messages.slice(0, idx + 1);
+            setMessages(history);
             await doSend(history, null, null);
         } catch (error) {
             setMessages((prev) => [...prev, { role: "assistant", content: error.message, id: Date.now() + 2 }]);
@@ -254,10 +257,10 @@ export default function Chat() {
 
     const handleEdit = async (newContent) => {
         if (isLoading) return;
+        const lastUserIdx = [...messages].reverse().findIndex((m) => m.role === "user");
+        if (lastUserIdx === -1) return;
         setIsLoading(true);
         try {
-            const lastUserIdx = [...messages].reverse().findIndex((m) => m.role === "user");
-            if (lastUserIdx === -1) return;
             const idx = messages.length - 1 - lastUserIdx;
 
             const history = messages.slice(0, idx).concat([{ role: "user", content: newContent }]);
@@ -286,9 +289,8 @@ export default function Chat() {
     };
 
     const handleCopy = async (text) => {
-        try { await navigator.clipboard.writeText(text); setToast("Copied!"); }
-        catch { setToast("Failed to copy!"); }
-        setTimeout(() => setToast(null), 2000);
+        try { await navigator.clipboard.writeText(text); showToast("Copied!"); }
+        catch { showToast("Failed to copy!"); }
     };
 
     // toggle pin state for a message
@@ -379,10 +381,10 @@ export default function Chat() {
                             <button
                                 key={c}
                                 onClick={() => setAccent(c)}
-                                className={`w-3 h-3 rounded-full transition-all ${
-                                    accent === c ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500" : ""
+                                className={`w-4 h-4 rounded-full transition-all ${
+                                    accent === c ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 scale-110" : "hover:scale-110"
                                 }`}
-                                style={{ backgroundColor: c === "blue" ? "#3b82f6" : c === "purple" ? "#8b5cf6" : c === "green" ? "#22c55e" : c === "orange" ? "#f97316" : c === "pink" ? "#ec4899" : "#14b8a6" }}
+                                style={{ backgroundColor: ACCENT_COLORS[c].hex }}
                                 title={c}
                             />
                         ))}
