@@ -6,7 +6,6 @@ export const MODELS = {
         { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash", premium: true },
     ],
     coding: [
-        { id: "moonshotai/kimi-k2", name: "Kimi K2" },
         { id: "deepseek/deepseek-chat", name: "DeepSeek V3" },
         { id: "qwen/qwen-2.5-72b-instruct", name: "Qwen 2.5 72B" },
     ],
