@@ -1,17 +1,19 @@
 export const MODELS = {
     vision: [
         { id: "moonshotai/kimi-k2", name: "Kimi K2" },
-        { id: "openai/gpt-4o", name: "GPT-4o", premium: true },
-        { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", premium: true },
-        { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash", premium: true },
+        { id: "openai/gpt-4o-mini", name: "GPT-4o Mini" },
+        { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash" },
+        { id: "qwen/qwen-2.5-vl-72b-instruct", name: "Qwen 2.5 VL 72B" },
     ],
     coding: [
         { id: "deepseek/deepseek-chat", name: "DeepSeek V3" },
         { id: "qwen/qwen-2.5-72b-instruct", name: "Qwen 2.5 72B" },
+        { id: "mistral/mistral-small-3.1-24b-instruct", name: "Mistral Small 3.1" },
     ],
     textonly: [
         { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
         { id: "google/gemma-2-27b-it", name: "Gemma 2 27B" },
+        { id: "cohere/command-r7b-12-2024", name: "Command R7B" },
     ],
 };
 
