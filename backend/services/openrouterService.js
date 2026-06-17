@@ -64,32 +64,60 @@ export const getChatResponse = async (messages, fileUrl, model, userApiKey) => {
 export const streamChat = async (messages, fileUrl, model, onChunk, userApiKey) => {
   const payload = buildPayload(messages, fileUrl, model, true);
 
-  const response = await axios.post(
-    "https://openrouter.ai/api/v1/chat/completions",
-    payload,
-    { headers: headers(userApiKey), responseType: "stream", timeout: 30000 }
-  );
+  const maxAttempts = 3;
+  let attempt = 0;
 
-  return new Promise((resolve, reject) => {
-    let buffer = "";
+  while (attempt < maxAttempts) {
+    try {
+      const response = await axios.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        payload,
+        { headers: headers(userApiKey), responseType: "stream", timeout: 30000 }
+      );
 
-    response.data.on("data", (chunk) => {
-      buffer += chunk.toString();
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
+      return new Promise((resolve, reject) => {
+        let buffer = "";
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || !trimmed.startsWith("data: ")) continue;
-        const data = trimmed.slice(6);
-        if (data === "[DONE]") continue;
-        try {
-          onChunk(JSON.parse(data));
-        }         catch (e) { console.warn("Malformed SSE chunk:", e.message, data); }
-      }
-    });
+        response.data.on("data", (chunk) => {
+          buffer += chunk.toString();
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
 
-    response.data.on("end", resolve);
-    response.data.on("error", (err) => reject(normalizeError(err)));
-  });
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith("data: ")) continue;
+            const data = trimmed.slice(6);
+            if (data === "[DONE]") continue;
+            try {
+              onChunk(JSON.parse(data));
+            }         catch (e) { console.warn("Malformed SSE chunk:", e.message, data); }
+          }
+        });
+
+        response.data.on("end", resolve);
+        response.data.on("error", (err) => reject(normalizeError(err)));
+      });
+    } catch (err) {
+      attempt += 1;
+      const isLast = attempt >= maxAttempts;
+
+      // try to read the error body from the stream response
+      let detail = err?.message;
+      try {
+        if (err?.response?.data) {
+          const body = await new Promise((r) => {
+            let b = "";
+            err.response.data.on("data", (c) => { b += c.toString(); });
+            err.response.data.on("end", () => r(b));
+            err.response.data.on("error", () => r(""));
+          });
+          if (body) detail = body;
+        }
+      } catch (_) { /* ignore */ }
+
+      console.warn(`OpenRouter stream attempt ${attempt} failed:`, detail);
+      if (isLast) throw normalizeError(Object.assign(err, { message: detail }));
+      await new Promise((r) => setTimeout(r, 200 * Math.pow(2, attempt)));
+    }
+  }
 };
