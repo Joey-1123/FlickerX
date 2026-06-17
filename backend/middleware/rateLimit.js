@@ -12,3 +12,13 @@ export const chatRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const authRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    message: {
+        error: "Too many requests. Please slow down."
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});

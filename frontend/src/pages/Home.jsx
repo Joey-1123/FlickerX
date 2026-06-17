@@ -225,7 +225,11 @@ export default function Home() {
 
             {/* Footer */}
             <footer className="text-center text-black text-xs py-6 border-t border-gray-200/50 bg-white/70 backdrop-blur-md">
-                &copy; {new Date().getFullYear()} FlickerX. Built for smart conversations. All rights reserved.
+                <p>&copy; {new Date().getFullYear()} FlickerX. Built for smart conversations. All rights reserved.</p>
+                <p className="mt-1">
+                    <Link to="/policies" className="text-blue-600 hover:underline">Policies & Terms</Link>
+                </p>
+                <p className="mt-1 text-gray-400">v{import.meta.env.VITE_APP_VERSION || "1.3.Beta"}</p>
             </footer>
         </div>
     );

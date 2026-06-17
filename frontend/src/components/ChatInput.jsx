@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Send, Paperclip, EyeOff, Mic, MicOff, Sparkles } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
+import { ACCENT_COLORS } from "../context/ThemeContext";
 
 // preset templates for quick selection
 const TEMPLATES = [
@@ -11,6 +13,8 @@ const TEMPLATES = [
 
 // shows warning when model doesnt support image input
 export default function ChatInput({ input, setInput, onSend, isLoading, supportsVision, onFileDrop }) {
+    const { accent } = useTheme();
+    const sendColor = ACCENT_COLORS[accent]?.hex || "#3b82f6";
     const fileInputRef = useRef(null);
     const inputRef = useRef(null);
     const [file, setFile] = useState(null);
@@ -208,7 +212,8 @@ export default function ChatInput({ input, setInput, onSend, isLoading, supports
                     <button
                         onClick={handleSend}
                         disabled={isLoading}
-                        className="h-10 w-10 bg-blue-600 text-white rounded-full flex items-center justify-center disabled:opacity-50 shrink-0 hover:bg-blue-700 transition"
+                        className="h-10 w-10 text-white rounded-full flex items-center justify-center disabled:opacity-50 shrink-0 transition"
+                        style={{ backgroundColor: sendColor }}
                     >
                         {isLoading ? <span className="text-xs">...</span> : <Send className="w-4 h-4" />}
                     </button>

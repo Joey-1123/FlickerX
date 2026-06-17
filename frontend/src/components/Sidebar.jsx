@@ -12,7 +12,7 @@ import { useTheme } from "../context/ThemeContext";
 export default function Sidebar({
     sessions, activeId, onSelect, onNew, onDelete, onClose, open,
     model, onModelChange, streamEnabled, onStreamToggle, userApiKey,
-    temperature, onTemperatureChange, topP, onTopPChange, accentColor,
+    temperature, onTemperatureChange, topP, onTopPChange,
     folderFilter, onFolderFilter,
 }) {
     const { isAuthenticated, user, logout } = useAuth();

@@ -26,18 +26,7 @@ export const handleUpload = async (req, res) => {
         // Send response immediately
         res.json({ url: imageUrl });
 
-        // Changed: kept async cleanup, but this is best-effort
-        setTimeout(async () => {
-            try {
-                if (publicId) {
-                    await cloudinary.uploader.destroy(publicId);
-                }
-            } catch (err) {
-                console.error("Cloudinary delete error:", err);
-            }
-        }, 5000);
     } catch (err) {
-        // Changed: don't leak internal error details to the client
-        res.status(500).json({ error: "Upload failed" });
+        return res.status(500).json({ error: "Upload failed" });
     }
 };
