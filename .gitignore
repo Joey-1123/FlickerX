@@ -31,3 +31,6 @@ backend/data/users.json
 
 # UI backups
 frontend/src.bak*
+
+# LLM memory / context file
+memory_flickerX.md
