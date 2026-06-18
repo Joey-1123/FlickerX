@@ -41,7 +41,12 @@ export default function Chat() {
     const [input, setInput] = useState("");
     const [file, setFile] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [model, setModel] = useState(() => localStorage.getItem("selectedModel") || ALL_MODELS[0].id);
+    const [model, setModel] = useState(() => {
+        const stored = localStorage.getItem("selectedModel");
+        if (stored && !PREMIUM_MODEL_IDS.has(stored)) return stored;
+        const firstFree = ALL_MODELS.find((m) => !m.premium);
+        return firstFree ? firstFree.id : ALL_MODELS[0].id;
+    });
     const [streamEnabled, setStreamEnabled] = useState(true);
     const [systemPrompt, setSystemPrompt] = useState("");
     const [userApiKey, setUserApiKey] = useState(() => localStorage.getItem("userApiKey") || "");

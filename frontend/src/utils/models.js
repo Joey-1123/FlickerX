@@ -1,17 +1,18 @@
 export const MODELS = {
     vision: [
-        { id: "moonshotai/kimi-k2", name: "Kimi K2" },
+        { id: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro" },
+        { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B" },
         { id: "openai/gpt-4o", name: "GPT-4o", premium: true },
         { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", premium: true },
-        { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash", premium: true },
     ],
     coding: [
-        { id: "deepseek/deepseek-chat", name: "DeepSeek V3" },
-        { id: "qwen/qwen-2.5-72b-instruct", name: "Qwen 2.5 72B" },
+        { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder" },
+        { id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super" },
+        { id: "poolside/laguna-m.1:free", name: "Laguna M.1" },
     ],
     textonly: [
-        { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
-        { id: "google/gemma-2-27b-it", name: "Gemma 2 27B" },
+        { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B" },
+        { id: "openai/gpt-oss-120b:free", name: "GPT-OSS 120B" },
     ],
 };
 

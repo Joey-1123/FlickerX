@@ -26,10 +26,14 @@ export function AuthProvider({ children }) {
         const initializeAuth = async () => {
             const storedToken = localStorage.getItem("authToken");
             if (storedToken) {
-                setToken(storedToken);
-                setUser((prev) => prev || parseJwt(storedToken));
-                setLoading(false);
-                return;
+                const payload = parseJwt(storedToken);
+                if (payload && payload.exp * 1000 > Date.now()) {
+                    setToken(storedToken);
+                    setUser((prev) => prev || payload);
+                    setLoading(false);
+                    return;
+                }
+                // token expired – fall through to refresh
             }
 
             try {
