@@ -67,7 +67,7 @@ export default function Chat() {
     // load system prompt
     useEffect(() => {
         if (!token) return;
-        getProfile(token).then((res) => setSystemPrompt(res.user?.systemPrompt || "")).catch(() => {});
+        getProfile(token).then((res) => setSystemPrompt(res.user?.systemPrompt || "")).catch(() => { });
     }, [token]);
 
     // persist model choice
@@ -381,21 +381,25 @@ export default function Chat() {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-gray-400">Theme:</span>
+                        <span className="text-[10px] text-gray-400 p-1">Theme :</span>
                         {ACCENTS.map((c) => (
                             <button
                                 key={c}
                                 onClick={() => setAccent(c)}
-                                className={`w-4 h-4 rounded-full transition-all ${
-                                    accent === c ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 scale-110" : "hover:scale-110"
-                                }`}
+                                className={`w-4 h-4 rounded-full transition-all ${accent === c ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 scale-110" : "hover:scale-110"
+                                    }`}
                                 style={{ backgroundColor: ACCENT_COLORS[c].hex }}
                                 title={c}
                             />
                         ))}
                     </div>
 
-                    <button onClick={() => setShowShortcuts(true)} className="underline text-blue-500 hover:text-blue-600">Shortcuts</button>
+                    <button
+                        onClick={() => setShowShortcuts(true)}
+                        className="px-4 py-2 border border-blue-200 text-blue-600 font-medium rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+                    >
+                        Shortcuts
+                    </button>
                 </footer>
             </div>
         </>

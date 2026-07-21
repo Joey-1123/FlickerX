@@ -153,31 +153,28 @@ export default function ChatInput({ input, setInput, onSend, isLoading, supports
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm">
                     {/* attach / voice buttons group */}
                     <div className="flex items-center gap-1">
                         {/* disabled when model lacks vision support */}
-                        <div className="relative">
+                        <div className="relative ">
                             <button
                                 onClick={() => supportsVision && fileInputRef.current?.click()}
-                                className="h-10 w-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl disabled:opacity-40"
+                                className="h-10 w-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full disabled:opacity-40"
                                 disabled={isLoading || !supportsVision}
                                 title={!supportsVision ? "Selected model does not support images" : "Attach image"}
                             >
                                 {supportsVision ? <Paperclip className="w-5 h-5" /> : <EyeOff className="w-5 h-5 text-gray-400" />}
                             </button>
-                            {!supportsVision && (
-                                <span className="absolute -bottom-5 left-0 text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                                    No image support
-                                </span>
-                            )}
+                            
+                         
                         </div>
 
                         {/* voice input */}
                         <button
                             onClick={toggleListening}
                             disabled={isLoading}
-                            className={`h-10 w-10 flex items-center justify-center rounded-xl transition ${
+                            className={`h-10 w-10 flex items-center justify-center rounded-full transition ${
                                 listening
                                     ? "bg-red-100 dark:bg-red-900/50 text-red-500 animate-pulse"
                                     : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
