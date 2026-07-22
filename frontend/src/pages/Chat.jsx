@@ -16,9 +16,8 @@ import {
 import { ALL_MODELS, PREMIUM_MODEL_IDS, VISION_MODELS } from "../utils/models";
 import { useTheme, ACCENT_COLORS } from "../context/ThemeContext";
 
-// rough token estimate: ~4 chars per token
 function estimateTokens(text) {
-    return Math.ceil((text || "").length / 4);
+    return Math.ceil((text || "").length / 5);
 }
 
 export default function Chat() {
@@ -139,14 +138,10 @@ export default function Chat() {
     }, [systemPrompt]);
 
     // core send function (supports streaming)
-    const doSend = async (history, fileUrl, editingId) => {
+    const doSend = async (history, fileUrl) => {
         const msgs = buildMessages(history);
         let reply = "";
         let replyId = Date.now() + 1;
-
-        if (editingId) {
-            // edit mode: replace the assistant reply that follows the edited message
-        }
 
         if (streamEnabled) {
             setMessages((prev) => [...prev, { role: "assistant", content: "", id: replyId }]);
@@ -168,7 +163,6 @@ export default function Chat() {
         }
     };
 
-    // Handle /key command locally
     const handleKeyCommand = (input) => {
         const parts = input.trim().split(/\s+/);
         const cmd = parts[0]?.toLowerCase();
@@ -177,21 +171,15 @@ export default function Chat() {
             localStorage.setItem("userApiKey", key);
             setUserApiKey(key);
             showToast("API key saved");
-            return true;
-        }
-        if (cmd === "/key" && parts[1] === "clear") {
+        } else if (cmd === "/key" && parts[1] === "clear") {
             localStorage.removeItem("userApiKey");
             setUserApiKey("");
             showToast("API key cleared");
-            return true;
-        }
-        if (cmd === "/key" && parts[1] === "status") {
+        } else if (cmd === "/key" && parts[1] === "status") {
             const stored = localStorage.getItem("userApiKey");
             const display = stored ? `${stored.slice(0, 7)}...${stored.slice(-4)}` : "not set";
             showToast(`API key: ${display}`, 3000);
-            return true;
         }
-        return false;
     };
 
     const handleSend = async (input, file) => {
@@ -223,10 +211,11 @@ export default function Chat() {
             if (!isAuthenticated || !token) throw new Error("Authentication failed");
 
             const history = [...messages, { role: "user", content: input }];
-            await doSend(history, fileUrl, null);
+            await doSend(history, fileUrl);
 
             if (file && fileUrl) {
                 setMessages((prev) => prev.map((m) => (m.image === previewUrl ? { ...m, image: fileUrl } : m)));
+                URL.revokeObjectURL(previewUrl);
             }
 
             setInput("");
@@ -252,7 +241,7 @@ export default function Chat() {
         try {
             const history = messages.slice(0, idx + 1);
             setMessages(history);
-            await doSend(history, null, null);
+            await doSend(history, null);
         } catch (error) {
             setMessages((prev) => [...prev, { role: "assistant", content: error.message, id: Date.now() + 2 }]);
         } finally {
@@ -270,7 +259,7 @@ export default function Chat() {
 
             const history = messages.slice(0, idx).concat([{ role: "user", content: newContent }]);
             setMessages(history);
-            await doSend(history, null, null);
+            await doSend(history, null);
         } catch (error) {
             setMessages((prev) => [...prev, { role: "assistant", content: error.message, id: Date.now() + 2 }]);
         } finally {
