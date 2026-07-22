@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Send, Paperclip, EyeOff, Mic, MicOff, Sparkles } from "lucide-react";
-import { useTheme } from "../context/ThemeContext";
-import { ACCENT_COLORS } from "../context/ThemeContext";
+import { useTheme, ACCENT_COLORS } from "../context/ThemeContext";
 
 // preset templates for quick selection
 const TEMPLATES = [
@@ -11,8 +10,7 @@ const TEMPLATES = [
     { label: "Code", text: "/code" },
 ];
 
-// shows warning when model doesnt support image input
-export default function ChatInput({ input, setInput, onSend, isLoading, supportsVision, onFileDrop }) {
+export default function ChatInput({ input, setInput, onSend, isLoading, supportsVision }) {
     const { accent } = useTheme();
     const sendColor = ACCENT_COLORS[accent]?.hex || "#3b82f6";
     const fileInputRef = useRef(null);
@@ -65,8 +63,7 @@ export default function ChatInput({ input, setInput, onSend, isLoading, supports
         if (!dropped || !dropped.type.startsWith("image/")) return;
         setFile(dropped);
         setPreview(URL.createObjectURL(dropped));
-        onFileDrop?.(dropped);
-    }, [onFileDrop]);
+    }, []);
 
     // voice input using Web Speech API
     const toggleListening = () => {
