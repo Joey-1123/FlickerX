@@ -118,7 +118,7 @@ export const register = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: refreshTokenExpiresIn * 1000,
         });
@@ -155,7 +155,7 @@ export const login = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: refreshTokenExpiresIn * 1000,
         });
@@ -187,7 +187,7 @@ export const refreshToken = async (req, res) => {
 
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: refreshTokenExpiresIn * 1000,
         });
@@ -211,7 +211,7 @@ export const logout = async (req, res) => {
 
     res.clearCookie("refreshToken", {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
     });
 
@@ -223,7 +223,7 @@ export const deleteAccount = async (req, res) => {
         await deleteUserById(req.user.id);
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
         });
         return res.status(204).send();
