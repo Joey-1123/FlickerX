@@ -1,4 +1,3 @@
-// Changed: route uses extracted controller instead of inline handler
 import express from "express";
 import upload from "../middleware/upload.js";
 import { requireAuth } from "../middleware/authMiddleware.js";

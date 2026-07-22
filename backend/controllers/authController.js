@@ -1,4 +1,3 @@
-// Changed: replaced manual validation with zod schemas
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
@@ -39,7 +38,6 @@ const buildSafeUser = (user) => ({
     systemPrompt: user.systemPrompt || "",
 });
 
-// Changed: fetches full user from DB so systemPrompt is included
 export const getProfile = async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -56,7 +54,6 @@ export const getProfile = async (req, res) => {
     }
 };
 
-// Changed: allows updating systemPrompt and other profile fields
 const updateProfileSchema = z.object({
     name: z.string().trim().optional(),
     systemPrompt: z.string().optional(),

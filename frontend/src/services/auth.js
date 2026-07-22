@@ -81,7 +81,6 @@ export const getProfile = async (token) => {
     return parseJsonResponse(res);
 };
 
-// Changed: update profile fields (name, systemPrompt)
 export const updateProfile = async (token, updates) => {
     const res = await fetch(`${BASE_URL}/api/auth/me`, {
         method: "PUT",

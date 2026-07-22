@@ -1,8 +1,6 @@
 import { Sparkles, Trash2, Menu, Plus, Download } from "lucide-react";
-import { useTheme } from "../context/ThemeContext";
-import { ACCENT_COLORS } from "../context/ThemeContext";
+import { useTheme, ACCENT_COLORS } from "../context/ThemeContext";
 
-// Changed: removed About, Contact, theme, login/auth links — moved to Sidebar
 export default function ChatNavbar({ clearChat, onToggleSidebar, onNewChat, onExport }) {
     const { accent } = useTheme();
     const ac = ACCENT_COLORS[accent];

@@ -26,7 +26,6 @@ export const sendMessageToBackend = async (messages, token, fileUrl, model, user
     return res.json();
 };
 
-// Changed: streaming chat — reads SSE events and calls onChunk(content)
 export const streamChat = async (messages, token, fileUrl, model, onChunk, userApiKey) => {
     const body = { messages, ...(fileUrl ? { fileUrl } : {}), ...(model ? { model } : {}), ...(userApiKey ? { userApiKey } : {}) };
     const res = await fetch(`${BASE_URL}/api/chat/stream`, {

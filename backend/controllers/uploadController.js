@@ -1,4 +1,3 @@
-// Changed: extracted upload logic from inline route handler to a controller
 import cloudinary from "../config/cloudinary.js";
 
 export const handleUpload = async (req, res) => {

@@ -99,7 +99,6 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
-    // Changed: auto logout after 2 minutes of inactivity
     const logoutRef = useRef(logout);
     logoutRef.current = logout;
 
