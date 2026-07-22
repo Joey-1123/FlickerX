@@ -1,6 +1,11 @@
 const BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
-// Changed: accepts `model` and `userApiKey` parameters
+export const parseJsonResponse = async (res) => {
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload?.error || "Request failed");
+    return payload;
+};
+
 export const sendMessageToBackend = async (messages, token, fileUrl, model, userApiKey) => {
     const body = { messages, ...(fileUrl ? { fileUrl } : {}), ...(model ? { model } : {}), ...(userApiKey ? { userApiKey } : {}) };
     const res = await fetch(`${BASE_URL}/api/chat`, {
