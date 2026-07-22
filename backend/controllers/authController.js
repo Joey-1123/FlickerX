@@ -7,8 +7,8 @@ import { findUserByEmail, findUserById, createUser, updateUser, findUserByRefres
 import { generateRefreshToken } from "../services/tokenService.js";
 
 const jwtSecret = process.env.JWT_SECRET;
-const accessTokenExpiresIn = "15m";
-const refreshTokenExpiresIn = 60 * 60 * 24 * 30; // 30 days in seconds
+const accessTokenExpiresIn = process.env.JWT_ACCESS_EXPIRES || "15m";
+const refreshTokenExpiresIn = Number(process.env.JWT_REFRESH_EXPIRES_SECONDS) || 60 * 60 * 24 * 30;
 const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
 
 if (!jwtSecret) {
@@ -247,7 +247,7 @@ export const forgotPassword = async (req, res) => {
         }
 
         const resetToken = randomBytes(32).toString("hex");
-        const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+        const resetTokenExpiry = Date.now() + (Number(process.env.RESET_TOKEN_EXPIRES_MS) || 3600000);
 
         await updateUser(user.id, { resetToken, resetTokenExpiry });
 
