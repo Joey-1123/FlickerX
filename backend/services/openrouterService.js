@@ -62,10 +62,12 @@ const readErrorBody = async (err) => {
   } catch { return null; }
 };
 
-// Changed: normalizes OpenRouter errors into user-friendly messages
 const normalizeError = (err) => {
     const body = err._body;
     const msg = body || err?.response?.data?.error?.message || err?.message || "";
+    if (err?.response?.status === 401) {
+        return new Error("Invalid API key. Check your OpenRouter key or set one with /key set <your-key>.");
+    }
     if (/image|vision|multimodal/i.test(msg) && !/timeout|network/i.test(msg)) {
         return new Error(`This model does not support image inputs. Select a vision-capable model (GPT-4o, Claude, Gemini) or remove the image.`);
     }
