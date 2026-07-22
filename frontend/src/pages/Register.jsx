@@ -42,72 +42,72 @@ export default function Register() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
-            <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-lg border border-slate-200">
-                <h1 className="text-3xl font-bold text-slate-900 mb-4">Create an account</h1>
-                <p className="text-sm text-slate-500 mb-8">
+        <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center px-4 py-10">
+            <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 shadow-lg border border-slate-200 dark:border-gray-800">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-gray-100 mb-4">Create an account</h1>
+                <p className="text-sm text-slate-500 dark:text-gray-400 mb-8">
                     Register to securely access FlickerX chat and file intelligence.
                 </p>
                 <form className="space-y-5" onSubmit={handleSubmit}>
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Full name</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-gray-300">Full name</span>
                         <input
                             type="text"
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-gray-700 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-gray-800 dark:text-gray-100"
                             placeholder="Jane Doe"
                             required
                         />
                     </label>
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Email</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-gray-300">Email</span>
                         <input
                             type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
-                            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-gray-700 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-gray-800 dark:text-gray-100"
                             placeholder="you@example.com"
                             required
                         />
                     </label>
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Password</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-gray-300">Password</span>
                         <input
                             type="password"
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
-                            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-gray-700 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-gray-800 dark:text-gray-100"
                             placeholder="At least 8 characters"
                             minLength={8}
                             required
                         />
                     </label>
                     {/* Agreements */}
-                    <div className="space-y-3 border-t border-slate-200 pt-4 mt-2">
-                        <p className="text-xs font-medium text-slate-600">By creating an account, you agree to:</p>
+                    <div className="space-y-3 border-t border-slate-200 dark:border-gray-700 pt-4 mt-2">
+                        <p className="text-xs font-medium text-slate-600 dark:text-gray-400">By creating an account, you agree to:</p>
                         <label className="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                            <span className="text-xs text-slate-600">
+                            <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-0.5 rounded border-slate-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
+                            <span className="text-xs text-slate-600 dark:text-gray-400">
                                 <Link to="/policies" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>
                             </span>
                         </label>
                         <label className="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                            <span className="text-xs text-slate-600">
+                            <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} className="mt-0.5 rounded border-slate-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
+                            <span className="text-xs text-slate-600 dark:text-gray-400">
                                 <Link to="/policies" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>
                             </span>
                         </label>
                         <label className="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" checked={agreeCookies} onChange={(e) => setAgreeCookies(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                            <span className="text-xs text-slate-600">
+                            <input type="checkbox" checked={agreeCookies} onChange={(e) => setAgreeCookies(e.target.checked)} className="mt-0.5 rounded border-slate-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
+                            <span className="text-xs text-slate-600 dark:text-gray-400">
                                 <Link to="/policies" target="_blank" className="text-blue-600 hover:underline">Cookies Policy</Link>
                             </span>
                         </label>
                     </div>
 
                     {errorMessage ? (
-                        <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-2xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-400">
                             {errorMessage}
                         </div>
                     ) : null}
@@ -119,7 +119,7 @@ export default function Register() {
                         {isLoading ? "Creating account..." : "Register"}
                     </button>
                 </form>
-                <p className="mt-6 text-center text-sm text-slate-500">
+                <p className="mt-6 text-center text-sm text-slate-500 dark:text-gray-400">
                     Already have an account?
                 </p>
                 <div className="mt-4 text-center text-sm">

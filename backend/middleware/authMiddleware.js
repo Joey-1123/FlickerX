@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const jwtSecret = process.env.JWT_SECRET;
+const jwtAlgorithms = (process.env.JWT_ALGORITHM || "HS256").split(",");
 
 if (!jwtSecret) {
     throw new Error("JWT_SECRET must be defined in the environment.");
@@ -19,18 +20,11 @@ export const requireAuth = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, jwtSecret, { algorithms: ["HS256"] });
+        const decoded = jwt.verify(token, jwtSecret, { algorithms: jwtAlgorithms });
         req.user = decoded;
         return next();
     } catch (err) {
-        // Log detailed debug info to help diagnose signature issues.
         console.error("JWT verification failed:", err.message);
-        try {
-            const decodedUnsafe = jwt.decode(token, { complete: true });
-            console.error("Decoded token (unsafe, not verified):", decodedUnsafe);
-        } catch (decodeErr) {
-            console.error("Failed to decode token:", decodeErr?.message || decodeErr);
-        }
         return res.status(401).json({ error: "Invalid or expired token." });
     }
 };

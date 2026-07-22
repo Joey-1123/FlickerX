@@ -1,10 +1,12 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
-// Changed: key on authenticated user ID instead of IP so one user's requests
-// don't block others behind the same IP.
+const chatMax = Number(process.env.RATE_LIMIT_CHAT_MAX) || 5;
+const authMax = Number(process.env.RATE_LIMIT_AUTH_MAX) || 10;
+const windowMs = (Number(process.env.RATE_LIMIT_WINDOW_MS) || 60) * 1000;
+
 export const chatRateLimit = rateLimit({
-    windowMs: 60 * 1000,
-    max: 5,
+    windowMs,
+    max: chatMax,
     keyGenerator: (req) => req.user?.id ?? ipKeyGenerator(req),
     message: {
         error: "Too many requests. Please slow down."
@@ -14,8 +16,8 @@ export const chatRateLimit = rateLimit({
 });
 
 export const authRateLimit = rateLimit({
-    windowMs: 60 * 1000,
-    max: 10,
+    windowMs,
+    max: authMax,
     message: {
         error: "Too many requests. Please slow down."
     },

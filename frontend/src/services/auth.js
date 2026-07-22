@@ -1,12 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+import { parseJsonResponse } from "./api";
 
-const parseJsonResponse = async (res) => {
-    const payload = await res.json();
-    if (!res.ok) {
-        throw new Error(payload?.error || "Request failed");
-    }
-    return payload;
-};
+const BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 export const register = async (email, password, name, agreements = {}) => {
     const res = await fetch(`${BASE_URL}/api/auth/register`, {
@@ -87,7 +81,6 @@ export const getProfile = async (token) => {
     return parseJsonResponse(res);
 };
 
-// Changed: update profile fields (name, systemPrompt)
 export const updateProfile = async (token, updates) => {
     const res = await fetch(`${BASE_URL}/api/auth/me`, {
         method: "PUT",

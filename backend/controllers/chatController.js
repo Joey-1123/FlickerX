@@ -1,13 +1,17 @@
-// Changed: accept model from frontend; added streaming endpoint
 import { getChatResponse, streamChat } from "../services/openrouterService.js";
+
+const cloneMessages = (msgs) => {
+  try { return structuredClone(msgs); }
+  catch { return JSON.parse(JSON.stringify(msgs)); }
+};
 
 export const handleChat = async (req, res) => {
     try {
-        const { messages, message, fileUrl, model, userApiKey } = req.body;
+        const { messages, fileUrl, model, userApiKey } = req.body;
 
         const chatMessages = Array.isArray(messages) && messages.length > 0
-            ? structuredClone(messages)
-            : [{ role: "user", content: message || "" }];
+            ? cloneMessages(messages)
+            : [{ role: "user", content: "" }];
 
         const reply = await getChatResponse(chatMessages, fileUrl, model, userApiKey);
 
@@ -17,7 +21,6 @@ export const handleChat = async (req, res) => {
 
         res.json({ reply });
     } catch (err) {
-        // Changed: return the actual error message so the user knows why it failed
         const message = err?.message || "Chat failed";
         console.error("Chat failed:", message);
         res.status(500).json({ error: message });
@@ -26,11 +29,11 @@ export const handleChat = async (req, res) => {
 
 export const handleChatStream = async (req, res) => {
     try {
-        const { messages, message, fileUrl, model, userApiKey } = req.body;
+        const { messages, fileUrl, model, userApiKey } = req.body;
 
         const chatMessages = Array.isArray(messages) && messages.length > 0
-            ? structuredClone(messages)
-            : [{ role: "user", content: message || "" }];
+            ? cloneMessages(messages)
+            : [{ role: "user", content: "" }];
 
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
@@ -38,6 +41,13 @@ export const handleChatStream = async (req, res) => {
         res.flushHeaders();
 
         let fullContent = "";
+        let keepAliveTimer;
+
+        if (process.env.NODE_ENV !== "test") {
+            keepAliveTimer = setInterval(() => {
+                res.write(": keepalive\n\n");
+            }, 15000);
+        }
 
         await streamChat(chatMessages, fileUrl, model, (delta) => {
             const content = delta?.choices?.[0]?.delta?.content || "";
@@ -47,6 +57,7 @@ export const handleChatStream = async (req, res) => {
             }
         }, userApiKey);
 
+        clearInterval(keepAliveTimer);
         res.write(`data: ${JSON.stringify({ done: true, fullContent })}\n\n`);
         res.end();
     } catch (err) {

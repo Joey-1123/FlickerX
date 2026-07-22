@@ -1,7 +1,9 @@
 import axios from "axios";
 
-// Changed: accept `model` parameter so frontend can pick the AI model.
-// If a `fileUrl` is provided, the last user message becomes multi-part.
+const OPENROUTER_BASE = process.env.OPENROUTER_BASE || "https://openrouter.ai/api/v1/chat/completions";
+const HTTP_TIMEOUT = Number(process.env.OPENROUTER_TIMEOUT_MS) || 10000;
+const STREAM_TIMEOUT = Number(process.env.OPENROUTER_STREAM_TIMEOUT_MS) || 30000;
+
 const buildPayload = (messages, fileUrl, model, stream) => {
   const msgs = structuredClone(messages);
   if (fileUrl && msgs.length > 0) {
@@ -62,10 +64,12 @@ const readErrorBody = async (err) => {
   } catch { return null; }
 };
 
-// Changed: normalizes OpenRouter errors into user-friendly messages
 const normalizeError = (err) => {
     const body = err._body;
     const msg = body || err?.response?.data?.error?.message || err?.message || "";
+    if (err?.response?.status === 401) {
+        return new Error("Invalid API key. Check your OpenRouter key or set one with /key set <your-key>.");
+    }
     if (/image|vision|multimodal/i.test(msg) && !/timeout|network/i.test(msg)) {
         return new Error(`This model does not support image inputs. Select a vision-capable model (GPT-4o, Claude, Gemini) or remove the image.`);
     }
@@ -92,9 +96,9 @@ const tryWithFallback = async (payload, headers, timeout, onChunk, userApiKey) =
   for (let attempt = 0; attempt < rateLimitRetries; attempt++) {
     try {
       const response = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
+        OPENROUTER_BASE,
         { ...payload, model: originalModel },
-        { headers, ...(onChunk ? { responseType: "stream", timeout: 30000 } : { timeout }) }
+{ headers, ...(onChunk ? { responseType: "stream", timeout: STREAM_TIMEOUT } : { timeout }) }
       );
 
       if (onChunk) {
@@ -135,14 +139,13 @@ const tryWithFallback = async (payload, headers, timeout, onChunk, userApiKey) =
           await new Promise((r) => setTimeout(r, wait * 1000));
           continue;
         }
-        // exhausted rate-limit retries — try fallback models in case they have separate limits
         console.warn("Exhausted rate-limit retries, trying fallback models...");
         for (const fb of models.filter((m) => m !== originalModel)) {
           try {
             const fbResponse = await axios.post(
-              "https://openrouter.ai/api/v1/chat/completions",
+              OPENROUTER_BASE,
               { ...payload, model: fb },
-              { headers, ...(onChunk ? { responseType: "stream", timeout: 30000 } : { timeout }) }
+              { headers, ...(onChunk ? { responseType: "stream", timeout: STREAM_TIMEOUT } : { timeout }) }
             );
 
             if (onChunk) {
@@ -178,7 +181,7 @@ const tryWithFallback = async (payload, headers, timeout, onChunk, userApiKey) =
         for (const fb of models.filter((m) => m !== originalModel)) {
           try {
             const fbResponse = await axios.post(
-              "https://openrouter.ai/api/v1/chat/completions",
+              OPENROUTER_BASE,
               { ...payload, model: fb },
               { headers, timeout }
             );
@@ -195,11 +198,10 @@ const tryWithFallback = async (payload, headers, timeout, onChunk, userApiKey) =
 
 export const getChatResponse = async (messages, fileUrl, model, userApiKey) => {
   const payload = buildPayload(messages, fileUrl, model, false);
-  return tryWithFallback(payload, headers(userApiKey), 10000, null, userApiKey);
+  return tryWithFallback(payload, headers(userApiKey), HTTP_TIMEOUT, null, userApiKey);
 };
 
-// Changed: streaming support — calls `onChunk(rawJson)` for each SSE delta
 export const streamChat = async (messages, fileUrl, model, onChunk, userApiKey) => {
   const payload = buildPayload(messages, fileUrl, model, true);
-  return tryWithFallback(payload, headers(userApiKey), 30000, onChunk, userApiKey);
+  return tryWithFallback(payload, headers(userApiKey), STREAM_TIMEOUT, onChunk, userApiKey);
 };

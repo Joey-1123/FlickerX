@@ -13,10 +13,8 @@ router.get("/", (req, res) => {
   `);
 });
 
-// Apply authentication and rate limiting middleware to the chat route
 router.post("/", requireAuth, chatRateLimit, handleChat);
 
-// Changed: streaming chat endpoint — returns SSE events
 router.post("/stream", requireAuth, chatRateLimit, handleChatStream);
 
 export default router;

@@ -1,4 +1,3 @@
-// Changed: replaced manual validation with zod schemas
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
@@ -7,8 +6,8 @@ import { findUserByEmail, findUserById, createUser, updateUser, findUserByRefres
 import { generateRefreshToken } from "../services/tokenService.js";
 
 const jwtSecret = process.env.JWT_SECRET;
-const accessTokenExpiresIn = "15m";
-const refreshTokenExpiresIn = 60 * 60 * 24 * 30; // 30 days in seconds
+const accessTokenExpiresIn = process.env.JWT_ACCESS_EXPIRES || "15m";
+const refreshTokenExpiresIn = Number(process.env.JWT_REFRESH_EXPIRES_SECONDS) || 60 * 60 * 24 * 30;
 const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
 
 if (!jwtSecret) {
@@ -39,7 +38,6 @@ const buildSafeUser = (user) => ({
     systemPrompt: user.systemPrompt || "",
 });
 
-// Changed: fetches full user from DB so systemPrompt is included
 export const getProfile = async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -56,7 +54,6 @@ export const getProfile = async (req, res) => {
     }
 };
 
-// Changed: allows updating systemPrompt and other profile fields
 const updateProfileSchema = z.object({
     name: z.string().trim().optional(),
     systemPrompt: z.string().optional(),
@@ -118,7 +115,7 @@ export const register = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: refreshTokenExpiresIn * 1000,
         });
@@ -155,7 +152,7 @@ export const login = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: refreshTokenExpiresIn * 1000,
         });
@@ -187,7 +184,7 @@ export const refreshToken = async (req, res) => {
 
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: refreshTokenExpiresIn * 1000,
         });
@@ -211,7 +208,7 @@ export const logout = async (req, res) => {
 
     res.clearCookie("refreshToken", {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
     });
 
@@ -223,7 +220,7 @@ export const deleteAccount = async (req, res) => {
         await deleteUserById(req.user.id);
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
         });
         return res.status(204).send();
@@ -247,12 +244,11 @@ export const forgotPassword = async (req, res) => {
         }
 
         const resetToken = randomBytes(32).toString("hex");
-        const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+        const resetTokenExpiry = Date.now() + (Number(process.env.RESET_TOKEN_EXPIRES_MS) || 3600000);
 
         await updateUser(user.id, { resetToken, resetTokenExpiry });
 
         const resetUrl = `${process.env.FRONTEND_ORIGIN || "http://localhost:5173"}/reset-password?token=${resetToken}`;
-        console.log(`Password reset link for ${user.email}: ${resetUrl}`);
 
         return res.json({ message: "If that email exists, a reset link has been sent." });
     } catch (err) {

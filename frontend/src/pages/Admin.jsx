@@ -84,7 +84,7 @@ export default function Admin() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] py-10 px-4 transition-colors duration-300">
             {toast && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black text-sm px-4 py-2 rounded-xl shadow-xl z-50 transition-colors duration-300">
+                <div className="fixed top-4 sm:top-20 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black text-sm px-4 py-2 rounded-xl shadow-xl z-50 transition-colors duration-300">
                     {toast}
                 </div>
             )}

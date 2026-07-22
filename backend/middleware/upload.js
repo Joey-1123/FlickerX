@@ -1,6 +1,5 @@
 import multer from "multer";
 
-// Changed: enforce in-memory storage but add file size limits and an image-only filter
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
