@@ -238,7 +238,6 @@
     "style-to-object": "^1.0.14",
     "sucrase": "^3.35.1",
     "supports-preserve-symlinks-flag": "^1.0.0",
-    "swr": "^2.3.4",
     "tailwindcss": "^3.4.0",
     "thenify": "^3.3.1",
     "thenify-all": "^1.6.0",
@@ -268,7 +267,6 @@
     "yaml": "^2.8.4",
     "yocto-queue": "^0.1.0",
     "zod": "^4.4.3",
-    "zod-validation-error": "^4.0.2",
     "zwitch": "^2.0.4"
   },
   "scripts": {
