@@ -41,6 +41,7 @@ export const streamChat = async (messages, token, fileUrl, model, onChunk, userA
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let lastContent = "";
 
     while (true) {
         const { done, value } = await reader.read();
@@ -54,10 +55,11 @@ export const streamChat = async (messages, token, fileUrl, model, onChunk, userA
             const trimmed = line.trim();
             if (!trimmed.startsWith("data: ")) continue;
             const data = trimmed.slice(6);
+            if (data === "[DONE]") continue;
             try {
                 const parsed = JSON.parse(data);
                 if (parsed.done) return parsed.fullContent;
-                if (parsed.content) onChunk(parsed.content);
+                if (parsed.content) { onChunk(parsed.content); lastContent = parsed.content; }
                 if (parsed.error) throw new Error(parsed.error);
             } catch (e) {
                 if (e instanceof SyntaxError) continue;
@@ -65,6 +67,7 @@ export const streamChat = async (messages, token, fileUrl, model, onChunk, userA
             }
         }
     }
+    return lastContent || undefined;
 };
 
 export const uploadFile = async (file, token) => {
