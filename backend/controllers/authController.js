@@ -252,7 +252,6 @@ export const forgotPassword = async (req, res) => {
         await updateUser(user.id, { resetToken, resetTokenExpiry });
 
         const resetUrl = `${process.env.FRONTEND_ORIGIN || "http://localhost:5173"}/reset-password?token=${resetToken}`;
-        console.log(`Password reset link for ${user.email}: ${resetUrl}`);
 
         return res.json({ message: "If that email exists, a reset link has been sent." });
     } catch (err) {
