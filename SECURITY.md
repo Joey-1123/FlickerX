@@ -5,7 +5,7 @@
 If you discover a security vulnerability in FlickerX, please report it privately
 by opening a security advisory at:
 
-https://github.com/Joey-1123/FlickerX/security/advisories/new
+https://github.com/Omii-004/FlickerX/security/advisories/new
 
 Do **not** report security issues via public GitHub issues.
 
