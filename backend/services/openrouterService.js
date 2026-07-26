@@ -15,7 +15,7 @@ const buildPayload = (messages, fileUrl, model, stream) => {
       ];
     }
   }
-  return { model: model || "nex-agi/nex-n2-pro:free", messages: msgs, ...(stream ? { stream: true } : {}) };
+  return { model: model || "google/gemma-4-31b-it:free", messages: msgs, ...(stream ? { stream: true } : {}) };
 };
 
 // Accept optional userApiKey — use it if provided, otherwise fall back to app key
@@ -26,13 +26,11 @@ const headers = (userApiKey) => ({
 
 // Fallback order for free models when one is rate-limited
 const FREE_FALLBACKS = [
-  "nex-agi/nex-n2-pro:free",
-  "qwen/qwen3-coder:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
   "google/gemma-4-31b-it:free",
   "nvidia/nemotron-3-super-120b-a12b:free",
   "poolside/laguna-m.1:free",
-  "openai/gpt-oss-120b:free",
+  "inclusionai/ling-3.0-flash:free",
+  "openai/gpt-oss-20b:free",
 ];
 
 // Extract retry-after seconds from a 429 error response
@@ -69,6 +67,9 @@ const normalizeError = (err) => {
     const msg = body || err?.response?.data?.error?.message || err?.message || "";
     if (err?.response?.status === 401) {
         return new Error("Invalid API key. Check your OpenRouter key or set one with /key set <your-key>.");
+    }
+    if (err?.response?.status === 404) {
+        return new Error("Model not found — it may have been removed or renamed.");
     }
     if (/image|vision|multimodal/i.test(msg) && !/timeout|network/i.test(msg)) {
         return new Error(`This model does not support image inputs. Select a vision-capable model (GPT-4o, Claude, Gemini) or remove the image.`);
