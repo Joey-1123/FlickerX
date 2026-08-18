@@ -50,6 +50,12 @@ from routers.video import router as video_router
 from routers.audio import router as audio_router
 from routers.train import router as train_router
 from routers.datasets import router as datasets_router
+from routers.rag import router as rag_router
+from routers.research import router as research_router
+from routers.export import router as export_router
+from routers.providers import router as providers_router
+from routers.prompts import router as prompts_router
+from routers.mcp import router as mcp_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
@@ -64,6 +70,12 @@ app.include_router(video_router)
 app.include_router(audio_router)
 app.include_router(train_router)
 app.include_router(datasets_router)
+app.include_router(rag_router)
+app.include_router(research_router)
+app.include_router(export_router)
+app.include_router(providers_router)
+app.include_router(prompts_router)
+app.include_router(mcp_router)
 
 
 @app.get("/api/health")
