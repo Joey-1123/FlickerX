@@ -48,6 +48,8 @@ from routers.chat import router as chat_router
 from routers.images import router as images_router
 from routers.video import router as video_router
 from routers.audio import router as audio_router
+from routers.train import router as train_router
+from routers.datasets import router as datasets_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
@@ -60,6 +62,8 @@ app.include_router(chat_router, prefix="/v1", tags=["v1"])
 app.include_router(images_router)
 app.include_router(video_router)
 app.include_router(audio_router)
+app.include_router(train_router)
+app.include_router(datasets_router)
 
 
 @app.get("/api/health")
