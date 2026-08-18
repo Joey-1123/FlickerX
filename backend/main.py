@@ -45,6 +45,9 @@ from routers.models import router as models_router
 from routers.hub import router as hub_router
 from routers.inference import router as inference_router
 from routers.chat import router as chat_router
+from routers.images import router as images_router
+from routers.video import router as video_router
+from routers.audio import router as audio_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
@@ -54,6 +57,9 @@ app.include_router(hub_router, prefix="/api/hub", tags=["hub"])
 app.include_router(inference_router, prefix="/api/inference", tags=["inference"])
 app.include_router(chat_router, prefix="/api/chat", tags=["chat"])
 app.include_router(chat_router, prefix="/v1", tags=["v1"])
+app.include_router(images_router)
+app.include_router(video_router)
+app.include_router(audio_router)
 
 
 @app.get("/api/health")
