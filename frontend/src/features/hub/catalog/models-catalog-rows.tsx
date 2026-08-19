@@ -521,7 +521,7 @@ export const DiscoverModelRow = memo(function DiscoverModelRow({
           <div className="flex h-[16px] min-w-0 items-center justify-between gap-2 text-ui-11p5 leading-ui-16 text-muted-foreground/85">
             <span className="flex min-w-0 items-center gap-1">
               <span className="truncate">{row.owner}</span>
-              {row.owner.toLowerCase() === "unsloth" && (
+              {row.owner.toLowerCase() === "testorg" && (
                 <span
                   aria-label="Verified FlickerX"
                   className="hub-verified-badge size-3.5 shrink-0 text-verified"
@@ -721,7 +721,7 @@ export const InventoryRow = memo(function InventoryRow({
   const ownerLine = (
     <span className="mt-0.5 flex min-w-0 items-center gap-1 text-ui-11p5 leading-ui-15 text-muted-foreground/80">
       <span className="truncate">{subLabel}</span>
-      {subLabel.toLowerCase() === "unsloth" && (
+      {subLabel.toLowerCase() === "testorg" && (
         <span
           aria-label="Verified FlickerX"
           className="hub-verified-badge size-3.5 shrink-0 text-verified"
@@ -852,7 +852,7 @@ export const InventoryRow = memo(function InventoryRow({
             <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-ui-10p5 leading-ui-14 text-muted-foreground/75">
               <span className="flex min-w-0 items-center gap-1">
                 <span className="truncate">{subLabel}</span>
-                {subLabel.toLowerCase() === "unsloth" && (
+                {subLabel.toLowerCase() === "testorg" && (
                   <span
                     aria-label="Verified FlickerX"
                     className="hub-verified-badge size-3 shrink-0 text-verified"

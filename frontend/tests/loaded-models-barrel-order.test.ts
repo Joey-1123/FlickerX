@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // There is a genuine import cycle here, and the barrel's export order is what
 // keeps it harmless:

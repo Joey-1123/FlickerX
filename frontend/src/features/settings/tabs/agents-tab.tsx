@@ -56,8 +56,8 @@ import { psSingle, shSingle } from "../components/usage-examples";
 import { useSettingsPanelPrefsStore } from "../stores/settings-panel-prefs-store";
 import { ggufVariantDisplayLabel } from "@/features/hub";
 
-const DOCS_URL = "https://flickerx.ai/docs/integrations/unsloth-start";
-const EXAMPLE_MODEL_REPO = "unsloth/gemma-4-E4B-it-GGUF";
+const DOCS_URL = "https://flickerx.ai/docs/integrations/flickerx-start";
+const EXAMPLE_MODEL_REPO = "testorg/gemma-4-E4B-it-GGUF";
 const EXAMPLE_MODEL_VARIANT = "UD-Q4_K_XL";
 const MODEL_RESULT_LIMIT = 7;
 const STATUS_POLL_MS = 5000;

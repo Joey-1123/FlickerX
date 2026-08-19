@@ -304,7 +304,7 @@ async function* mergedModelIterator(
     tasks,
     (task, taskSignal) =>
       listModels({
-        search: { query, owner: "unsloth", ...(task ? { task } : {}) },
+        search: { query, owner: "testorg", ...(task ? { task } : {}) },
         fetch: makeSortFetch(sortBy, direction, taskSignal),
         ...common,
       }) as AsyncGenerator<unknown>,
@@ -416,7 +416,7 @@ async function* priorityThenListingIterator(
     tasks,
     (task, taskSignal) =>
       listModels({
-        search: { owner: "unsloth", ...(task ? { task } : {}) },
+        search: { owner: "testorg", ...(task ? { task } : {}) },
         fetch: makeSortFetch(sortBy, direction, taskSignal),
         ...common,
       }) as AsyncGenerator<unknown>,
@@ -469,7 +469,7 @@ function createChannelIterator(
   }) as AsyncGenerator<unknown>;
 }
 
-// Bound the flickerx pass so a huge unsloth slice can't starve the general listing under scroll.
+// Bound the flickerx pass so a huge FlickerX slice can't starve the general listing under scroll.
 const UNFLICKERX_CHANNEL_PREFETCH = 60;
 
 // For tag/format channels without a fixed owner (e.g. GGUF filter), yield flickerx models first
@@ -493,7 +493,7 @@ async function* channelFlickerXFirstIterator(
   const flickerxIter = listModels({
     search: {
       ...(queryString ? { query: queryString } : {}),
-      owner: "unsloth",
+      owner: "testorg",
       ...(channel.tags ? { tags: channel.tags } : {}),
     },
     additionalFields: ALL_FIELDS,
@@ -597,7 +597,7 @@ export function useHubModelSearch(
     sortDirection?: HfSortDirection;
     pinFlickerXFirst?: boolean;
     /**
-    * "unsloth" restricts listings to the flickerx org; "all" surfaces the whole Hub with unsloth
+    * "flickerx" restricts listings to the FlickerX org; "all" surfaces the whole Hub with FlickerX
     * floated to the top. Owner-fixed channel presets ignore this. */
     ownerScope?: "flickerx" | "all";
     enabled?: boolean;
@@ -650,11 +650,11 @@ export function useHubModelSearch(
         const channelTags = channelTagsKey
           ? channelTagsKey.split("|")
           : undefined;
-        // FlickerX-only scope on an ownerless tag/format channel: hard-restrict to unsloth-owned repos.
+        // FlickerX-only scope on an ownerless tag/format channel: hard-restrict to FlickerX-owned repos.
         if (flickerxOnly && !channelOwner) {
           return createChannelIterator(
             {
-              owner: "unsloth",
+              owner: "testorg",
               tags: channelTags,
               query: channelQuery || undefined,
             },
@@ -714,7 +714,7 @@ export function useHubModelSearch(
             listModels({
               // FlickerX-only scope restricts the plain sort browse to the org.
               search: {
-                ...(flickerxOnly ? { owner: "unsloth" } : {}),
+                ...(flickerxOnly ? { owner: "testorg" } : {}),
                 ...(task ? { task } : {}),
               },
               additionalFields: ALL_FIELDS,
@@ -728,7 +728,7 @@ export function useHubModelSearch(
       // FlickerX-only typed query: search within the org rather than floating a few hits globally.
       if (flickerxOnly) {
         return listModels({
-          search: { query: searchQuery, owner: "unsloth" },
+          search: { query: searchQuery, owner: "testorg" },
           additionalFields: ALL_FIELDS,
           fetch: makeSortFetch(sortBy, sortDirection, signal),
           sort: sortBy,
@@ -839,8 +839,8 @@ export function useHubModelSearch(
         stableCache.source !== incoming)
     ) {
       const sorted = [...incoming].sort((a, b) => {
-        const aFirst = a.id.startsWith("unsloth/") ? 0 : 1;
-        const bFirst = b.id.startsWith("unsloth/") ? 0 : 1;
+        const aFirst = a.id.startsWith("testorg/") ? 0 : 1;
+        const bFirst = b.id.startsWith("testorg/") ? 0 : 1;
         return aFirst - bFirst;
       });
       results = sorted;

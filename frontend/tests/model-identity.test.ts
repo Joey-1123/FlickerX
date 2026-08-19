@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -26,16 +26,16 @@ import {
 registerBundlerResolver();
 const { store, storage } = installLocalStorageFake();
 
-const REPO_KEY = 'v2:["unsloth/repo-gguf","q4_k_m"]';
+const REPO_KEY = 'v2:["testorg/repo-gguf","q4_k_m"]';
 
 // The legacy import runs once on the first read, so it must be staged before the import.
 store.set(
-  "unsloth_model_configs",
+  "flickerx_model_configs",
   JSON.stringify({ [REPO_KEY]: { version: 1, maxSeqLength: 32768 } }),
 );
 store.set(
-  "unsloth_load_settings",
-  JSON.stringify({ "Unsloth/Repo-GGUF::Q4_K_M": { contextLength: 8192 } }),
+  "flickerx_load_settings",
+  JSON.stringify({ "Testorg/Repo-GGUF::Q4_K_M": { contextLength: 8192 } }),
 );
 
 const { listPerModelConfigs, resolveInitialConfig, savePerModelConfig } =
@@ -61,7 +61,7 @@ function config(maxSeqLength: number, kvCacheDtype: string | null = null) {
 
 function storedKeys(): string[] {
   return Object.keys(
-    JSON.parse(storage.getItem("unsloth_model_configs") ?? "{}"),
+    JSON.parse(storage.getItem("flickerx_model_configs") ?? "{}"),
   );
 }
 
@@ -73,22 +73,22 @@ test("publicModelId mirrors what /status reports for a path-loaded model", () =>
   );
   assert.equal(
     publicModelId(
-      "/home/u/.cache/huggingface/hub/models--unsloth--Qwen3-8B-GGUF/snapshots/abc123",
+      "/home/u/.cache/huggingface/hub/models--testorg--Qwen3-8B-GGUF/snapshots/abc123",
     ),
-    "unsloth/Qwen3-8B-GGUF",
+    "testorg/Qwen3-8B-GGUF",
   );
   assert.equal(publicModelId("C:\\models\\Foo-Q4_K_M.gguf"), "Foo-Q4_K_M");
   // The selector's label for an unlisted model leans on the Windows cache path.
   assert.equal(
     publicModelId(
-      "C:\\Users\\u\\.cache\\huggingface\\hub\\models--unsloth--gemma-4-12B-it-qat-GGUF\\snapshots\\7102bdea",
+      "C:\\Users\\u\\.cache\\huggingface\\hub\\models--testorg--gemma-4-12B-it-qat-GGUF\\snapshots\\7102bdea",
     ),
-    "unsloth/gemma-4-12B-it-qat-GGUF",
+    "testorg/gemma-4-12B-it-qat-GGUF",
   );
   assert.equal(publicModelId("~/models/Foo.gguf"), "Foo");
   assert.equal(publicModelId("/srv/models/repo/"), "repo");
   // A repo id and an already-clean name come back untouched.
-  assert.equal(publicModelId("unsloth/Qwen3-8B-GGUF"), "unsloth/Qwen3-8B-GGUF");
+  assert.equal(publicModelId("testorg/Qwen3-8B-GGUF"), "testorg/Qwen3-8B-GGUF");
   assert.equal(publicModelId("Qwen3-8B-Q4_K_M"), "Qwen3-8B-Q4_K_M");
   // "models--" alone is not the cache layout; only the snapshots sibling is.
   assert.equal(publicModelId("models--only--nosnapshots/blobs/x"), "x");
@@ -111,9 +111,9 @@ test("a resident path-loaded model is matched by the id /status reports", () => 
   // A repo in an inactive cache keeps the repo id as its settings identity.
   assert.equal(
     residentModelIdMatches(
-      "unsloth/Qwen3-8B-GGUF",
-      "/mnt/old-cache/models--unsloth--Qwen3-8B-GGUF/snapshots/abc123",
-      "unsloth/Qwen3-8B-GGUF",
+      "testorg/Qwen3-8B-GGUF",
+      "/mnt/old-cache/models--testorg--Qwen3-8B-GGUF/snapshots/abc123",
+      "testorg/Qwen3-8B-GGUF",
     ),
     true,
   );
@@ -137,9 +137,9 @@ test("a resident path-loaded model is matched by the id /status reports", () => 
   );
   assert.equal(
     residentModelIdMatches(
-      "unsloth/Qwen3-8B-GGUF",
-      "/mnt/old-cache/models--unsloth--Llama-3-GGUF/snapshots/abc123",
-      "unsloth/Llama-3-GGUF",
+      "testorg/Qwen3-8B-GGUF",
+      "/mnt/old-cache/models--testorg--Llama-3-GGUF/snapshots/abc123",
+      "testorg/Llama-3-GGUF",
     ),
     false,
   );
@@ -169,8 +169,8 @@ test("a shared filename or folder name never marks a row resident", () => {
   // A cache snapshot still collapses onto its repo id, which names one model.
   assert.equal(
     residentModelIdMatches(
-      "unsloth/Qwen3-8B-GGUF",
-      "/mnt/old-cache/models--unsloth--Qwen3-8B-GGUF/snapshots/abc123",
+      "testorg/Qwen3-8B-GGUF",
+      "/mnt/old-cache/models--testorg--Qwen3-8B-GGUF/snapshots/abc123",
       null,
     ),
     true,
@@ -184,7 +184,7 @@ test("Ollama link paths are recognised the way the resolver excludes them", () =
     true,
   );
   assert.equal(
-    isOllamaLinkPath("/home/u/.cache/unsloth/ollama_links/ab12/llama3.gguf"),
+    isOllamaLinkPath("/home/u/.cache/testorg/ollama_links/ab12/llama3.gguf"),
     true,
   );
   assert.equal(
@@ -194,7 +194,7 @@ test("Ollama link paths are recognised the way the resolver excludes them", () =
   // Only those exact segments, not a directory that merely contains the name.
   assert.equal(isOllamaLinkPath("/srv/studio_links_backup/a.gguf"), false);
   assert.equal(isOllamaLinkPath("/srv/models/Qwen3-8B-Q4_K_M.gguf"), false);
-  assert.equal(isOllamaLinkPath("unsloth/Qwen3-8B-GGUF"), false);
+  assert.equal(isOllamaLinkPath("testorg/Qwen3-8B-GGUF"), false);
   assert.equal(isOllamaLinkPath(null), false);
 });
 
@@ -233,7 +233,7 @@ test("importing the legacy load settings never doubles up a model", () => {
   assert.deepEqual(listPerModelConfigs().length, 1);
   assert.deepEqual(storedKeys(), [REPO_KEY]);
   assert.equal(
-    resolveInitialConfig("unsloth/repo-gguf", "q4_k_m").config
+    resolveInitialConfig("testorg/repo-gguf", "q4_k_m").config
       .customContextLength,
     null,
   );
@@ -241,8 +241,8 @@ test("importing the legacy load settings never doubles up a model", () => {
 
 test("two spellings of one model id keep a single stored record", () => {
   store.clear();
-  savePerModelConfig("Unsloth/Repo-GGUF", "Q4_K_M", config(4096));
-  savePerModelConfig("unsloth/repo-gguf", "q4_k_m", config(32768, "q8_0"));
+  savePerModelConfig("Testorg/Repo-GGUF", "Q4_K_M", config(4096));
+  savePerModelConfig("testorg/repo-gguf", "q4_k_m", config(32768, "q8_0"));
 
   assert.deepEqual(storedKeys(), [REPO_KEY]);
   const listed = listPerModelConfigs();
@@ -250,7 +250,7 @@ test("two spellings of one model id keep a single stored record", () => {
   assert.equal(listed[0]?.config.maxSeqLength, 32768);
   // What the picker applies and the only thing the backfill can see agree.
   assert.equal(
-    resolveInitialConfig("Unsloth/Repo-GGUF", "Q4_K_M").config.maxSeqLength,
+    resolveInitialConfig("Testorg/Repo-GGUF", "Q4_K_M").config.maxSeqLength,
     32768,
   );
 });
@@ -358,7 +358,7 @@ const STANDALONE_GGUF_CASES: [string, boolean][] = [
   ["lex-au/Orpheus-3b-FT-Q8_0.gguf", false],
   ["NexesQuants/TeeZee_Kyllene-Yi-34B-v1.1-iMat.GGUF", false],
   ["Joshua65535/qwen2.5-1.5b-instruct-q4_k_m.gguf", false],
-  ["unsloth/Qwen3-8B-GGUF", false],
+  ["testorg/Qwen3-8B-GGUF", false],
   ["", false],
 ];
 
@@ -437,13 +437,13 @@ test("labels a model id with the repo leaf, never the raw path", () => {
   // puts the whole home directory in the chat model bar.
   assert.equal(
     modelDisplayName(
-      String.raw`C:\Users\An\.cache\huggingface\hub\models--unsloth--DeepSeek-V4-Flash-0731-GGUF\snapshots\57326b941c4603e24d1a5e71c22520c66e086eb8`,
+      String.raw`C:\Users\An\.cache\huggingface\hub\models--testorg--DeepSeek-V4-Flash-0731-GGUF\snapshots\57326b941c4603e24d1a5e71c22520c66e086eb8`,
     ),
     "DeepSeek-V4-Flash-0731-GGUF",
   );
   assert.equal(
     modelDisplayName(
-      "/home/u/.cache/huggingface/hub/models--unsloth--DeepSeek-V4-Flash-0731-GGUF/snapshots/57326b941c4603e24d1a5e71c22520c66e086eb8",
+      "/home/u/.cache/huggingface/hub/models--testorg--DeepSeek-V4-Flash-0731-GGUF/snapshots/57326b941c4603e24d1a5e71c22520c66e086eb8",
     ),
     "DeepSeek-V4-Flash-0731-GGUF",
   );
@@ -451,7 +451,7 @@ test("labels a model id with the repo leaf, never the raw path", () => {
     modelDisplayName("/srv/models/Qwen3-30B-A3B-Q4_K_M.gguf"),
     "Qwen3-30B-A3B-Q4_K_M",
   );
-  assert.equal(modelDisplayName("unsloth/Qwen3-30B-A3B-GGUF"), "Qwen3-30B-A3B-GGUF");
+  assert.equal(modelDisplayName("testorg/Qwen3-30B-A3B-GGUF"), "Qwen3-30B-A3B-GGUF");
   assert.equal(modelDisplayName("Qwen3-30B-A3B"), "Qwen3-30B-A3B");
   assert.equal(modelDisplayName(""), "");
 });

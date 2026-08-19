@@ -484,7 +484,7 @@ export const useExportRuntimeStore = create<ExportRuntimeStore>()((set, get) => 
         }
       } else if (params.exportMethod === "gguf") {
         // Send the whole quant list in ONE call: the model is merged once and every GGUF comes
-        // from that single merge (unsloth save_to_gguf loops internally).
+        // from that single merge (FlickerX save_to_gguf loops internally).
         const { outputPath } = await runRecoverableOp(() =>
           exportGGUF({
             save_directory: params.saveDirectory,

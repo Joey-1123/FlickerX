@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Between the last download and the first training step the overlay sat on a static
 // line while tokenizing ran for minutes. These pin the parsing of the worker's tqdm
@@ -21,7 +21,7 @@ test("a preparation step routes to the resource row it belongs to", () => {
   assert.equal(classifyPreparation('Tokenizing ["text"]'), "dataset");
   assert.equal(classifyPreparation("Loading dataset"), "dataset");
   assert.equal(classifyPreparation("Map"), "dataset");
-  assert.equal(classifyPreparation("Unsloth: Formatting dataset"), "dataset");
+  assert.equal(classifyPreparation("FlickerX: Formatting dataset"), "dataset");
   assert.equal(classifyPreparation("Loading checkpoint shards"), "model");
   assert.equal(classifyPreparation("Loading model"), "model");
   // "tokenizer" is model setup; only "tokenizing" is dataset work.
@@ -65,7 +65,7 @@ test("every status the worker sends reaches a row", () => {
     "Preprocessing CSM... 5/100",
   ];
   const modelSteps = [
-    "Importing Unsloth...",
+    "Importing FlickerX...",
     "Detecting model type...",
     "Loading Qwen/Qwen3.5-0.8B-Base...",
     "Loading model...",
@@ -215,7 +215,7 @@ test("an uncounted message stays indeterminate", () => {
     percent: null,
   });
   assert.deepEqual(
-    parsePreparationProgress("Unsloth: Formatting dataset…", "Preparing"),
+    parsePreparationProgress("FlickerX: Formatting dataset…", "Preparing"),
     { title: "Formatting dataset", detail: null, percent: null },
   );
   assert.deepEqual(parsePreparationProgress("", "Preparing"), {

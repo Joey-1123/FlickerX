@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The Recommended list paints curated catalog seeds as well as live Hub listing rows.
 // Everything a row shows beyond its id used to come from the listing alone, so a curated
-// model the listing does not return (a repo it has not indexed, a non-unsloth owner, one
+// model the listing does not return (a repo it has not indexed, a non-testorg owner, one
 // this account cannot see) rendered bare and, once downloaded, stopped matching search
 // entirely. These pin the catalog fallbacks that close both gaps.
 
@@ -27,9 +27,9 @@ import {
   searchableRecommendedIds,
 } from "../src/features/model-picker/components/model-selector/recommended-fit.ts";
 
-const H3_GGUF = "unsloth/MiniMax-H3-GGUF";
+const H3_GGUF = "testorg/MiniMax-H3-GGUF";
 const H3_BF16 = "MiniMaxAI/MiniMax-H3";
-const LTX_GGUF = "unsloth/LTX-2.3-GGUF";
+const LTX_GGUF = "testorg/LTX-2.3-GGUF";
 const WAN_BF16 = "Wan-AI/Wan2.2-TI2V-5B-Diffusers";
 
 // ── search: a downloaded curated row stays findable ───────────────────────────
@@ -39,11 +39,11 @@ test("a seed the listing pool dropped is still searchable", () => {
   // downloaded model has its own On Device row. The unfiltered Recommended list keeps
   // painting it from the seeds, so search has to as well.
   const seeds = [H3_GGUF, LTX_GGUF];
-  const listing = [LTX_GGUF, "unsloth/Wan2.2-TI2V-5B-GGUF"]; // H3 downloaded -> dropped
+  const listing = [LTX_GGUF, "testorg/Wan2.2-TI2V-5B-GGUF"]; // H3 downloaded -> dropped
   assert.deepEqual(searchableRecommendedIds(seeds, listing), [
     H3_GGUF,
     LTX_GGUF,
-    "unsloth/Wan2.2-TI2V-5B-GGUF",
+    "testorg/Wan2.2-TI2V-5B-GGUF",
   ]);
 });
 
@@ -51,20 +51,20 @@ test("seeds come first and no id is listed twice", () => {
   // Same order orderRecommendedRows renders: curated in catalog order, then the rest.
   const out = searchableRecommendedIds(
     [H3_GGUF, LTX_GGUF],
-    ["unsloth/Other-GGUF", LTX_GGUF, H3_GGUF],
+    ["testorg/Other-GGUF", LTX_GGUF, H3_GGUF],
   );
-  assert.deepEqual(out, [H3_GGUF, LTX_GGUF, "unsloth/Other-GGUF"]);
+  assert.deepEqual(out, [H3_GGUF, LTX_GGUF, "testorg/Other-GGUF"]);
 });
 
 test("a listing row that only differs in case does not duplicate its seed", () => {
   // The HF cache lowercases repo ids, so the two pools can disagree on casing.
-  const out = searchableRecommendedIds([H3_GGUF], ["unsloth/minimax-h3-gguf"]);
+  const out = searchableRecommendedIds([H3_GGUF], ["testorg/minimax-h3-gguf"]);
   assert.deepEqual(out, [H3_GGUF]);
 });
 
 test("with no seeds the listing pool is passed through unchanged", () => {
   // Chat (no catalog) must behave exactly as before.
-  const listing = ["unsloth/a-GGUF", "unsloth/b-GGUF"];
+  const listing = ["testorg/a-GGUF", "testorg/b-GGUF"];
   assert.deepEqual(searchableRecommendedIds([], listing), listing);
 });
 

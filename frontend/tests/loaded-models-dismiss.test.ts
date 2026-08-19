@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Closing the card and switching it off in Settings are two different wishes,
 // and they must not share a flag: the next model load reopens a card that was

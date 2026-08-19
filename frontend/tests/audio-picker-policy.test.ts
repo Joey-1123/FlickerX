@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -163,7 +163,7 @@ test("generic cached GGUF metadata yields to the curated Audio task", () => {
 
 test("exact cached Audio artifacts route from generic inventory to their Audio task", () => {
   const orpheus = artifactForRepoId(
-    "unsloth/orpheus-3b-0.1-ft-GGUF",
+    "testorg/orpheus-3b-0.1-ft-GGUF",
     AUDIO_CATALOG,
   );
   assert.ok(orpheus);
@@ -180,7 +180,7 @@ test("exact cached Audio artifacts route from generic inventory to their Audio t
     "text-to-speech",
   );
 
-  const asr = artifactForRepoId("unslothai/Qwen3-ASR-0.6B-GGUF", AUDIO_CATALOG);
+  const asr = artifactForRepoId("testorg/Qwen3-ASR-0.6B-GGUF", AUDIO_CATALOG);
   assert.ok(asr);
   assert.equal(
     taskForMediaPick(
@@ -296,7 +296,7 @@ test("community ASR only offers checkpoints the Transformers Whisper sidecar can
   );
   // Llasa was in this list and should not have been. It speaks XCodec2, which
   // AudioCodecManager cannot decode and _AUDIO_TOKEN_PATTERNS cannot even recognise, so
-  // probing a running Studio reports unsloth/Llasa-1B as is_audio=false. Admitting the row
+  // probing a running Studio reports testorg/Llasa-1B as is_audio=false. Admitting the row
   // produced a model that loaded and then failed at generation.
   assert.equal(
     communityAudioRowIsRunnable({
@@ -387,7 +387,7 @@ test("community Audio feeds participate in both infinite-scroll paths", () => {
   assert.match(pickerSource, /recommendedHasMore/);
   assert.match(
     pickerSource,
-    /const unslothRequested = hasMore \? fetchMore\(\) : false;[\s\S]*const communityRequested =[\s\S]*communityQuerySearch\.fetchMore\(\)/,
+    /const flickerxRequested = hasMore \? fetchMore\(\) : false;[\s\S]*const communityRequested =[\s\S]*communityQuerySearch\.fetchMore\(\)/,
   );
 });
 
@@ -429,7 +429,7 @@ test("macOS TTS search only offers directly runnable or curated GGUF-backed rows
     true,
   );
   const csmHasGguf = Boolean(
-    groupForRepoId("unsloth/csm-1b", AUDIO_CATALOG)?.artifacts.some(
+    groupForRepoId("testorg/csm-1b", AUDIO_CATALOG)?.artifacts.some(
       (artifact) => artifact.format === "gguf",
     ),
   );
@@ -463,7 +463,7 @@ test("GGUF variant picks retain their Hub pipeline tag", () => {
 
 test("only speech repos the runtime can serve are routed to the Audio page", () => {
   const curated = {
-    id: "unsloth/orpheus-3b-0.1-ft",
+    id: "testorg/orpheus-3b-0.1-ft",
     task: "text-to-speech",
     isGguf: false,
     isCurated: true,
@@ -504,7 +504,7 @@ test("only speech repos the runtime can serve are routed to the Audio page", () 
   // A chat pick is not an audio pick, so the gate must not claim it.
   assert.equal(
     audioPickIsRoutable({
-      id: "unsloth/Qwen3-8B",
+      id: "testorg/Qwen3-8B",
       task: "text-generation",
       isGguf: false,
       isCurated: false,

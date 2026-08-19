@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -55,5 +55,5 @@ test("a decomposed filename is the same candidate as its composed form", () => {
 });
 
 test("repo ids still fold case", () => {
-  assert.ok(sameKey("unsloth/Qwen3-0.6B-GGUF", "UNSLOTH/qwen3-0.6b-gguf"));
+  assert.ok(sameKey("testorg/Qwen3-0.6B-GGUF", "TESTORG/qwen3-0.6b-gguf"));
 });

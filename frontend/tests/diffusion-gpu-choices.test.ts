@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The rule behind the Images / Video Advanced GPU control: which cards a load may be pinned to.
 // A different question from the chat picker's, since a Vulkan llama-server says nothing about the

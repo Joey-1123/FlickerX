@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -24,8 +24,8 @@ const {
 // snapshot path the resolver index handed the loader. The repo id is what the Hub keys this
 // model's settings by (modelConfigIdentity) and what status.active_model reports.
 const SNAPSHOT_PATH =
-  "/home/u/.cache/huggingface/hub/models--unsloth--Repo-GGUF/snapshots/2f1c9ab";
-const REPO_ID = "unsloth/Repo-GGUF";
+  "/home/u/.cache/huggingface/hub/models--testorg--Repo-GGUF/snapshots/2f1c9ab";
+const REPO_ID = "testorg/Repo-GGUF";
 
 function config(nParallel: number | null, maxSeqLength: number | null = null) {
   return {
@@ -104,7 +104,7 @@ test("a repo id resolves exactly as before", () => {
     4,
   );
   assert.equal(
-    resolveResidentInitialConfig("unsloth/Other-GGUF", "Q4_K_M").remembered,
+    resolveResidentInitialConfig("testorg/Other-GGUF", "Q4_K_M").remembered,
     false,
   );
 });

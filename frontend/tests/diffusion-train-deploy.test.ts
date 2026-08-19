@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -23,7 +23,7 @@ const klein = {
       "black-forest-labs/FLUX.2-klein-4B",
     "black-forest-labs/FLUX.2-klein-base-9B":
       "black-forest-labs/FLUX.2-klein-9B",
-    "unsloth/FLUX.2-klein-base-9B": "unsloth/FLUX.2-klein-9B",
+    "testorg/FLUX.2-klein-base-9B": "testorg/FLUX.2-klein-9B",
   },
 };
 
@@ -37,8 +37,8 @@ test("deploys each Klein base adapter on its matching distilled checkpoint", () 
     "black-forest-labs/FLUX.2-klein-9B",
   );
   assert.equal(
-    resolveDiffusionDeployBase(klein, "unsloth/FLUX.2-klein-base-9B"),
-    "unsloth/FLUX.2-klein-9B",
+    resolveDiffusionDeployBase(klein, "testorg/FLUX.2-klein-base-9B"),
+    "testorg/FLUX.2-klein-9B",
   );
 });
 
@@ -78,20 +78,20 @@ test("returns null rather than inventing a base the backend would refuse", () =>
   // Loaded checkpoint the family declares no pairing for.
   assert.equal(resolveDiffusionTrainingBase(klein, "krea/Krea-2-Turbo"), null);
   // A repo whose name matches nothing the family offers stays null.
-  assert.equal(resolveDiffusionTrainingBase(klein, "unsloth/FLUX.2-klein-42B"), null);
+  assert.equal(resolveDiffusionTrainingBase(klein, "testorg/FLUX.2-klein-42B"), null);
 });
 
 test("a mirror-loaded checkpoint preselects the vendor base it copies", () => {
-  // Deploy hands a LoRA trained on unsloth/FLUX.2-klein-base-9B the mirror checkpoint
-  // unsloth/FLUX.2-klein-9B, so that is what /images/status reports afterwards. Its pairing names
+  // Deploy hands a LoRA trained on testorg/FLUX.2-klein-base-9B the mirror checkpoint
+  // testorg/FLUX.2-klein-9B, so that is what /images/status reports afterwards. Its pairing names
   // the mirror TRAINING id, which base_repos does not offer, and the panel then fell back to the
   // first base: the 4B, seeding a 9B workflow from 4B weights. A mirror keeps the upstream name.
   assert.equal(
-    resolveDiffusionTrainingBase(klein, "unsloth/FLUX.2-klein-9B"),
+    resolveDiffusionTrainingBase(klein, "testorg/FLUX.2-klein-9B"),
     "black-forest-labs/FLUX.2-klein-base-9B",
   );
   assert.equal(
-    resolveDiffusionTrainingBase(klein, "UNSLOTH/FLUX.2-KLEIN-9B"),
+    resolveDiffusionTrainingBase(klein, "TESTORG/FLUX.2-KLEIN-9B"),
     "black-forest-labs/FLUX.2-klein-base-9B",
   );
 });

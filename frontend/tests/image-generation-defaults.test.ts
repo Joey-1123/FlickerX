@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -9,11 +9,11 @@ import { defaultsFor } from "../src/features/images/image-generation-defaults.ts
 
 test("distinguishes Klein base checkpoints from distilled checkpoints", () => {
   for (const size of ["4B", "9B"]) {
-    assert.deepEqual(defaultsFor(`unsloth/FLUX.2-klein-base-${size}`), {
+    assert.deepEqual(defaultsFor(`testorg/FLUX.2-klein-base-${size}`), {
       steps: 50,
       guidance: 4,
     });
-    assert.deepEqual(defaultsFor(`unsloth/FLUX.2-klein-${size}`), {
+    assert.deepEqual(defaultsFor(`testorg/FLUX.2-klein-${size}`), {
       steps: 4,
       guidance: 1,
     });

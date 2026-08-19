@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -15,7 +15,7 @@ test("a single chat is saved once, under its own title", () => {
 test("each half of a pair is named after the model that answered", () => {
   assert.deepEqual(
     planChatItemSources({ id: "p1", title: "Fix my regex", type: "pair" }, [
-      { id: "t1", modelId: "unsloth/Qwen3-8B-GGUF:Q4_K_M" },
+      { id: "t1", modelId: "testorg/Qwen3-8B-GGUF:Q4_K_M" },
       { id: "t2", modelId: "openai/gpt-5" },
     ]),
     [
@@ -43,8 +43,8 @@ test("a LoRA compare names the adapter halves apart, not twice the same", () => 
   const plans = planChatItemSources(
     { id: "p1", title: "Fix my regex", type: "pair" },
     [
-      { id: "t1", modelId: "unsloth/Qwen3-8B", modelType: "base" },
-      { id: "t2", modelId: "unsloth/Qwen3-8B", modelType: "lora" },
+      { id: "t1", modelId: "testorg/Qwen3-8B", modelType: "base" },
+      { id: "t2", modelId: "testorg/Qwen3-8B", modelType: "lora" },
     ],
   );
   assert.deepEqual(plans, [
@@ -59,8 +59,8 @@ test("two panes on the same checkpoint fall back to their position", () => {
   const plans = planChatItemSources(
     { id: "p1", title: "Fix my regex", type: "pair" },
     [
-      { id: "t1", modelId: "unsloth/Qwen3-8B-GGUF:Q4_K_M", modelType: "model1" },
-      { id: "t2", modelId: "unsloth/Qwen3-8B-GGUF:Q8_0", modelType: "model2" },
+      { id: "t1", modelId: "testorg/Qwen3-8B-GGUF:Q4_K_M", modelType: "model1" },
+      { id: "t2", modelId: "testorg/Qwen3-8B-GGUF:Q8_0", modelType: "model2" },
     ],
   );
   assert.deepEqual(
@@ -75,8 +75,8 @@ test("a pane keeps its number whichever half answered last", () => {
   // arrives first. Numbering by arrival would label model2's source "- 1" and
   // swap the two names between saves of the same pair.
   const panes = [
-    { id: "t1", modelId: "unsloth/Qwen3-8B-GGUF:Q4_K_M", modelType: "model1" },
-    { id: "t2", modelId: "unsloth/Qwen3-8B-GGUF:Q8_0", modelType: "model2" },
+    { id: "t1", modelId: "testorg/Qwen3-8B-GGUF:Q4_K_M", modelType: "model1" },
+    { id: "t2", modelId: "testorg/Qwen3-8B-GGUF:Q8_0", modelType: "model2" },
   ];
   const item = { id: "p1", title: "Fix my regex", type: "pair" };
   const byId = (plans: { id: string; title: string }[]) =>
@@ -108,7 +108,7 @@ test("a LoRA pair keeps its naming when the model name is what collides", () => 
 test("a pair with one surviving half keeps the plain title", () => {
   assert.deepEqual(
     planChatItemSources({ id: "p1", title: "Fix my regex", type: "pair" }, [
-      { id: "t1", modelId: "unsloth/Qwen3-8B" },
+      { id: "t1", modelId: "testorg/Qwen3-8B" },
     ]),
     [{ id: "t1", title: "Fix my regex" }],
   );

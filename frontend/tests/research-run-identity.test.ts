@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // #8483: every delta event minted a new run object, so every component selecting the run
 // re-rendered ~12x/s for the whole synthesis - including ChatPage, which owns the thread pane.

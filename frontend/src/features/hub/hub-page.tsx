@@ -154,7 +154,7 @@ const OWNER_SCOPE_STORAGE_KEY = "flickerx.hub.ownerScope";
 // Iconless models (no provider logo, e.g. Ornith, Inkling) show once they clear this many likes.
 const MIN_ICONLESS_MODEL_LIKES = 30;
 
-/** Discover browsing scope: the whole Hub (default) or only the flickerx org. */
+/** Discover browsing scope: the whole Hub (default) or only the FlickerX org. */
 export type OwnerScope = "flickerx" | "all";
 
 function readOwnerScopePreference(): OwnerScope {
@@ -164,7 +164,7 @@ function readOwnerScopePreference(): OwnerScope {
   try {
     const value = window.localStorage.getItem(OWNER_SCOPE_STORAGE_KEY);
     // Default to the whole Hub; only honor an explicit "flickerx" preference.
-    return value === "unsloth" ? "flickerx" : "all";
+    return value === "flickerx" ? "flickerx" : "all";
   } catch {
     return "all";
   }

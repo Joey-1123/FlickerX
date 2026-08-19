@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -171,7 +171,7 @@ test("an entry saved by an older install loads without gaining a cap", () => {
       updatedAt: 1,
     },
   ];
-  store.set("unsloth_chat_external_providers", JSON.stringify(legacy));
+  store.set("flickerx_chat_external_providers", JSON.stringify(legacy));
   const [loaded] = loadExternalProviders();
   assert.equal(loaded.maxOutputTokens, undefined);
   assert.equal(loaded.backendProviderType, undefined);

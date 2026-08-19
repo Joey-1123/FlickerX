@@ -100,7 +100,7 @@ const TTS_PREVIEW_TEXT =
  * the FlickerX GGUF repos, mirrored by the backend (stt_ggml_sidecar.py). */
 function sttModelSource(model: SttModel): string {
   return isCuratedSttModel(model) && !MTMD_STT_MODELS.has(model)
-    ? `unslothai/whisper-${model}-GGUF`
+    ? `testorg/whisper-${model}-GGUF`
     : getSttModelRepo(model);
 }
 

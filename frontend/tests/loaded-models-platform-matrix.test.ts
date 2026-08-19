@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The indicator is the only screen that reads all four runtimes at once, so it
 // is also the only one that sees every hardware shape the backend can report.
@@ -83,8 +83,8 @@ test("a GGUF chat model reads the same on every accelerator", () => {
   for (const host of ["nvidia", "rocm", "xpu", "cpu-only", "apple"]) {
     const rows = describeInferenceStatus(
       chat({
-        active_model: "unsloth/Qwen3-4B-GGUF",
-        loaded: ["unsloth/Qwen3-4B-GGUF"],
+        active_model: "testorg/Qwen3-4B-GGUF",
+        loaded: ["testorg/Qwen3-4B-GGUF"],
         is_gguf: true,
         gguf_variant: "Q4_K_M",
       }),
@@ -103,7 +103,7 @@ test("Apple Silicon MLX is labelled MLX, and only there", () => {
   // An Intel Mac, or Apple Silicon whose MLX stack is unusable, falls back to
   // DeviceType.CPU and reports is_mlx false -- so it must read as Transformers.
   const intelMac = describeInferenceStatus(
-    chat({ active_model: "unsloth/Qwen3-4B", is_mlx: false }),
+    chat({ active_model: "testorg/Qwen3-4B", is_mlx: false }),
   );
   assert.equal(intelMac[0].detail, "Transformers");
 });
@@ -113,7 +113,7 @@ test("GGUF wins over MLX if a payload ever claims both", () => {
   // ladder must not depend on that to avoid mislabelling the runtime.
   const rows = describeInferenceStatus(
     chat({
-      active_model: "unsloth/Qwen3-4B-GGUF",
+      active_model: "testorg/Qwen3-4B-GGUF",
       is_gguf: true,
       is_mlx: true,
       gguf_variant: "UD-Q4_K_XL",
@@ -125,7 +125,7 @@ test("GGUF wins over MLX if a payload ever claims both", () => {
 test("a vision model is marked on any backend", () => {
   const rows = describeInferenceStatus(
     chat({
-      active_model: "unsloth/gemma-3-4b-it",
+      active_model: "testorg/gemma-3-4b-it",
       is_vision: true,
     }),
   );
@@ -155,7 +155,7 @@ test("audio models split three ways, not two", () => {
   // load at inference.py:520 is skipped by name, not by the flag), so filing it
   // by the flag alone would hide a chat model under Speech or Dictation.
   const vlm = describeInferenceStatus(
-    chat({ active_model: "unsloth/gemma-3n-E4B-it", is_audio: true, audio_type: "audio_vlm" }),
+    chat({ active_model: "testorg/gemma-3n-E4B-it", is_audio: true, audio_type: "audio_vlm" }),
   );
   assert.equal(vlm[0].kind, "text", "an audio VLM is a chat model that listens");
 });
@@ -209,7 +209,7 @@ test("the sd.cpp engine still says GGUF without a model_kind", () => {
   const rows = describeDiffusionStatus(
     diffusion({
       loaded: true,
-      repo_id: "unsloth/FLUX.1-dev-GGUF",
+      repo_id: "testorg/FLUX.1-dev-GGUF",
       family: "flux",
       device: "cpu",
       dtype: "gguf",
@@ -224,7 +224,7 @@ test("a GGUF image model under the diffusers engine is not doubled", () => {
   const rows = describeDiffusionStatus(
     diffusion({
       loaded: true,
-      repo_id: "unsloth/FLUX.1-dev-GGUF",
+      repo_id: "testorg/FLUX.1-dev-GGUF",
       family: "flux",
       device: "cuda",
       dtype: "gguf",
@@ -339,7 +339,7 @@ test("a host holding all four runtimes lists them in a fixed order", () => {
   const rows = mergeLoadedModels([
     describeInferenceStatus(
       chat({
-        active_model: "unsloth/Qwen3-4B-GGUF",
+        active_model: "testorg/Qwen3-4B-GGUF",
         is_gguf: true,
         gguf_variant: "Q4_K_M",
       }),

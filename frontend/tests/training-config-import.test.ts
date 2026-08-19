@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -17,7 +17,7 @@ test("browser training config imports enforce the native size limit", async () =
     size: MAX_TRAINING_CONFIG_BYTES + 1,
     text: () => {
       read = true;
-      return Promise.resolve("model_name: unsloth/test");
+      return Promise.resolve("model_name: testorg/test");
     },
   };
 
@@ -32,8 +32,8 @@ test("browser training config imports enforce the native size limit", async () =
   assert.equal(
     await readBrowserTrainingConfig({
       size: MAX_TRAINING_CONFIG_BYTES,
-      text: () => Promise.resolve("model_name: unsloth/test"),
+      text: () => Promise.resolve("model_name: testorg/test"),
     }),
-    "model_name: unsloth/test",
+    "model_name: testorg/test",
   );
 });

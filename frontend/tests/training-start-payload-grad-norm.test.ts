@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The mapper used to send max_grad_norm: 0.0 on every run. The backend now honors
 // an explicit threshold on MLX instead of discarding it, so that hardcoded 0 would
@@ -25,12 +25,12 @@ const { initialTrainingConfigState } = await import(
 const CONFIG: TrainingConfigState = {
   ...initialTrainingConfigState,
   modelType: "text",
-  selectedModel: "unsloth/gemma-3-270m-it",
+  selectedModel: "testorg/gemma-3-270m-it",
   projectName: "grad-norm",
   trainingMethod: "lora",
   datasetSource: "huggingface",
   datasetFormat: "auto",
-  dataset: "unsloth/test",
+  dataset: "testorg/test",
   datasetSubset: null,
   datasetSplit: "train",
   datasetEvalSplit: null,
@@ -62,7 +62,7 @@ const CONFIG: TrainingConfigState = {
   evalSteps: 0,
   packing: false,
   trainOnCompletions: true,
-  gradientCheckpointing: "unsloth",
+  gradientCheckpointing: "flickerx",
   randomSeed: 3407,
   enableWandb: false,
   wandbToken: "",

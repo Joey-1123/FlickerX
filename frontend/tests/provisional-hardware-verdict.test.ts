@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // /api/health answers before the backend has measured the host: until the background torch
 // import lands it reports its pre-detection default, chat_only: true, with
@@ -326,7 +326,7 @@ test("the store exposes an unknown state, not just chat-only", async () => {
   );
 });
 
-// The torch-warm kill switch (UNSLOTH_STUDIO_DISABLE_TORCH_WARM=1) settles nothing until a
+// The torch-warm kill switch (FLICKERX_DISABLE_TORCH_WARM=1) settles nothing until a
 // hardware-dependent operation runs, and a deferred reply carries no device_type, so `fetched`
 // never flips. Calling that unknown would spin Train and Video for the whole session.
 test("a deferred verdict counts as settled, not as still checking", async () => {

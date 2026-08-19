@@ -8,7 +8,7 @@
 * may be stale and the store re-runs it. The rejection tracker advances that generation on any
 * inventory-fingerprint change, and the fingerprint includes sizeBytes, so a dataset that is
 * still downloading invalidates every in-flight check. Unbounded, that pair never converges
-* (unslothai/unsloth#7853). The budget is keyed on the selection so a new one starts fresh.
+* (testorg/testorg#7853). The budget is keyed on the selection so a new one starts fresh.
 */
 
 export const DATASET_CACHE_RECHECK_LIMIT = 3;
@@ -23,7 +23,7 @@ let attempts = 0;
 *
 * cachePath is deliberately excluded even though the usability identity carries it: it is
 * derived state that moves as a download populates the cache, so keying on it would re-arm the
-* non-terminating loop this module exists to bound (unslothai/unsloth#7853).
+* non-terminating loop this module exists to bound (testorg/testorg#7853).
 */
 export interface DatasetRecheckSelection {
   dataset: string;

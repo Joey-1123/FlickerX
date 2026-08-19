@@ -299,7 +299,7 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
       // The backend returns the correct PATH-based command ("flickerx studio
       // reset-password"), which the installer puts on PATH on every platform.
       // Do NOT rewrite it to a relative Windows path like
-      // ".\unsloth_studio\Scripts\flickerx.exe ..." -- that only resolves inside
+      // ".\flickerx_studio\Scripts\flickerx.exe ..." -- that only resolves inside
       // the FlickerX home dir and fails with CommandNotFoundException elsewhere.
       // Show the backend message as-is.
       const msg = err instanceof Error ? err.message : "Auth failed.";

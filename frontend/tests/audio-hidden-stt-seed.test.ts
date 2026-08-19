@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -42,11 +42,11 @@ test("curated hidden task ids survive the query-mode recommended filter", () => 
 });
 
 test("an allowed hidden Audio id survives local source matching without allowing siblings", () => {
-  const allowed = new Set(["unsloth/whisper-tiny"]);
+  const allowed = new Set(["testorg/whisper-tiny"]);
   assert.equal(
     allowedHiddenModelIdMatches(
       allowed,
-      "unsloth/whisper-tiny",
+      "testorg/whisper-tiny",
       "E:/models/whisper-tiny",
     ),
     true,
@@ -54,7 +54,7 @@ test("an allowed hidden Audio id survives local source matching without allowing
   assert.equal(
     allowedHiddenModelIdMatches(
       allowed,
-      "unsloth/whisper-base",
+      "testorg/whisper-base",
       "E:/models/whisper-tiny",
     ),
     false,

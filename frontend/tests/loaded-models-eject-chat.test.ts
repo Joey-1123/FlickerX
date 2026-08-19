@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -41,20 +41,20 @@ function backend(
 }
 
 test("the row's model is unloaded and reported free", async () => {
-  const { unloaded, deps } = backend([resident("unsloth/Qwen3-4B"), null]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B"]);
-  assert.deepEqual(result.unloadedAliases, ["unsloth/Qwen3-4B"]);
+  const { unloaded, deps } = backend([resident("testorg/Qwen3-4B"), null]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B"]);
+  assert.deepEqual(result.unloadedAliases, ["testorg/Qwen3-4B"]);
   assert.equal(result.stillResident, null);
 });
 
 // The reason this is scoped: the row is up to one poll old, so an auto-switch
 // can land between the poll and the click.
 test("a model that replaced the row's before the click is left alone", async () => {
-  const { unloaded, deps } = backend([resident("unsloth/Llama-3.2-3B")]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const { unloaded, deps } = backend([resident("testorg/Llama-3.2-3B")]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.ok(
-    !unloaded.includes("unsloth/Llama-3.2-3B"),
+    !unloaded.includes("testorg/Llama-3.2-3B"),
     "the model nobody clicked must survive",
   );
   // Nothing at all is unloaded. /unload naming a model the backend does not
@@ -65,14 +65,14 @@ test("a model that replaced the row's before the click is left alone", async () 
   assert.equal(result.stillResident, null);
   assert.equal(
     result.replacedBy,
-    "unsloth/Llama-3.2-3B",
+    "testorg/Llama-3.2-3B",
     "the caller needs the replacement's name to say what took its place",
   );
 });
 
 test("an idle runtime reports the row already gone, not a fresh eject", async () => {
   const { unloaded, deps } = backend([null]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.deepEqual(unloaded, [], "nothing is resident, so nothing to unload");
   assert.deepEqual(result.unloadedAliases, []);
   assert.equal(result.stillResident, null);
@@ -83,20 +83,20 @@ test("an idle runtime reports the row already gone, not a fresh eject", async ()
 
 test("a switch landing mid-eject is not chased", async () => {
   const { unloaded, deps } = backend([
-    resident("unsloth/Qwen3-4B"),
-    resident("unsloth/Llama-3.2-3B"),
+    resident("testorg/Qwen3-4B"),
+    resident("testorg/Llama-3.2-3B"),
   ]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B"]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B"]);
   assert.equal(result.stillResident, null);
 });
 
 test("a target that survives its own unload is reported still resident", async () => {
-  const { unloaded, deps } = backend([resident("unsloth/Qwen3-4B")]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const { unloaded, deps } = backend([resident("testorg/Qwen3-4B")]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
   // Two passes, then it gives up and names it rather than looping.
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B", "unsloth/Qwen3-4B"]);
-  assert.equal(result.stillResident, "unsloth/Qwen3-4B");
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B", "testorg/Qwen3-4B"]);
+  assert.equal(result.stillResident, "testorg/Qwen3-4B");
   // Both are set together here, so the caller must key the picker clear on
   // stillResident: the aliases alone would empty it while the model still runs.
   assert.ok(result.unloadedAliases.length > 0);
@@ -106,18 +106,18 @@ test("a target that survives its own unload is reported still resident", async (
 // reports, so it is the one case that has to be named directly.
 test("a cached row with nothing resident is still unloaded by name", async () => {
   const { unloaded, deps } = backend([null], true);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B"]);
-  assert.deepEqual(result.unloadedAliases, ["unsloth/Qwen3-4B"]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B"]);
+  assert.deepEqual(result.unloadedAliases, ["testorg/Qwen3-4B"]);
   assert.equal(result.replacedBy, null);
 });
 
 test("a cached row is unloaded even while another model is active", async () => {
-  const { unloaded, deps } = backend([resident("unsloth/Llama-3.2-3B")], true);
-  await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const { unloaded, deps } = backend([resident("testorg/Llama-3.2-3B")], true);
+  await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.deepEqual(
     unloaded,
-    ["unsloth/Qwen3-4B"],
+    ["testorg/Qwen3-4B"],
     "the cached copy goes, the active model stays",
   );
 });
@@ -126,37 +126,37 @@ test("a cached row is unloaded even while another model is active", async () => 
 // row is the one path with no scoped read to catch that, so the reported
 // success was the call itself rather than any evidence of a release.
 test("a cached row the backend kept is reported still resident", async () => {
-  const { unloaded, deps } = backend([null], true, ["unsloth/Qwen3-4B"]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B"], "the unload was attempted");
-  assert.equal(result.stillResident, "unsloth/Qwen3-4B");
+  const { unloaded, deps } = backend([null], true, ["testorg/Qwen3-4B"]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B"], "the unload was attempted");
+  assert.equal(result.stillResident, "testorg/Qwen3-4B");
   assert.deepEqual(result.unloadedAliases, [], "nothing to clear the picker on");
 });
 
 test("a cached row the backend released is reported ejected", async () => {
-  const { deps } = backend([null], true, ["unsloth/Llama-3.2-3B"]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const { deps } = backend([null], true, ["testorg/Llama-3.2-3B"]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.equal(result.stillResident, null);
-  assert.deepEqual(result.unloadedAliases, ["unsloth/Qwen3-4B"]);
+  assert.deepEqual(result.unloadedAliases, ["testorg/Qwen3-4B"]);
 });
 
 // Both the row and the confirmation come from the same `loaded` list, so the
 // names line up by construction; the comparator is there for the day they do not.
 test("a backend that cannot be re-read leaves the old reading alone", async () => {
   const { unloaded, deps } = backend([null], true);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B"]);
-  assert.deepEqual(result.unloadedAliases, ["unsloth/Qwen3-4B"]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B"]);
+  assert.deepEqual(result.unloadedAliases, ["testorg/Qwen3-4B"]);
   assert.equal(result.stillResident, null);
 });
 
 test("the load path and the advertised repo id are the same row", async () => {
-  const loadPath = "/models/hub/models--unsloth--Qwen3-4B/snapshots/abc";
+  const loadPath = "/models/hub/models--testorg--Qwen3-4B/snapshots/abc";
   const { unloaded, deps } = backend([
-    { checkpoint: loadPath, aliases: [loadPath, "unsloth/Qwen3-4B"] },
+    { checkpoint: loadPath, aliases: [loadPath, "testorg/Qwen3-4B"] },
     null,
   ]);
-  await ejectChatModel("unsloth/Qwen3-4B", deps);
+  await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.deepEqual(unloaded, [loadPath], "matched by identity, not by string");
 });
 
@@ -188,17 +188,17 @@ function replacedBackend(
 // `loaded`. So another model being active is not evidence the row's is gone,
 // and taking it as such freed nothing while telling the user it had.
 test("a row replaced while still cached is unloaded, not written off", async () => {
-  const { unloaded, deps } = replacedBackend(resident("unsloth/Llama-3.2-3B"), [
-    ["unsloth/Qwen3-4B", "unsloth/Llama-3.2-3B"],
-    ["unsloth/Llama-3.2-3B"],
+  const { unloaded, deps } = replacedBackend(resident("testorg/Llama-3.2-3B"), [
+    ["testorg/Qwen3-4B", "testorg/Llama-3.2-3B"],
+    ["testorg/Llama-3.2-3B"],
   ]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.deepEqual(
     unloaded,
-    ["unsloth/Qwen3-4B"],
+    ["testorg/Qwen3-4B"],
     "the memory the click asked for is the memory released",
   );
-  assert.deepEqual(result.unloadedAliases, ["unsloth/Qwen3-4B"]);
+  assert.deepEqual(result.unloadedAliases, ["testorg/Qwen3-4B"]);
   assert.equal(result.stillResident, null);
   assert.equal(
     result.replacedBy,
@@ -211,22 +211,22 @@ test("a row replaced while still cached is unloaded, not written off", async () 
 // reports the replacement and unloads nothing, which is the whole point of
 // scoping the eject to one row.
 test("a row replaced and really gone is still left alone", async () => {
-  const { unloaded, deps } = replacedBackend(resident("unsloth/Llama-3.2-3B"), [
-    ["unsloth/Llama-3.2-3B"],
+  const { unloaded, deps } = replacedBackend(resident("testorg/Llama-3.2-3B"), [
+    ["testorg/Llama-3.2-3B"],
   ]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
   assert.deepEqual(unloaded, [], "nothing but the row's own model may go");
   assert.deepEqual(result.unloadedAliases, []);
-  assert.equal(result.replacedBy, "unsloth/Llama-3.2-3B");
+  assert.equal(result.replacedBy, "testorg/Llama-3.2-3B");
 });
 
 // Same window, with the replacement since unloaded: nothing is active, but the
 // row's model is still held, so "already free" would have been wrong too.
 test("an idle runtime still holding the row releases it", async () => {
-  const { unloaded, deps } = replacedBackend(null, [["unsloth/Qwen3-4B"], []]);
-  const result = await ejectChatModel("unsloth/Qwen3-4B", deps);
-  assert.deepEqual(unloaded, ["unsloth/Qwen3-4B"]);
-  assert.deepEqual(result.unloadedAliases, ["unsloth/Qwen3-4B"]);
+  const { unloaded, deps } = replacedBackend(null, [["testorg/Qwen3-4B"], []]);
+  const result = await ejectChatModel("testorg/Qwen3-4B", deps);
+  assert.deepEqual(unloaded, ["testorg/Qwen3-4B"]);
+  assert.deepEqual(result.unloadedAliases, ["testorg/Qwen3-4B"]);
   assert.equal(result.stillResident, null);
   assert.equal(result.replacedBy, null);
 });

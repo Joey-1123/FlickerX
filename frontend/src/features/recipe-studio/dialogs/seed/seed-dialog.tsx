@@ -290,7 +290,7 @@ export function GithubRepoSeedForm({
             }}
             placeholder={
               repos.length === 0
-                ? "unsloth/unsloth or GitHub URL"
+                ? "testorg/testorg or GitHub URL"
                 : "Add repo…"
             }
             aria-invalid={hasRepoErrors}

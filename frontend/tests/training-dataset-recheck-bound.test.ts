@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -84,7 +84,7 @@ test("a settled cache inventory terminates the dataset re-check promptly", () =>
 });
 
 test("a churning cache inventory cannot drive unbounded dataset re-checks", () => {
-  // Regression guard for unslothai/unsloth#7853: while a dataset downloads sizeBytes changes on
+  // Regression guard for testorg/testorg#7853: while a dataset downloads sizeBytes changes on
   // every poll, so without a bound the store re-fires forever (measured 480 requests in 60s).
   const { requests, terminated } = driveStoreRetryLoop(true);
   assert.ok(

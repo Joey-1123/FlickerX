@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -42,19 +42,19 @@ test("an unlisted owner is left to its Hub avatar", () => {
   assert.equal(resolveOwnerProviderLogo("some-org", "Muse-Glimmer-30B"), null);
 });
 
-test("Unsloth re-uploads still resolve by repo name", () => {
+test("FlickerX re-uploads still resolve by repo name", () => {
   assert.equal(
-    resolveOwnerProviderLogo("unsloth", "Llama-4-Scout-17B-16E-Instruct-GGUF")
+    resolveOwnerProviderLogo("flickerx", "Llama-4-Scout-17B-16E-Instruct-GGUF")
       ?.id,
     "meta-llama",
   );
   assert.equal(
-    resolveOwnerProviderLogo("unsloth", "DeepSeek-R1-Distill-Llama-8B-GGUF")
+    resolveOwnerProviderLogo("flickerx", "DeepSeek-R1-Distill-Llama-8B-GGUF")
       ?.id,
     "deepseek-ai",
   );
-  assert.equal(resolveOwnerProviderLogo("unsloth", "Qwen3-30B-A3B")?.id, "qwen");
-  assert.equal(resolveOwnerProviderLogo("unsloth", undefined), null);
+  assert.equal(resolveOwnerProviderLogo("flickerx", "Qwen3-30B-A3B")?.id, "qwen");
+  assert.equal(resolveOwnerProviderLogo("flickerx", undefined), null);
 });
 
 test("no org is claimed by two providers", () => {

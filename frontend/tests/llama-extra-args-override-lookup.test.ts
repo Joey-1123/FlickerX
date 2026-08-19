@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Which stored row the picker reads its pass-through arguments from.
 //
@@ -28,8 +28,8 @@ const ARGS = ["--numa", "distribute"];
 test("an exact key wins", () => {
   assert.deepEqual(
     resolveStoredExtraArgs(
-      { "unsloth/Model-GGUF:q4_k_m": { llama_extra_args: ARGS } },
-      ["unsloth/Model-GGUF:q4_k_m"],
+      { "testorg/Model-GGUF:q4_k_m": { llama_extra_args: ARGS } },
+      ["testorg/Model-GGUF:q4_k_m"],
     ),
     { tokens: ARGS, explicit: true },
   );
@@ -40,8 +40,8 @@ test("a repo id and its quant fold by case", () => {
   // upstream spelling still has to be found.
   assert.deepEqual(
     resolveStoredExtraArgs(
-      { "unsloth/Model-GGUF:Q4_K_M": { llama_extra_args: ARGS } },
-      ["unsloth/model-gguf:q4_k_m"],
+      { "testorg/Model-GGUF:Q4_K_M": { llama_extra_args: ARGS } },
+      ["testorg/model-gguf:q4_k_m"],
     ),
     { tokens: ARGS, explicit: true },
   );
@@ -135,10 +135,10 @@ test("two keys that fold together resolve to nothing", () => {
   assert.deepEqual(
     resolveStoredExtraArgs(
       {
-        "unsloth/Model-GGUF": { llama_extra_args: ARGS },
-        "unsloth/model-gguf": { llama_extra_args: ["--top-k", "20"] },
+        "testorg/Model-GGUF": { llama_extra_args: ARGS },
+        "testorg/model-gguf": { llama_extra_args: ["--top-k", "20"] },
       },
-      ["unsloth/MODEL-gguf"],
+      ["testorg/MODEL-gguf"],
     ),
     { tokens: [], explicit: false },
   );
@@ -152,10 +152,10 @@ test("the first entry that exists is the one read, fields and all", () => {
   assert.deepEqual(
     resolveStoredExtraArgs(
       {
-        "unsloth/model-gguf:q4_k_m": { max_seq_length: 4096 },
-        "unsloth/model-gguf": { llama_extra_args: ARGS },
+        "testorg/model-gguf:q4_k_m": { max_seq_length: 4096 },
+        "testorg/model-gguf": { llama_extra_args: ARGS },
       },
-      ["unsloth/model-gguf:q4_k_m", "unsloth/model-gguf"],
+      ["testorg/model-gguf:q4_k_m", "testorg/model-gguf"],
     ),
     { tokens: [], explicit: false },
   );
@@ -166,17 +166,17 @@ test("an empty entry is skipped rather than stopping the search", () => {
   assert.deepEqual(
     resolveStoredExtraArgs(
       {
-        "unsloth/model-gguf:q4_k_m": {},
-        "unsloth/model-gguf": { llama_extra_args: ARGS },
+        "testorg/model-gguf:q4_k_m": {},
+        "testorg/model-gguf": { llama_extra_args: ARGS },
       },
-      ["unsloth/model-gguf:q4_k_m", "unsloth/model-gguf"],
+      ["testorg/model-gguf:q4_k_m", "testorg/model-gguf"],
     ),
     { tokens: ARGS, explicit: true },
   );
 });
 
 test("no row at all is no arguments, not an error", () => {
-  assert.deepEqual(resolveStoredExtraArgs({}, ["unsloth/model-gguf"]), {
+  assert.deepEqual(resolveStoredExtraArgs({}, ["testorg/model-gguf"]), {
     tokens: [],
     explicit: false,
   });
@@ -190,10 +190,10 @@ test("a row that carries an empty list is explicit, not absent", () => {
   assert.deepEqual(
     resolveStoredExtraArgs(
       {
-        "unsloth/model-gguf:q4_k_m": { llama_extra_args: [] },
-        "unsloth/model-gguf": { llama_extra_args: ARGS },
+        "testorg/model-gguf:q4_k_m": { llama_extra_args: [] },
+        "testorg/model-gguf": { llama_extra_args: ARGS },
       },
-      ["unsloth/model-gguf:q4_k_m", "unsloth/model-gguf"],
+      ["testorg/model-gguf:q4_k_m", "testorg/model-gguf"],
     ),
     { tokens: [], explicit: true },
   );
@@ -203,8 +203,8 @@ test("a matched row with other fields but no arguments is not explicit", () => {
   // It stopped the search, as the server's `if override: break` does, but it said
   // nothing about arguments, so there is no clear to honour.
   assert.deepEqual(
-    resolveStoredExtraArgs({ "unsloth/model-gguf": { max_seq_length: 4096 } }, [
-      "unsloth/model-gguf",
+    resolveStoredExtraArgs({ "testorg/model-gguf": { max_seq_length: 4096 } }, [
+      "testorg/model-gguf",
     ]),
     { tokens: [], explicit: false },
   );

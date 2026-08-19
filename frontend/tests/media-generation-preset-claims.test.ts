@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // A model pick claims the generation recipe before the settings GET has necessarily answered, so
 // the claim has to be settled on every way out of that load. The progress poll covers the endings

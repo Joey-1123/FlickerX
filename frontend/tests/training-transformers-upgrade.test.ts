@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // A Train-tab run on a model whose architecture no installed transformers ships was
 // accepted, spawned, and killed minutes later at model load:
-//   "unsloth/Muse-Glimmer-30B-unsloth-bnb-4bit is not supported yet in transformers==5.3.0"
+//   "testorg/Muse-Glimmer-30B-4bit is not supported yet in transformers==5.3.0"
 // Studio already had the consent dialog that provisions .venv_t5_latest, but it was
 // wired only into chat. These pin the gate: the start path consults the check, pauses
 // on the dialog, and abandons the start when declined.
@@ -19,7 +19,7 @@ const { confirmTrainingTransformersUpgrade } = await import(
   "../src/features/training/lib/training-transformers-upgrade.ts"
 );
 
-const MODEL = "unsloth/Muse-Glimmer-30B-unsloth-bnb-4bit";
+const MODEL = "testorg/Muse-Glimmer-30B-4bit";
 const UPGRADE = {
   // biome-ignore lint/style/useNamingConvention: API schema
   model_type: "muse_glimmer",

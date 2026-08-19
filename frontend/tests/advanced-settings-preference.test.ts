@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -177,7 +177,7 @@ test("a toggle in another tab repaints mounted panels", () => {
   assert.equal(panel.changes(), 2);
 
   // An unrelated key does not.
-  fromAnotherTab("unsloth_model_configs");
+  fromAnotherTab("flickerx_model_configs");
   assert.equal(panel.changes(), 2);
 
   panel.unmount();

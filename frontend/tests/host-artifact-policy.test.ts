@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -84,14 +84,14 @@ test("a gguf-only host keeps every non-GGUF row the backend can still load", () 
   // diffusion_device.py picks MPS bfloat16 for exactly these), and the STT rows run through
   // the whisper.cpp sidecar, whose format label in the catalog is informational only.
   for (const id of [
-    "unsloth/whisper-large-v3-turbo",
-    "unsloth/whisper-tiny",
-    "unsloth/csm-1b",
+    "testorg/whisper-large-v3-turbo",
+    "testorg/whisper-tiny",
+    "testorg/csm-1b",
     "stabilityai/sdxl-turbo",
     "Tongyi-MAI/Z-Image-Turbo",
     "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
     "Lightricks/LTX-2",
-    "unsloth/MiniMax-H3-GGUF",
+    "testorg/MiniMax-H3-GGUF",
   ]) {
     assert.equal(curatedArtifactIsOfferable(id, "gguf-only"), true, id);
   }
@@ -99,13 +99,13 @@ test("a gguf-only host keeps every non-GGUF row the backend can still load", () 
 
 test("the speed suffixes name the two H3 rows on an accelerated host", () => {
   assert.equal(h3PerfSuffix("MiniMaxAI/MiniMax-H3", "accelerated"), "Fast FP8");
-  assert.equal(h3PerfSuffix("unsloth/MiniMax-H3-GGUF", "accelerated"), "Slow");
+  assert.equal(h3PerfSuffix("testorg/MiniMax-H3-GGUF", "accelerated"), "Slow");
 });
 
 test("no other model claims a speed it was never measured at", () => {
   for (const id of [
     "Lightricks/LTX-2.3",
-    "unsloth/LTX-2.3-GGUF",
+    "testorg/LTX-2.3-GGUF",
     "MiniMaxAI/MiniMax-H3-Other",
   ]) {
     assert.equal(h3PerfSuffix(id, "accelerated"), null, id);
@@ -115,6 +115,6 @@ test("no other model claims a speed it was never measured at", () => {
 test("a gguf-only or undiscovered host gets no suffix at all", () => {
   for (const host of ["gguf-only", "unknown"] as const) {
     assert.equal(h3PerfSuffix("MiniMaxAI/MiniMax-H3", host), null, host);
-    assert.equal(h3PerfSuffix("unsloth/MiniMax-H3-GGUF", host), null, host);
+    assert.equal(h3PerfSuffix("testorg/MiniMax-H3-GGUF", host), null, host);
   }
 });

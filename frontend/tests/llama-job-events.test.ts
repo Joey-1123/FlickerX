@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -37,13 +37,13 @@ test("job starts notify this window and other-tab storage listeners", (t) => {
   signalLlamaJobStarted("2026-08-11T12:00:00Z");
   assert.equal(notifications, 1);
   assert.match(
-    writes.get("unsloth_llama_job_started_at") ?? "",
+    writes.get("flickerx_llama_job_started_at") ?? "",
     /^2026-08-11T12:00:00Z:\d+$/,
   );
 
   const storageEvent = new Event("storage");
   Object.defineProperty(storageEvent, "key", {
-    value: "unsloth_llama_job_started_at",
+    value: "flickerx_llama_job_started_at",
   });
   target.dispatchEvent(storageEvent);
   assert.equal(notifications, 2);

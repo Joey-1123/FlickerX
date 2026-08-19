@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -16,7 +16,7 @@ const { savePerModelConfig, resolveInitialConfig } = await import(
   "../src/features/model-picker/model-config/per-model-config.ts"
 );
 
-const MODEL = "unsloth/Repo-GGUF";
+const MODEL = "testorg/Repo-GGUF";
 
 function config(nBatch: number | null, nUbatch: number | null = null) {
   return {
@@ -34,7 +34,7 @@ function config(nBatch: number | null, nUbatch: number | null = null) {
 }
 
 function storedVersion(): number {
-  const map = JSON.parse(store.get("unsloth_model_configs") ?? "{}");
+  const map = JSON.parse(store.get("flickerx_model_configs") ?? "{}");
   const [entry] = Object.values(map) as { version: number }[];
   return entry.version;
 }

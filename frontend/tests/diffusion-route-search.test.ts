@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -11,7 +11,7 @@ import {
   routedGgufLabel,
 } from "../src/lib/diffusion-route-search.ts";
 
-const REPO = "unsloth/Z-Image-Turbo-GGUF";
+const REPO = "testorg/Z-Image-Turbo-GGUF";
 
 test("an expander pick routes its exact filename as the quant", () => {
   assert.deepEqual(
@@ -44,8 +44,8 @@ test("a non-catalog repo keeps its label too", () => {
 });
 
 test("a curated non-GGUF pick routes the model alone", () => {
-  assert.deepEqual(diffusionRouteSearch("unsloth/FLUX.1-schnell", {}), {
-    model: "unsloth/FLUX.1-schnell",
+  assert.deepEqual(diffusionRouteSearch("testorg/FLUX.1-schnell", {}), {
+    model: "testorg/FLUX.1-schnell",
   });
 });
 

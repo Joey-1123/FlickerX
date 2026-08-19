@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
@@ -13,7 +13,7 @@ const storage = {
   removeItem: (key: string) => values.delete(key),
 };
 values.set(
-  "unsloth_training_config_v1",
+  "flickerx_training_config_v1",
   JSON.stringify({
     state: {
       browseDatasetSelection: {

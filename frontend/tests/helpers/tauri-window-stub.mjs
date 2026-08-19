@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Stands in for @tauri-apps/api/window, which only resolves inside a Tauri
 // webview. Control lives on globalThis so a test can hold the drag-drop install

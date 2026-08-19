@@ -12,7 +12,7 @@ import {
 test("startup messages follow backend phases without regressing", () => {
   const models = startupMessageFromLog(
     INITIAL_STARTUP_MESSAGE,
-    "  - loading PyTorch, Unsloth and Transformers...",
+    "  - loading PyTorch, FlickerX and Transformers...",
   );
   assert.equal(models, "Loading models...");
   assert.equal(startupMessageFromLog(models, "unrelated output"), models);
@@ -22,7 +22,7 @@ test("startup messages follow backend phases without regressing", () => {
   assert.equal(
     startupMessageFromLog(
       server,
-      "  - loading PyTorch, Unsloth and Transformers...",
+      "  - loading PyTorch, FlickerX and Transformers...",
     ),
     server,
   );
@@ -32,7 +32,7 @@ test("installer progress rotates reassurance without changing actual phases", ()
   const expectedTitles = new Map([
     [-1, "Preparing your workspace..."],
     [2, "Downloading required components..."],
-    [4, "Installing Unsloth..."],
+    [4, "Installing FlickerX..."],
     [6, "Finishing setup..."],
   ]);
 
@@ -48,15 +48,15 @@ test("installer progress rotates reassurance without changing actual phases", ()
 });
 
 test("startup copy rotates while preserving backend phase transitions", () => {
-  assert.equal(startupWaitingMessage(INITIAL_STARTUP_MESSAGE, 0), "Starting Unsloth...");
+  assert.equal(startupWaitingMessage(INITIAL_STARTUP_MESSAGE, 0), "Starting FlickerX...");
   assert.equal(startupWaitingMessage(INITIAL_STARTUP_MESSAGE, 1), "Loading projects...");
-  assert.equal(startupWaitingMessage(INITIAL_STARTUP_MESSAGE, 2), "Starting Unsloth...");
+  assert.equal(startupWaitingMessage(INITIAL_STARTUP_MESSAGE, 2), "Starting FlickerX...");
 });
 
 test("nearly done only appears after the backend starts its server", () => {
   const models = startupMessageFromLog(
     INITIAL_STARTUP_MESSAGE,
-    "  - loading PyTorch, Unsloth and Transformers...",
+    "  - loading PyTorch, FlickerX and Transformers...",
   );
   const server = startupMessageFromLog(models, "  - Starting server...");
   assert.notEqual(startupWaitingMessage(INITIAL_STARTUP_MESSAGE, 20), "Nearly done...");

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -188,19 +188,19 @@ test("STT activation adopts resident sidecars and preserves only pending selecti
 
   assert.equal(
     reconcileSttSelection({
-      selectedRepo: "unsloth/whisper-small",
+      selectedRepo: "testorg/whisper-small",
       loadedModel: "small",
       loadedEngine: "gguf",
       preservePending: false,
       sidecarKeyFor: () => "small",
       repoIdForSidecarKey: (_key, engine) =>
         engine === "gguf"
-          ? "unslothai/whisper-small-GGUF"
-          : "unsloth/whisper-small",
+          ? "testorg/whisper-small-GGUF"
+          : "testorg/whisper-small",
       engineForRepo: (repo) =>
         repo.endsWith("-GGUF") ? "gguf" : "transformers",
     }),
-    "unslothai/whisper-small-GGUF",
+    "testorg/whisper-small-GGUF",
   );
 });
 

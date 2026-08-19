@@ -426,7 +426,7 @@ export function ExportPage() {
   } = useHubModelSearch(debouncedModelQuery, {
     accessToken: hfApiToken(debouncedHfToken),
     excludeGguf: true,
-    // Curated flickerx listing by default; a typed query searches the whole Hub (unsloth first).
+    // Curated flickerx listing by default; a typed query searches the whole Hub (FlickerX first).
     ownerScope: debouncedModelQuery.trim() ? "all" : "flickerx",
   });
   const { error: tokenValidationError, isChecking: isCheckingToken } =

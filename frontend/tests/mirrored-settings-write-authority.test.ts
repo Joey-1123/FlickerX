@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Two writes that reach every browser on the install now that saveBool and the hydration
 // backfill mirror to /api/chat/settings, so each needs a reason to fire:

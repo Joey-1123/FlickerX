@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // MiniMax-H3's forward covers ONE packed sequence, so its backend validation REFUSES a batch
 // above 1 rather than clamping. The Train panel rendered Batch unrestricted and always sent the

@@ -136,7 +136,7 @@ const FAMILY_PRESETS: FamilyPreset[] = [
   {
     name: "qwen-image",
     label: "Qwen-Image (20B)",
-    base_repos: ["unsloth/Qwen-Image-2512-flickerx-bnb-4bit", "Qwen/Qwen-Image"],
+    base_repos: ["testorg/Qwen-Image-2512-flickerx-bnb-4bit", "Qwen/Qwen-Image"],
     defaults: { rank: 16, lr: 0.00005, resolution: 512 },
     vram_note: "The biggest: needs a large GPU. Start at 512px.",
     params: "20B",
@@ -147,7 +147,7 @@ const FAMILY_PRESETS: FamilyPreset[] = [
     name: "z-image",
     label: "Z-Image (6B)",
     base_repos: [
-      "unsloth/Z-Image-Turbo-flickerx-bnb-4bit",
+      "testorg/Z-Image-Turbo-flickerx-bnb-4bit",
       "Tongyi-MAI/Z-Image-Turbo",
       "Tongyi-MAI/Z-Image",
     ],

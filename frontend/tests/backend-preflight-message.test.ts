@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -13,9 +13,9 @@ import {
 } from "../src/hooks/backend-preflight-message.ts";
 
 const UNREACHABLE_PROFILE = /cannot reach your user folder/;
-const UPDATE_ADVICE = /unsloth studio update/;
-const MANAGED_TOO_OLD = /Managed Unsloth install is too old/;
-const OWNED_TOO_OLD = /Desktop-owned Unsloth backend is too old/;
+const UPDATE_ADVICE = /flickerx studio update/;
+const MANAGED_TOO_OLD = /Managed FlickerX install is too old/;
+const OWNED_TOO_OLD = /Desktop-owned FlickerX backend is too old/;
 const TOO_OLD = /too old/;
 
 test("an unreachable profile is not reported as an outdated install", () => {
@@ -84,7 +84,7 @@ test("a path setting that cannot be resolved is told apart from an unreachable f
 });
 
 test("the setting that could not be resolved is named", () => {
-  // "one of Unsloth's folder settings" is not something anyone can act on, so
+  // "one of FlickerX's folder settings" is not something anyone can act on, so
   // the backend appends the name and the message uses it.
   const named = preflightStaleMessage(
     "managed_stale",
@@ -94,6 +94,6 @@ test("the setting that could not be resolved is named", () => {
   assert.match(named, /full path/);
   // Without a name it still reads as a sentence, and still is not an update.
   const unnamed = preflightStaleMessage("managed_stale", PATH_SETTING_UNRESOLVABLE);
-  assert.match(unnamed, /One of Unsloth's folder settings points/);
+  assert.match(unnamed, /One of FlickerX's folder settings points/);
   assert.doesNotMatch(unnamed, UPDATE_ADVICE);
 });

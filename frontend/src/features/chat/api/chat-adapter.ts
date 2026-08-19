@@ -2330,7 +2330,7 @@ async function resolveAutoLoadCandidate(
 }
 
 // Fetched only when the device genuinely has nothing on it.
-const DEFAULT_CHAT_MODEL_REPO = "unsloth/gemma-4-E2B-it-GGUF";
+const DEFAULT_CHAT_MODEL_REPO = "testorg/gemma-4-E2B-it-GGUF";
 const DEFAULT_CHAT_MODEL_VARIANT = "UD-Q4_K_XL";
 const DEFAULT_CHAT_MODEL_LABEL = "Gemma 4 E2B";
 

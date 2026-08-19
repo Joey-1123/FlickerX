@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Train and Video spin instead of graying out while the hardware verdict is unmeasured, so
 // something has to end the spin. fetchDeviceType's bounded wait is spent at most once per page
@@ -21,7 +21,7 @@ registerBundlerResolver();
 const { store } = installLocalStorageFake();
 // /api/health reports device_type to authed callers only, and an unauthenticated read never
 // spends the detection window, so the slow-host case only exists for a signed-in caller.
-store.set("unsloth_auth_token", "token");
+store.set("flickerx_auth_token", "token");
 // A non-Mac host whatever the runner is: node's own navigator reports process.platform.
 Object.defineProperty(globalThis, "navigator", {
   configurable: true,

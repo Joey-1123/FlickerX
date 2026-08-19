@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -17,12 +17,12 @@ interface Status {
 
 /** What the store holds before an API request switches the resident model under the tab. */
 const STALE: Status = {
-  checkpoint: "unsloth/Qwen3-8B-GGUF",
+  checkpoint: "testorg/Qwen3-8B-GGUF",
   ggufVariant: "Q8_0",
 };
 /** What every read of /api/inference/status answers once the switch has landed. */
 const SWITCHED: Status = {
-  checkpoint: "unsloth/Llama-3.1-8B-Instruct-GGUF",
+  checkpoint: "testorg/Llama-3.1-8B-Instruct-GGUF",
   ggufVariant: "Q4_K_M",
 };
 

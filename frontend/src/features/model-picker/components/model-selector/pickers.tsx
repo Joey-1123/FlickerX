@@ -219,7 +219,7 @@ function dedupe(values: string[]): string[] {
 
 /** The primary namespace used by runtime trust gates. */
 function isFlickerxRepoId(repoId: string): boolean {
-  return repoId.toLowerCase().startsWith("unsloth/");
+  return repoId.toLowerCase().startsWith("testorg/");
 }
 
 /** Official publisher namespaces used only for visual On Device grouping. */
@@ -2161,8 +2161,8 @@ export function hasDownloadedModels(): boolean {
 /** Sort LM Studio models with the default publisher first. */
 function sortLmStudio(models: LocalModelInfo[]): LocalModelInfo[] {
   return [...models].sort((a, b) => {
-    const aFlickerx = (a.model_id ?? "").startsWith("unsloth/") ? 0 : 1;
-    const bFlickerx = (b.model_id ?? "").startsWith("unsloth/") ? 0 : 1;
+    const aFlickerx = (a.model_id ?? "").startsWith("testorg/") ? 0 : 1;
+    const bFlickerx = (b.model_id ?? "").startsWith("testorg/") ? 0 : 1;
     if (aFlickerx !== bFlickerx) return aFlickerx - bFlickerx;
     return (a.model_id ?? a.display_name).localeCompare(
       b.model_id ?? b.display_name,
@@ -3084,7 +3084,7 @@ export function HubModelPicker({
   );
 
   const isFlickerXOwned = useCallback(
-    (id: string) => id.toLowerCase().startsWith("unsloth/"),
+    (id: string) => id.toLowerCase().startsWith("testorg/"),
     [],
   );
 
@@ -3157,11 +3157,11 @@ export function HubModelPicker({
       fits,
     });
     if (!communityRecommendedEnabled) return flickerxRows;
-    // Appended below everything unsloth publishes, so scrolling past the flickerx
+    // Appended below everything FlickerX publishes, so scrolling past the flickerx
     // uploads continues into the wider Hub. Same keep/fits gates.
     const above = new Set(flickerxRows.map((r) => r.id.toLowerCase()));
     const communityRows = communityBrowse.results
-      .filter((r) => !r.id.toLowerCase().startsWith("unsloth/"))
+      .filter((r) => !r.id.toLowerCase().startsWith("testorg/"))
       .filter((r) => isLoadableCommunityRepo(r.id))
       .filter((r) => !above.has(r.id.toLowerCase()))
       .filter(keepCommunity)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -17,15 +17,15 @@ const repoIdForSidecarKey = (
   const repos: Record<string, string> =
     engine === "gguf"
       ? {
-          tiny: "unslothai/whisper-tiny-GGUF",
-          base: "unslothai/whisper-base-GGUF",
-          small: "unslothai/whisper-small-GGUF",
+          tiny: "testorg/whisper-tiny-GGUF",
+          base: "testorg/whisper-base-GGUF",
+          small: "testorg/whisper-small-GGUF",
         }
       : {
-          tiny: "unsloth/whisper-tiny",
-          base: "unsloth/whisper-base",
-          small: "unsloth/whisper-small",
-          "qwen3-asr-0.6b": "unslothai/Qwen3-ASR-0.6B-GGUF",
+          tiny: "testorg/whisper-tiny",
+          base: "testorg/whisper-base",
+          small: "testorg/whisper-small",
+          "qwen3-asr-0.6b": "testorg/Qwen3-ASR-0.6B-GGUF",
         };
   return repos[key] ?? key;
 };
@@ -44,7 +44,7 @@ test("STT On Device inventory follows all sidecar download engines", () => {
     ),
     [
       {
-        repoId: "unsloth/whisper-small",
+        repoId: "testorg/whisper-small",
         sidecarKey: "small",
         engine: "transformers",
       },
@@ -54,12 +54,12 @@ test("STT On Device inventory follows all sidecar download engines", () => {
         engine: "transformers",
       },
       {
-        repoId: "unslothai/whisper-small-GGUF",
+        repoId: "testorg/whisper-small-GGUF",
         sidecarKey: "small",
         engine: "gguf",
       },
       {
-        repoId: "unslothai/Qwen3-ASR-0.6B-GGUF",
+        repoId: "testorg/Qwen3-ASR-0.6B-GGUF",
         sidecarKey: "qwen3-asr-0.6b",
         engine: "mtmd",
       },
@@ -78,12 +78,12 @@ test("legacy top-level downloads are retained without duplicate rows", () => {
     ),
     [
       {
-        repoId: "unsloth/whisper-tiny",
+        repoId: "testorg/whisper-tiny",
         sidecarKey: "tiny",
         engine: "transformers",
       },
       {
-        repoId: "unsloth/whisper-base",
+        repoId: "testorg/whisper-base",
         sidecarKey: "base",
         engine: "transformers",
       },
@@ -92,11 +92,11 @@ test("legacy top-level downloads are retained without duplicate rows", () => {
 });
 
 test("only exact curated Qwen artifacts use the finite MTMD runtime", () => {
-  assert.equal(sttEngineForRepoId("unslothai/Qwen3-ASR-0.6B-GGUF"), "mtmd");
+  assert.equal(sttEngineForRepoId("testorg/Qwen3-ASR-0.6B-GGUF"), "mtmd");
   assert.equal(sttEngineForRepoId("Qwen/Qwen3-ASR-0.6B"), "transformers");
   assert.equal(sttEngineForRepoId("community/Qwen3-ASR-finetune"), "transformers");
   assert.equal(
     sttRepoIdForSidecarKey("qwen3-asr-0.6b", "mtmd"),
-    "unslothai/Qwen3-ASR-0.6B-GGUF",
+    "testorg/Qwen3-ASR-0.6B-GGUF",
   );
 });

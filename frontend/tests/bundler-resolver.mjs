@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The two resolution rules vite and tsconfig's "bundler" mode give the app that bare node
 // does not: the "@/*" path alias, and a relative import written without its extension.

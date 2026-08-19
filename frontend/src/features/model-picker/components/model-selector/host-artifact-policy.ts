@@ -66,7 +66,7 @@ export function curatedArtifactIsOfferable(
   return !UNPLACEABLE_WITHOUT_ACCELERATOR.has(repoId.trim().toLowerCase());
 }
 
-const H3_GGUF_ID = "unsloth/minimax-h3-gguf";
+const H3_GGUF_ID = "testorg/minimax-h3-gguf";
 
 /**
  * The speed qualifier for a curated row, or null when it earns none.

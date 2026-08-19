@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The network catalog check promises that an unreachable Hub produces warnings, never a red run.
 // Bounding each request is not enough to keep that promise: the batches are serial, so a peer

@@ -4,24 +4,24 @@
 export type AudioSttEngine = "transformers" | "gguf" | "mtmd";
 
 const TRANSFORMERS_REPO_BY_KEY: Record<string, string> = {
-  tiny: "unsloth/whisper-tiny",
-  base: "unsloth/whisper-base",
-  small: "unsloth/whisper-small",
-  "large-v3-turbo": "unsloth/whisper-large-v3-turbo",
-  "large-v3": "unsloth/whisper-large-v3",
+  tiny: "testorg/whisper-tiny",
+  base: "testorg/whisper-base",
+  small: "testorg/whisper-small",
+  "large-v3-turbo": "testorg/whisper-large-v3-turbo",
+  "large-v3": "testorg/whisper-large-v3",
 };
 
 const MTMD_REPO_BY_KEY: Record<string, string> = {
-  "qwen3-asr-0.6b": "unsloth/Qwen3-ASR-0.6B-GGUF",
-  "qwen3-asr-1.7b": "unsloth/Qwen3-ASR-1.7B-GGUF",
+  "qwen3-asr-0.6b": "testorg/Qwen3-ASR-0.6B-GGUF",
+  "qwen3-asr-1.7b": "testorg/Qwen3-ASR-1.7B-GGUF",
 };
 
 const GGUF_REPO_BY_KEY: Record<string, string> = {
-  tiny: "unsloth/whisper-tiny-GGUF",
-  base: "unsloth/whisper-base-GGUF",
-  small: "unsloth/whisper-small-GGUF",
-  "large-v3-turbo": "unsloth/whisper-large-v3-turbo-GGUF",
-  "large-v3": "unsloth/whisper-large-v3-GGUF",
+  tiny: "testorg/whisper-tiny-GGUF",
+  base: "testorg/whisper-base-GGUF",
+  small: "testorg/whisper-small-GGUF",
+  "large-v3-turbo": "testorg/whisper-large-v3-turbo-GGUF",
+  "large-v3": "testorg/whisper-large-v3-GGUF",
 };
 
 const KEY_BY_REPO = new Map<string, string>(

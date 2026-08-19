@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // An optimistic "Loading" row is only ever retired by the terminal lifecycle
 // event, and nothing listens for that while the indicator is disabled. So a
@@ -36,7 +36,7 @@ const SOURCE = readFileSync(
 
 test("a stale pending entry outlives every poll, so it must not survive a disable", () => {
   const pending = new Map<LoadedModelSource, string | null>([
-    ["image", "unsloth/flux"],
+    ["image", "testorg/flux"],
   ]);
   // What the poll reports after the load failed: this runtime holds nothing.
   const polled: LoadedModelEntry[] = [
@@ -99,35 +99,35 @@ test("pending rows are cleared when recording stops, not when it starts", () => 
 test("a replacement load shows alongside the model it is replacing", () => {
   const resident: LoadedModelEntry[] = [
     {
-      id: "image:unsloth/flux-old",
+      id: "image:testorg/flux-old",
       kind: "image",
       source: "image",
-      name: "unsloth/flux-old",
+      name: "testorg/flux-old",
       detail: "FLUX · BF16 · cuda",
     },
   ];
   const pending = new Map<LoadedModelSource, string | null>([
-    ["image", "unsloth/flux-new"],
+    ["image", "testorg/flux-new"],
   ]);
 
   const rows = withPendingLoads(resident, pending);
   assert.equal(rows.length, 2);
-  assert.equal(rows[1].name, "unsloth/flux-new");
+  assert.equal(rows[1].name, "testorg/flux-new");
   assert.equal(rows[1].loading, true);
 });
 
 test("the resident row wins once the replacement has committed", () => {
   const committed: LoadedModelEntry[] = [
     {
-      id: "image:unsloth/flux-new",
+      id: "image:testorg/flux-new",
       kind: "image",
       source: "image",
-      name: "unsloth/flux-new",
+      name: "testorg/flux-new",
       detail: "FLUX · BF16 · cuda",
     },
   ];
   const pending = new Map<LoadedModelSource, string | null>([
-    ["image", "unsloth/flux-new"],
+    ["image", "testorg/flux-new"],
   ]);
   assert.deepEqual(withPendingLoads(committed, pending), committed);
 });
@@ -146,7 +146,7 @@ test("a status loading row still suppresses the announcement", () => {
     },
   ];
   const pending = new Map<LoadedModelSource, string | null>([
-    ["chat", "unsloth/Qwen3-0.6B-GGUF"],
+    ["chat", "testorg/Qwen3-0.6B-GGUF"],
   ]);
   assert.deepEqual(withPendingLoads(loadingRow, pending), loadingRow);
 });
@@ -154,10 +154,10 @@ test("a status loading row still suppresses the announcement", () => {
 test("an unnamed announcement defers to any row for its runtime", () => {
   const resident: LoadedModelEntry[] = [
     {
-      id: "video:unsloth/wan",
+      id: "video:testorg/wan",
       kind: "video",
       source: "video",
-      name: "unsloth/wan",
+      name: "testorg/wan",
       detail: "WAN",
     },
   ];

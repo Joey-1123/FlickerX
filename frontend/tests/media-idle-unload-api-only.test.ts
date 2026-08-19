@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // "Only unload models loaded by the API" vetoes the media TTL outright: every resident image
 // or video model is one the user loaded from Studio, so there is nothing the setting would

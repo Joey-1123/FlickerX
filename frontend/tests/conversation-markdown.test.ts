@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -336,12 +336,12 @@ test("preserves assistant citation sources in markdown exports", () => {
       contentBlocksToMarkdownBlocks([
         {
           type: "source",
-          title: "Unsloth documentation",
-          url: "https://docs.unsloth.ai/",
+          title: "FlickerX documentation",
+          url: "https://docs.flickerx.ai/",
         },
       ]),
     ),
-    "**source:** [Unsloth documentation](<https://docs.unsloth.ai/>)",
+    "**source:** [FlickerX documentation](<https://docs.flickerx.ai/>)",
   );
 });
 
@@ -749,16 +749,16 @@ test("keeps a details tag inside a fence, a code span or a comment literal", () 
 
 test("keeps a citation destination from decoding into another host", () => {
   // &commat; is an entity reference in a destination: a viewer resolves this to
-  // docs.unsloth.ai@evil.test, which is credentials on evil.test.
+  // docs.flickerx.ai@evil.test, which is credentials on evil.test.
   assert.equal(
     renderConversationBlocks([
       {
         kind: "source",
         title: "Docs",
-        url: "https://docs.unsloth.ai&commat;evil.test/",
+        url: "https://docs.flickerx.ai&commat;evil.test/",
       },
     ]),
-    "**source:** [Docs](<https://docs.unsloth.ai&amp;commat;evil.test/>)",
+    "**source:** [Docs](<https://docs.flickerx.ai&amp;commat;evil.test/>)",
   );
   assert.equal(
     renderConversationBlocks([

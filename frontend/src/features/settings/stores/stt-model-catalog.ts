@@ -35,13 +35,13 @@ export type DefaultSttModel = (typeof STT_MODELS)[number];
 export type SttModel = string;
 /** Whisper repos downloaded through Studio's existing Model Hub manager. */
 export const STT_MODEL_REPOS: Record<DefaultSttModel, string> = {
-  tiny: "unsloth/whisper-tiny",
-  base: "unsloth/whisper-base",
-  small: "unsloth/whisper-small",
-  "large-v3-turbo": "unsloth/whisper-large-v3-turbo",
-  "large-v3": "unsloth/whisper-large-v3",
-  "qwen3-asr-0.6b": "unsloth/Qwen3-ASR-0.6B-GGUF",
-  "qwen3-asr-1.7b": "unsloth/Qwen3-ASR-1.7B-GGUF",
+  tiny: "testorg/whisper-tiny",
+  base: "testorg/whisper-base",
+  small: "testorg/whisper-small",
+  "large-v3-turbo": "testorg/whisper-large-v3-turbo",
+  "large-v3": "testorg/whisper-large-v3",
+  "qwen3-asr-0.6b": "testorg/Qwen3-ASR-0.6B-GGUF",
+  "qwen3-asr-1.7b": "testorg/Qwen3-ASR-1.7B-GGUF",
 };
 export const DEFAULT_STT_MODEL: DefaultSttModel = "qwen3-asr-0.6b";
 /** The default before Qwen3-ASR, used only by the v1 migration. */

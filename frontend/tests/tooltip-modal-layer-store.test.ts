@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The shared modal-layer subscription behind every tooltip. Two observers: a cheap one on the
 // body's style attribute answering "is a modal up", and a document-wide subtree one answering

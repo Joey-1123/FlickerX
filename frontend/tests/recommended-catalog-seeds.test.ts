@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -25,8 +25,8 @@ interface Row {
 }
 
 // Two Video catalog seeds, in catalog order.
-const LTX = "unsloth/LTX-2.3-GGUF";
-const KLEIN = "unsloth/FLUX.2-klein-9B-GGUF";
+const LTX = "testorg/LTX-2.3-GGUF";
+const KLEIN = "testorg/FLUX.2-klein-9B-GGUF";
 const SEEDS: Row[] = [
   { id: LTX, isGguf: true },
   { id: KLEIN, isGguf: true },
@@ -34,7 +34,7 @@ const SEEDS: Row[] = [
 // What the listing reports for those repos (HF `expand=gguf` totals).
 const LTX_PARAMS = 21_005_004_544;
 const KLEIN_PARAMS = 9_078_581_248;
-const OTHER = "unsloth/Wan2.2-T2V-A14B-GGUF";
+const OTHER = "testorg/Wan2.2-T2V-A14B-GGUF";
 
 // The Video picker's task gate: no usable pipeline tag means dropped.
 const VIDEO_TASKS = ["text-to-video", "image-to-video"];
@@ -148,7 +148,7 @@ test("an unlisted seed is sized from its id, and hidden when it cannot be", () =
   );
 });
 
-// Neither is unsloth-owned, and Recommended lists `owner: unsloth` only, so
+// Neither is FlickerX-owned, and Recommended lists `owner: testorg` only, so
 // their seed is the only row they ever get.
 const SDXL = "stabilityai/sdxl-turbo";
 const WAN = "Wan-AI/Wan2.2-TI2V-5B-Diffusers";
@@ -211,8 +211,8 @@ test("a listing row still overrides the catalog size it seeded with", () => {
   );
 });
 
-// unsloth owns this one, so the listing DOES report it, and the seed hands off.
-const BNB = "unsloth/Z-Image-Turbo-unsloth-bnb-4bit";
+// FlickerX owns this one, so the listing DOES report it, and the seed hands off.
+const BNB = "testorg/Z-Image-Turbo-4bit";
 
 test("a listing row inherits the curated size of the seed it takes over", () => {
   // 8 GB card -> 5.6 GB budget.

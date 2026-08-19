@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The Images and Video pages stay mounted off-route and read ?model= to load a pick handed over by the chat picker. /hub names
 // its selection with the same param, so these pin both halves of keeping them apart: the trap (location runs ahead of the
@@ -105,11 +105,11 @@ test("a chat-picker handoff still arrives on the /images match", async () => {
   await router.load();
   await router.navigate({
     to: "/images",
-    search: { model: "unsloth/Z-Image-Turbo" },
+    search: { model: "testorg/Z-Image-Turbo" },
   });
   await router.invalidate();
 
   assert.deepEqual(matchFor(router, "/images")?.search, {
-    model: "unsloth/Z-Image-Turbo",
+    model: "testorg/Z-Image-Turbo",
   });
 });

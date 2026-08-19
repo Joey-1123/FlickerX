@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Chat toggles used to live only in localStorage, so a second browser or a
 // remote session started from defaults. They now round-trip through
@@ -35,7 +35,7 @@ test("a full set of mirrored settings survives the round trip", () => {
     ragAutoInjectMinScore: 0.42,
     ragSource: { type: "kb", kbId: "notes" },
     researchWebsitePolicy: {
-      allowedDomains: ["unsloth.ai"],
+      allowedDomains: ["flickerx.ai"],
       blockedDomains: [],
     },
     speculativeType: "ngram",
@@ -53,7 +53,7 @@ test("a full set of mirrored settings survives the round trip", () => {
     ragAutoInjectMinScore: 0.42,
     ragSource: { type: "kb", kbId: "notes" },
     researchWebsitePolicy: {
-      allowedDomains: ["unsloth.ai"],
+      allowedDomains: ["flickerx.ai"],
       blockedDomains: [],
     },
     speculativeType: "ngram",

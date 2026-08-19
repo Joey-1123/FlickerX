@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The config plumbing reads the platform store, and config files travel between
 // machines, so pin the value mapping against every device type and every shipped
@@ -66,7 +66,7 @@ test("gradient_checkpointing only ever maps to a value the picker can show", () 
     false,
     "true",
     "none",
-    "unsloth",
+    "flickerx",
     "mlx",
     "None",
     "TRUE",
@@ -87,7 +87,7 @@ test("gradient_checkpointing only ever maps to a value the picker can show", () 
       }).gradientCheckpointing;
       if (mapped !== undefined) {
         assert.ok(
-          ["none", "true", "unsloth", "mlx"].includes(mapped as string),
+          ["none", "true", "flickerx", "mlx"].includes(mapped as string),
           `${deviceType}: ${JSON.stringify(value)} mapped to ${String(mapped)}`,
         );
       }
@@ -98,10 +98,10 @@ test("gradient_checkpointing only ever maps to a value the picker can show", () 
   }
 });
 
-test("Unsloth GC is still never selected on a Mac", () => {
+test("FlickerX GC is still never selected on a Mac", () => {
   setDeviceType("mac");
   assert.equal(
-    patchFor({ gradient_checkpointing: "unsloth" }).gradientCheckpointing,
+    patchFor({ gradient_checkpointing: "flickerx" }).gradientCheckpointing,
     "mlx",
   );
   // The boolean path must not sneak past that remap either.

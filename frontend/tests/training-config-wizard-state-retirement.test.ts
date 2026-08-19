@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // `currentStep` was persisted, so deleting the wizard without a migration leaves
 // it in every existing install and partializeTrainingConfig keeps writing it back.
@@ -27,7 +27,7 @@ function wizardEraBlob(): Record<string, unknown> {
   return {
     currentStep: 2,
     projectName: "customer-support-lora",
-    selectedModel: "unsloth/gemma-3-270m",
+    selectedModel: "testorg/gemma-3-270m",
     trainingMethod: "qlora",
     maxSteps: 123,
     learningRate: 0.0002,
@@ -58,7 +58,7 @@ test("dropping the wizard step preserves every user-authored value", () => {
   >;
 
   assert.equal(state.projectName, "customer-support-lora");
-  assert.equal(state.selectedModel, "unsloth/gemma-3-270m");
+  assert.equal(state.selectedModel, "testorg/gemma-3-270m");
   assert.equal(state.trainingMethod, "qlora");
   assert.equal(state.maxSteps, 123);
   assert.equal(state.learningRate, 0.0002);

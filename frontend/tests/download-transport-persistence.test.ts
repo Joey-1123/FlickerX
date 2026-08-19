@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -13,7 +13,7 @@ import {
 registerBundlerResolver();
 const { store } = installLocalStorageFake();
 
-const PERSIST_KEY = "unsloth.studio.downloads";
+const PERSIST_KEY = "flickerx.studio.downloads";
 let flushPersistedState: (() => void) | undefined;
 Object.assign(globalThis.window, {
   addEventListener: (type: string, listener: () => void) => {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -197,11 +197,11 @@ test("a measured row is left exactly as it was", async () => {
 
   const measured = resolveNavRowState({
     disabled: true,
-    tooltip: "Training needs MLX. Run `unsloth studio update` to enable Train.",
+    tooltip: "Training needs MLX. Run `flickerx studio update` to enable Train.",
     spinner: false,
   });
   assert.equal(measured.disabled, true, "a real chat-only host was let into Train");
-  assert.equal(measured.tooltip, "Training needs MLX. Run `unsloth studio update` to enable Train.");
+  assert.equal(measured.tooltip, "Training needs MLX. Run `flickerx studio update` to enable Train.");
   assert.equal(measured.spinner, false);
 
   // The pre-existing use of the column (a run in progress) is untouched.

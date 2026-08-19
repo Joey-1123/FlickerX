@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -31,7 +31,7 @@ test("preserves repository identifiers that contain no local path syntax", () =>
 
 test("does not classify Hugging Face repository identifiers as paths", () => {
   assert.equal(looksLikeLocalPath("HuggingFaceH4/ultrachat_200k"), false);
-  assert.equal(looksLikeLocalPath("unsloth/Qwen3-4B"), false);
+  assert.equal(looksLikeLocalPath("testorg/Qwen3-4B"), false);
 });
 
 test("an HF-cache row routes to the media pages, a filesystem row does not", () => {

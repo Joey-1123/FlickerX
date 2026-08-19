@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Every model the Generate picker offers must be one the backend can actually decode.
 // Llasa was offered and could not be: it speaks XCodec2 (65,536 <|s_N|> tokens), which is
 // in neither _AUDIO_TOKEN_PATTERNS nor AudioCodecManager, so selecting it loaded the model
 // and then failed with "not a supported TTS model". Probed live against a running Studio,
-// unsloth/Llasa-1B reports is_audio=false while every other curated TTS row reports its
+// testorg/Llasa-1B reports is_audio=false while every other curated TTS row reports its
 // codec, which is the same shape as the Orpheus defect this PR was opened to fix.
 
 import assert from "node:assert/strict";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -17,7 +17,7 @@ const { pinKey, usePinnedModelsStore } = await import(
   "../src/features/model-picker/components/model-selector/pinned-models.ts"
 );
 
-const STORAGE_KEY = "unsloth_pinned_models";
+const STORAGE_KEY = "flickerx_pinned_models";
 
 function setPinned(pinned: string[]) {
   usePinnedModelsStore.setState({ pinned });
@@ -431,7 +431,7 @@ test("a storage event for another key does not look like a cross-window pin writ
   const store = usePinnedModelsStore.getState();
   store.beginPinnedDrag();
   store.movePinned("a", "c");
-  fireWindowEvent("storage", { key: "unsloth_something_else" });
+  fireWindowEvent("storage", { key: "flickerx_something_else" });
   assert.deepEqual(
     usePinnedModelsStore.getState().pinned,
     ["b", "c", "a"],

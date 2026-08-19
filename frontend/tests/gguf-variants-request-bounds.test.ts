@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The picker's quant listing was issued with no abort signal and no offline handling, so
 // an unanswered request left the expander on "Loading variants…" and auto-load behind it,
@@ -19,7 +19,7 @@ const {
   runBoundedVariantsRequest,
 } = await import("../src/features/chat/api/gguf-variants-request.ts");
 
-const REPO = "unsloth/Qwen3-8B-GGUF";
+const REPO = "testorg/Qwen3-8B-GGUF";
 
 test("every listing carries a signal, so an unanswered one can still be given up on", () => {
   const abort = ggufVariantsAbort();

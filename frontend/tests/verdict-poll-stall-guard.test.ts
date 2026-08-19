@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The recovery poll's no-stacking guard in app-sidebar.tsx, run rather than pattern-matched.
 // The effect lives in a .tsx that pulls in the whole shell, so lift the interval out of the

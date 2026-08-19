@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // S2: no user setting may be lost on any upgrade or downgrade path.
 //
@@ -26,9 +26,9 @@ const { savePerModelConfig, deletePerModelConfig, resolveInitialConfig } = await
   "../src/features/model-picker/model-config/per-model-config.ts"
 );
 
-const MODEL = "unsloth/Repo-GGUF";
+const MODEL = "testorg/Repo-GGUF";
 const VARIANT = "Q4_K_M";
-const KEY = "unsloth_model_configs";
+const KEY = "flickerx_model_configs";
 
 function config(overrides: Record<string, unknown> = {}) {
   return {

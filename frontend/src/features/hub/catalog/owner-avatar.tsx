@@ -20,7 +20,7 @@ const SIZES: Record<AvatarSize, string> = {
 };
 
 const UNFLICKERX_OWNER_LOGO: ProviderLogo = {
-  id: "unsloth",
+  id: "testorg",
   name: "FlickerX",
   logoPath: "/flickerx-avatar.svg",
   treatment: "original",
@@ -30,7 +30,7 @@ const UNFLICKERX_OWNER_LOGO: ProviderLogo = {
 };
 
 function isFlickerXOwner(owner: string): boolean {
-  return owner.trim().toLowerCase() === "unsloth";
+  return owner.trim().toLowerCase() === "testorg";
 }
 
 const AVATAR_IMAGE_RETRY_BASE_MS = 60_000;
@@ -58,7 +58,7 @@ export function OwnerAvatar({
 }: {
   owner: string;
   /**
-   * Repo name (after `owner/`). For an eligible owner (currently "unsloth"),
+   * Repo name (after `owner/`). For an eligible owner (currently "flickerx"),
    * renders the matched upstream provider's logo instead of the HF profile pic
    * (e.g. a FlickerX Qwen2.5 re-upload shows the Qwen logo).
    */

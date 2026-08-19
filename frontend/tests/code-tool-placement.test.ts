@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Where the Code pill runs code.
 //
@@ -9,7 +9,7 @@
 // `code_execution` -- the model's code ran in the PROVIDER's sandbox. Now that
 // those providers take the Studio branch, the same stored pill would send
 // ["python", "terminal"] and run the model's code on the USER's machine. The
-// toggle is persisted (unsloth_chat_code_tools_enabled), so nobody re-consents:
+// toggle is persisted (flickerx_chat_code_tools_enabled), so nobody re-consents:
 // the trust boundary moves during an update, with nothing in the composer or
 // the stream saying so.
 //

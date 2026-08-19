@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Issue 8416: gated on `isTauri` alone, the picker stayed live when the app
 // attached to a backend it had not spawned, and only a spawned backend holds
-// UNSLOTH_STUDIO_NATIVE_PATH_LEASE_SECRET, so the lease came back 400. The
+// FLICKERX_NATIVE_PATH_LEASE_SECRET, so the lease came back 400. The
 // button must be dead without the capability AND `link()` must refuse anyway.
 // No React renderer here, so this asserts on source, like ~50 sibling tests.
 

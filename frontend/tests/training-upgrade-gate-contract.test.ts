@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The gap this closes: `confirmTransformersUpgradeIfNeeded` had two callers, both in
 // chat, so a Train-tab run on an architecture no installed transformers ships was

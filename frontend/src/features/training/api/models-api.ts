@@ -33,7 +33,7 @@ interface BackendTrainingDefaults {
   packing?: boolean;
   train_on_completions?: boolean;
   // Shipped YAML may decode this value as a boolean.
-  gradient_checkpointing?: "none" | "true" | "unsloth" | boolean;
+  gradient_checkpointing?: "none" | "true" | "flickerx" | boolean;
   trust_remote_code?: boolean;
 }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -14,8 +14,8 @@ import {
   takeDriftedRepos,
 } from "../src/features/model-picker/components/model-selector/sole-quant-cache.ts";
 
-const A = "unsloth/Qwen3-8B-GGUF";
-const B = "unsloth/Llama-3.1-8B-Instruct-GGUF";
+const A = "testorg/Qwen3-8B-GGUF";
+const B = "testorg/Llama-3.1-8B-Instruct-GGUF";
 
 /** Two listed repos, each at its own cache version. */
 const targetsAt = (versionA: string, versionB: string): SoleQuantTarget[] => [

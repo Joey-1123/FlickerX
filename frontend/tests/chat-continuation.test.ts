@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -159,13 +159,13 @@ test("every stop reason has a label", () => {
 test("a continuation request is read only when it carries text", () => {
   assert.deepEqual(
     readContinuationRequest({
-      custom: { unslothContinuation: { partial: "half an answer" } },
+      custom: { flickerxContinuation: { partial: "half an answer" } },
     }),
     { partial: "half an answer" },
   );
   assert.equal(
     readContinuationRequest({
-      custom: { unslothContinuation: { partial: "" } },
+      custom: { flickerxContinuation: { partial: "" } },
     }),
     null,
   );
@@ -273,14 +273,14 @@ test("a continuation carries the Gemini signature of the turn it resumes", () =>
 
   assert.deepEqual(
     readContinuationRequest({
-      custom: { unslothContinuation: { partial: "half", thoughtSignature: "SIG" } },
+      custom: { flickerxContinuation: { partial: "half", thoughtSignature: "SIG" } },
     }),
     { partial: "half", thoughtSignature: "SIG" },
   );
   // An unsigned turn stays unsigned rather than gaining an empty key.
   assert.deepEqual(
     readContinuationRequest({
-      custom: { unslothContinuation: { partial: "half" } },
+      custom: { flickerxContinuation: { partial: "half" } },
     }),
     { partial: "half" },
   );

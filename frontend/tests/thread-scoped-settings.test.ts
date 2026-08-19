@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The snapshot goes out on PATCH /api/chat/threads/{id}, whose model is extra="forbid" with
 // literal and range constraints. These pin what the client may send, and what may be per-chat.

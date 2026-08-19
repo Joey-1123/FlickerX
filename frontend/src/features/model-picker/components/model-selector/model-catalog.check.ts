@@ -33,11 +33,11 @@ import {
 
 // ── canonicalKeyFor: suffix stripping, owner preserved ─────────────────────────
 
-assert.equal(canonicalKeyFor("unsloth/Qwen-Image-2512-GGUF"), "unsloth/qwen-image-2512");
-assert.equal(canonicalKeyFor("unsloth/Qwen-Image-2512-FP8"), "unsloth/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/Qwen-Image-2512-GGUF"), "testorg/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/Qwen-Image-2512-FP8"), "testorg/qwen-image-2512");
 assert.equal(
-  canonicalKeyFor("unsloth/Qwen-Image-2512-flickerx-bnb-4bit"),
-  "unsloth/qwen-image-2512",
+  canonicalKeyFor("testorg/Qwen-Image-2512-flickerx-bnb-4bit"),
+  "testorg/qwen-image-2512",
 );
 assert.equal(
   canonicalKeyFor("ideogram-ai/ideogram-4-nf4-diffusers"),
@@ -46,34 +46,34 @@ assert.equal(
 assert.equal(canonicalKeyFor("Wan-AI/Wan2.2-TI2V-5B-Diffusers"), "wan-ai/wan2.2-ti2v-5b");
 assert.equal(canonicalKeyFor("lightricks/ltx-2.3-fp8"), "lightricks/ltx-2.3");
 // Prequant suffixes strip regardless of case: -GGUF/-FP8/-int8/-nvfp4 all route to the base name.
-assert.equal(canonicalKeyFor("unsloth/Qwen-Image-2512-int8"), "unsloth/qwen-image-2512");
-assert.equal(canonicalKeyFor("unsloth/Qwen-Image-2512-INT8"), "unsloth/qwen-image-2512");
-assert.equal(canonicalKeyFor("unsloth/Qwen-Image-2512-nvfp4"), "unsloth/qwen-image-2512");
-assert.equal(canonicalKeyFor("unsloth/Qwen-Image-2512-NVFP4"), "unsloth/qwen-image-2512");
-assert.equal(canonicalKeyFor("unsloth/qwen-image-2512-gguf"), "unsloth/qwen-image-2512");
-assert.equal(canonicalKeyFor("unsloth/qwen-image-2512-fp8"), "unsloth/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/Qwen-Image-2512-int8"), "testorg/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/Qwen-Image-2512-INT8"), "testorg/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/Qwen-Image-2512-nvfp4"), "testorg/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/Qwen-Image-2512-NVFP4"), "testorg/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/qwen-image-2512-gguf"), "testorg/qwen-image-2512");
+assert.equal(canonicalKeyFor("testorg/qwen-image-2512-fp8"), "testorg/qwen-image-2512");
 
 // ── stripArtifactSuffixesForDisplay: case-preserving base name for row labels ──
 
 assert.equal(
-  stripArtifactSuffixesForDisplay("unsloth/ERNIE-Image-Turbo-GGUF"),
-  "unsloth/ERNIE-Image-Turbo",
+  stripArtifactSuffixesForDisplay("testorg/ERNIE-Image-Turbo-GGUF"),
+  "testorg/ERNIE-Image-Turbo",
 );
 assert.equal(
-  stripArtifactSuffixesForDisplay("unsloth/FLUX.2-klein-base-9B-GGUF"),
-  "unsloth/FLUX.2-klein-base-9B",
+  stripArtifactSuffixesForDisplay("testorg/FLUX.2-klein-base-9B-GGUF"),
+  "testorg/FLUX.2-klein-base-9B",
 );
 assert.equal(
-  stripArtifactSuffixesForDisplay("unsloth/Qwen-Image-2512-FP8"),
-  "unsloth/Qwen-Image-2512",
+  stripArtifactSuffixesForDisplay("testorg/Qwen-Image-2512-FP8"),
+  "testorg/Qwen-Image-2512",
 );
 assert.equal(
-  stripArtifactSuffixesForDisplay("unsloth/Some-Model-int8"),
-  "unsloth/Some-Model",
+  stripArtifactSuffixesForDisplay("testorg/Some-Model-int8"),
+  "testorg/Some-Model",
 );
 assert.equal(
-  stripArtifactSuffixesForDisplay("unsloth/Some-Model-NVFP4"),
-  "unsloth/Some-Model",
+  stripArtifactSuffixesForDisplay("testorg/Some-Model-NVFP4"),
+  "testorg/Some-Model",
 );
 // Non-suffixed names and suffix-only names come back unchanged, casing intact.
 assert.equal(
@@ -86,16 +86,16 @@ assert.equal(canonicalKeyFor("krea/Krea-2-Turbo"), "krea/krea-2-turbo");
 // Stripping never merges owners.
 assert.notEqual(
   canonicalKeyFor("Qwen/Qwen-Image-2512"),
-  canonicalKeyFor("unsloth/Qwen-Image-2512"),
+  canonicalKeyFor("testorg/Qwen-Image-2512"),
 );
 // Stripping never empties a name that IS a suffix-looking token.
 assert.equal(canonicalKeyFor("someone/fp8"), "someone/fp8");
 
 // ── groupForRepoId: artifacts, aliases, canonical keys, unknowns ───────────────
 
-const qwen2512 = groupForRepoId("unsloth/Qwen-Image-2512-GGUF", IMAGE_CATALOG);
+const qwen2512 = groupForRepoId("testorg/Qwen-Image-2512-GGUF", IMAGE_CATALOG);
 assert.ok(qwen2512);
-assert.equal(qwen2512.canonicalId, "unsloth/Qwen-Image-2512");
+assert.equal(qwen2512.canonicalId, "testorg/Qwen-Image-2512");
 // Every artifact of the group resolves to the same group.
 for (const artifact of qwen2512.artifacts) {
   assert.equal(groupForRepoId(artifact.repoId, IMAGE_CATALOG), qwen2512);
@@ -103,19 +103,19 @@ for (const artifact of qwen2512.artifacts) {
 // Cross-owner aliases resolve only because they are declared.
 assert.equal(groupForRepoId("Qwen/Qwen-Image-2512", IMAGE_CATALOG), qwen2512);
 // Undeclared prequant variants (any case) route to the base group via the stripped key.
-assert.equal(groupForRepoId("unsloth/Qwen-Image-2512-INT8", IMAGE_CATALOG), qwen2512);
-assert.equal(groupForRepoId("unsloth/Qwen-Image-2512-NVFP4", IMAGE_CATALOG), qwen2512);
+assert.equal(groupForRepoId("testorg/Qwen-Image-2512-INT8", IMAGE_CATALOG), qwen2512);
+assert.equal(groupForRepoId("testorg/Qwen-Image-2512-NVFP4", IMAGE_CATALOG), qwen2512);
 assert.equal(
   groupForRepoId("Tongyi-MAI/Z-Image-Turbo", IMAGE_CATALOG)?.canonicalId,
-  "unsloth/Z-Image-Turbo",
+  "testorg/Z-Image-Turbo",
 );
 // A sibling artifact of an aliased owner groups via the alias' stripped key.
 assert.equal(groupForRepoId("Qwen/Qwen-Image-2512-FP8", IMAGE_CATALOG), qwen2512);
 // Unknown repos pass through ungrouped.
 assert.equal(groupForRepoId("someone/some-model-GGUF", IMAGE_CATALOG), null);
-assert.equal(groupForRepoId("unsloth/Llama-3.3-70B-GGUF", VIDEO_CATALOG), null);
+assert.equal(groupForRepoId("testorg/Llama-3.3-70B-GGUF", VIDEO_CATALOG), null);
 // Video: the Lightricks 2.3 checkpoints group under the flickerx 2.3 release.
-const ltx23 = groupForRepoId("unsloth/LTX-2.3-GGUF", VIDEO_CATALOG);
+const ltx23 = groupForRepoId("testorg/LTX-2.3-GGUF", VIDEO_CATALOG);
 assert.ok(ltx23);
 assert.equal(groupForRepoId("lightricks/ltx-2.3", VIDEO_CATALOG), ltx23);
 assert.equal(groupForRepoId("lightricks/ltx-2.3-fp8", VIDEO_CATALOG), ltx23);
@@ -172,11 +172,11 @@ const OLD_SAFETENSORS_MODELS: Record<
   string,
   { kind: "pipeline" | "single_file"; filename?: string }
 > = {
-  "unsloth/Z-Image-Turbo-flickerx-bnb-4bit": { kind: "pipeline" },
+  "testorg/Z-Image-Turbo-flickerx-bnb-4bit": { kind: "pipeline" },
   "krea/Krea-2-Turbo": { kind: "pipeline" },
   "ideogram-ai/ideogram-4-fp8": { kind: "pipeline" },
   "ideogram-ai/ideogram-4-nf4-diffusers": { kind: "pipeline" },
-  "unsloth/Qwen-Image-2512-flickerx-bnb-4bit": { kind: "pipeline" },
+  "testorg/Qwen-Image-2512-flickerx-bnb-4bit": { kind: "pipeline" },
   "stabilityai/sdxl-turbo": { kind: "pipeline" },
   "stabilityai/stable-diffusion-xl-base-1.0": { kind: "pipeline" },
 };
@@ -199,30 +199,30 @@ for (const id of OLD_PIPELINE_MODELS) {
   assert.equal(got.kind, "pipeline", id);
 }
 // GGUF artifacts report the gguf kind; unknown ids report null.
-assert.equal(loadSpecFor("unsloth/Z-Image-Turbo-GGUF", IMAGE_CATALOG)?.kind, "gguf");
+assert.equal(loadSpecFor("testorg/Z-Image-Turbo-GGUF", IMAGE_CATALOG)?.kind, "gguf");
 assert.equal(loadSpecFor("someone/unknown", IMAGE_CATALOG), null);
 
 // Every old curated id is still present as an option (backwards compat).
 const imageOptionIds = new Set(catalogToModelOptions(IMAGE_CATALOG).map((o) => o.id));
 for (const id of [
-  "unsloth/Z-Image-Turbo-GGUF",
-  "unsloth/Z-Image-GGUF",
-  "unsloth/Qwen-Image-2512-GGUF",
-  "unsloth/Qwen-Image-GGUF",
-  "unsloth/FLUX.1-schnell-GGUF",
-  "unsloth/FLUX.1-dev-GGUF",
-  "unsloth/FLUX.2-klein-4B-GGUF",
-  "unsloth/FLUX.2-klein-9B-GGUF",
-  "unsloth/Qwen-Image-Edit-2511-GGUF",
-  "unsloth/FLUX.1-Kontext-dev-GGUF",
+  "testorg/Z-Image-Turbo-GGUF",
+  "testorg/Z-Image-GGUF",
+  "testorg/Qwen-Image-2512-GGUF",
+  "testorg/Qwen-Image-GGUF",
+  "testorg/FLUX.1-schnell-GGUF",
+  "testorg/FLUX.1-dev-GGUF",
+  "testorg/FLUX.2-klein-4B-GGUF",
+  "testorg/FLUX.2-klein-9B-GGUF",
+  "testorg/Qwen-Image-Edit-2511-GGUF",
+  "testorg/FLUX.1-Kontext-dev-GGUF",
   ...Object.keys(OLD_SAFETENSORS_MODELS),
 ]) {
   assert.ok(imageOptionIds.has(id), `image option missing: ${id}`);
 }
 const videoOptionIds = new Set(catalogToModelOptions(VIDEO_CATALOG).map((o) => o.id));
 for (const id of [
-  "unsloth/LTX-2.3-GGUF",
-  "unsloth/MiniMax-H3-GGUF",
+  "testorg/LTX-2.3-GGUF",
+  "testorg/MiniMax-H3-GGUF",
   ...OLD_PIPELINE_MODELS,
 ]) {
   assert.ok(videoOptionIds.has(id), `video option missing: ${id}`);
@@ -230,16 +230,16 @@ for (const id of [
 
 // H3 publishes both denoiser partitions in its official bundle. One artifact lets the lister's
 // partition-aware labels expose both in Recommended and On Device without a community mirror.
-const h3Group = groupForRepoId("unsloth/MiniMax-H3-GGUF", VIDEO_CATALOG);
+const h3Group = groupForRepoId("testorg/MiniMax-H3-GGUF", VIDEO_CATALOG);
 assert.ok(h3Group);
 assert.deepEqual(
   h3Group.artifacts
     .filter((artifact) => artifact.format === "gguf")
     .map((artifact) => artifact.repoId),
-  ["unsloth/MiniMax-H3-GGUF"],
+  ["testorg/MiniMax-H3-GGUF"],
 );
 assert.equal(
-  curatedDisplayNameFor("unsloth/MiniMax-H3-GGUF", VIDEO_CATALOG),
+  curatedDisplayNameFor("testorg/MiniMax-H3-GGUF", VIDEO_CATALOG),
   "MiniMax H3 (GGUF)",
 );
 
@@ -252,11 +252,11 @@ assert.deepEqual(curatedRowLabelFor("MiniMaxAI/MiniMax-H3", VIDEO_CATALOG), {
   tags: ["BF16"],
 });
 // GGUF is spelled by the repo name, like a text model's row, so no chip repeats it.
-assert.deepEqual(curatedRowLabelFor("unsloth/MiniMax-H3-GGUF", VIDEO_CATALOG), {
+assert.deepEqual(curatedRowLabelFor("testorg/MiniMax-H3-GGUF", VIDEO_CATALOG), {
   name: "MiniMax-H3-GGUF",
   tags: [],
 });
-assert.deepEqual(curatedRowLabelFor("unsloth/Z-Image-Turbo-GGUF", IMAGE_CATALOG), {
+assert.deepEqual(curatedRowLabelFor("testorg/Z-Image-Turbo-GGUF", IMAGE_CATALOG), {
   name: "Z-Image-Turbo-GGUF",
   tags: [],
 });
@@ -269,13 +269,13 @@ assert.deepEqual(curatedRowLabelFor("MiniMaxAI/MiniMax-H3", VIDEO_CATALOG, "acce
   tags: ["BF16"],
 });
 assert.deepEqual(
-  curatedRowLabelFor("unsloth/MiniMax-H3-GGUF", VIDEO_CATALOG, "accelerated"),
+  curatedRowLabelFor("testorg/MiniMax-H3-GGUF", VIDEO_CATALOG, "accelerated"),
   { name: "MiniMax-H3-GGUF (Slow)", tags: [] },
 );
 // A host that can only run the native engine has nothing to compare against, so the GGUF row
 // keeps its plain name.
 assert.deepEqual(
-  curatedRowLabelFor("unsloth/MiniMax-H3-GGUF", VIDEO_CATALOG, "gguf-only"),
+  curatedRowLabelFor("testorg/MiniMax-H3-GGUF", VIDEO_CATALOG, "gguf-only"),
   { name: "MiniMax-H3-GGUF", tags: [] },
 );
 // The trigger and the row must agree, or the model renames itself as the popover opens.
@@ -284,7 +284,7 @@ assert.equal(
   "MiniMax H3 (Fast FP8)",
 );
 assert.equal(
-  curatedDisplayNameFor("unsloth/MiniMax-H3-GGUF", VIDEO_CATALOG, "accelerated"),
+  curatedDisplayNameFor("testorg/MiniMax-H3-GGUF", VIDEO_CATALOG, "accelerated"),
   "MiniMax-H3-GGUF (Slow)",
 );
 // No other model claims a speed nobody measured.
@@ -418,20 +418,20 @@ assert.equal(fitsCurated(H3, 74, 140), true);
 assert.equal(fitsCurated(H3, 123, 80), true);
 assert.equal(fitsCurated(H3, 74, 100), false);
 // A GGUF ladder self-fits via pickDefaultQuant, and an unknown id is not ours to judge.
-assert.equal(fitsCurated("unsloth/MiniMax-H3-GGUF", 12, 64), undefined);
+assert.equal(fitsCurated("testorg/MiniMax-H3-GGUF", 12, 64), undefined);
 assert.equal(fitsCurated("someone/not-in-the-catalog", 12, 64), undefined);
 // Transcription retries a failed device load on CPU (stt_sidecar.py), so RAM is a real budget for
 // an stt row: Whisper Large runs on a card too small to hold it. A tts load rejects CPU offload
 // (inference.py raise_if_offloaded), so Orpheus is judged on the card alone.
 assert.equal(
-  curatedArtifactFitsDevice("unsloth/whisper-large-v3", AUDIO_CATALOG, {
+  curatedArtifactFitsDevice("testorg/whisper-large-v3", AUDIO_CATALOG, {
     gpuGb: 4,
     systemRamGb: 32,
   }),
   true,
 );
 assert.equal(
-  curatedArtifactFitsDevice("unsloth/whisper-large-v3", AUDIO_CATALOG, {
+  curatedArtifactFitsDevice("testorg/whisper-large-v3", AUDIO_CATALOG, {
     gpuGb: 4,
     systemRamGb: 0,
   }),
@@ -440,21 +440,21 @@ assert.equal(
 // The whole model goes to whichever device takes it, so the budget is the LARGER of the two and
 // never their sum: 3 GB of card and 3 GB of RAM hold a 4 GB checkpoint on neither.
 assert.equal(
-  curatedArtifactFitsDevice("unsloth/whisper-large-v3", AUDIO_CATALOG, {
+  curatedArtifactFitsDevice("testorg/whisper-large-v3", AUDIO_CATALOG, {
     gpuGb: 3,
     systemRamGb: 3,
   }),
   false,
 );
 assert.equal(
-  curatedArtifactFitsDevice("unsloth/whisper-large-v3", AUDIO_CATALOG, {
+  curatedArtifactFitsDevice("testorg/whisper-large-v3", AUDIO_CATALOG, {
     gpuGb: 0,
     systemRamGb: 8,
   }),
   true,
 );
 assert.equal(
-  curatedArtifactFitsDevice("unsloth/orpheus-3b-0.1-ft", AUDIO_CATALOG, {
+  curatedArtifactFitsDevice("testorg/orpheus-3b-0.1-ft", AUDIO_CATALOG, {
     gpuGb: 4,
     systemRamGb: 32,
   }),
@@ -549,7 +549,7 @@ assert.equal(
   pickDefaultArtifact(qwenGroup, {
     gpuGb: 48,
     systemRamGb: 64,
-    isDownloaded: (id) => id === "unsloth/Qwen-Image-2512-flickerx-bnb-4bit",
+    isDownloaded: (id) => id === "testorg/Qwen-Image-2512-flickerx-bnb-4bit",
   }).format,
   "bnb-4bit",
 );
@@ -558,7 +558,7 @@ assert.equal(
   pickDefaultArtifact(qwenGroup, {
     gpuGb: 80,
     systemRamGb: 128,
-    isDownloaded: (id) => id === "unsloth/Qwen-Image-2512-GGUF",
+    isDownloaded: (id) => id === "testorg/Qwen-Image-2512-GGUF",
   }).format,
   "gguf",
 );
@@ -571,7 +571,7 @@ assert.equal(
   "ideogram-ai/ideogram-4-nf4-diffusers",
 );
 // A gated BF16 artifact (FLUX.1-dev) is NOT auto-routed when undownloaded even on a big GPU: the download would fail without license/token access.
-const fluxDevRoute = groupForRepoId("unsloth/FLUX.1-dev", IMAGE_CATALOG);
+const fluxDevRoute = groupForRepoId("testorg/FLUX.1-dev", IMAGE_CATALOG);
 assert.ok(fluxDevRoute);
 assert.equal(
   pickDefaultArtifact(fluxDevRoute, { gpuGb: 80, systemRamGb: 128, isDownloaded: notDownloaded })
@@ -641,7 +641,7 @@ assert.equal(
 );
 // FLUX.1-schnell is Apache-2.0 but gated on the Hub, so a not-downloaded BF16 is skipped and the
 // open GGUF is auto-routed instead, even on a GPU that fits the pipeline.
-const fluxSchnellRoute = groupForRepoId("unsloth/FLUX.1-schnell", IMAGE_CATALOG);
+const fluxSchnellRoute = groupForRepoId("testorg/FLUX.1-schnell", IMAGE_CATALOG);
 assert.ok(fluxSchnellRoute);
 assert.equal(
   pickDefaultArtifact(fluxSchnellRoute, { gpuGb: 80, systemRamGb: 128, isDownloaded: notDownloaded })
@@ -717,7 +717,7 @@ assert.equal(
   "Qwen/Qwen-Image-2512",
 );
 // Z-Image-Turbo BF16 (30 GB) misses 24 GB (bnb-4bit wins) but fits a 48 GB GPU (budget 33.6) and wins.
-const zturbo = groupForRepoId("unsloth/Z-Image-Turbo", IMAGE_CATALOG);
+const zturbo = groupForRepoId("testorg/Z-Image-Turbo", IMAGE_CATALOG);
 assert.ok(zturbo);
 assert.equal(
   pickDefaultArtifact(zturbo, { gpuGb: 24, systemRamGb: 64, isDownloaded: notDownloaded })
@@ -732,7 +732,7 @@ assert.equal(
 // FLUX.1-dev BF16 (32 GB) fits a 48 GB GPU but is GATED, so a bare click routes to the open GGUF unless it is already downloaded. Small GPU -> GGUF.
 const fluxDev = groupForRepoId("black-forest-labs/FLUX.1-dev", IMAGE_CATALOG);
 assert.ok(fluxDev);
-assert.equal(fluxDev.canonicalId, "unsloth/FLUX.1-dev");
+assert.equal(fluxDev.canonicalId, "testorg/FLUX.1-dev");
 assert.equal(
   pickDefaultArtifact(fluxDev, { gpuGb: 48, systemRamGb: 64, isDownloaded: notDownloaded })
     .format,
@@ -752,15 +752,15 @@ assert.equal(
   "gguf",
 );
 // LTX-2.3 video carries the official BF16 single file (no FP8: the loader refuses its scaled-fp8 one), which keeps the ~50 GB Gemma3 encoder resident, so B200-class only.
-// Looked up by the retired unsloth/LTX-2.3 id on purpose: it is no longer the canonicalId (that
+// Looked up by the retired testorg/LTX-2.3 id on purpose: it is no longer the canonicalId (that
 // repo does not exist), and a pasted or persisted copy must still land on this group through the
 // GGUF artifact's suffix-stripped key.
-const ltxGroup = groupForRepoId("unsloth/LTX-2.3", VIDEO_CATALOG);
+const ltxGroup = groupForRepoId("testorg/LTX-2.3", VIDEO_CATALOG);
 assert.ok(ltxGroup);
 assert.equal(ltxGroup.canonicalId, "Lightricks/LTX-2.3");
 assert.equal(groupForRepoId("Lightricks/LTX-2.3", VIDEO_CATALOG), ltxGroup);
 // The retired id is not an artifact, so it can never be handed to a load as a repo to fetch.
-assert.equal(loadSpecFor("unsloth/LTX-2.3", VIDEO_CATALOG), null);
+assert.equal(loadSpecFor("testorg/LTX-2.3", VIDEO_CATALOG), null);
 assert.equal(
   pickDefaultArtifact(ltxGroup, { gpuGb: 24, systemRamGb: 64, isDownloaded: notDownloaded })
     .format,
@@ -841,17 +841,17 @@ for (const catalog of [IMAGE_CATALOG, VIDEO_CATALOG]) {
   }
 }
 // The Orpheus GGUF groups with its safetensors base and reports the gguf load kind.
-const orpheus = groupForRepoId("unsloth/orpheus-3b-0.1-ft-GGUF", AUDIO_CATALOG);
+const orpheus = groupForRepoId("testorg/orpheus-3b-0.1-ft-GGUF", AUDIO_CATALOG);
 assert.ok(orpheus);
-assert.equal(orpheus.canonicalId, "unsloth/orpheus-3b-0.1-ft");
+assert.equal(orpheus.canonicalId, "testorg/orpheus-3b-0.1-ft");
 assert.equal(orpheus.task, "tts");
-assert.equal(loadSpecFor("unsloth/orpheus-3b-0.1-ft-GGUF", AUDIO_CATALOG)?.kind, "gguf");
-assert.equal(loadSpecFor("unsloth/csm-1b", AUDIO_CATALOG)?.kind, "pipeline");
+assert.equal(loadSpecFor("testorg/orpheus-3b-0.1-ft-GGUF", AUDIO_CATALOG)?.kind, "gguf");
+assert.equal(loadSpecFor("testorg/csm-1b", AUDIO_CATALOG)?.kind, "pipeline");
 // The whisper sidecar repos resolve as stt groups.
-assert.equal(groupForRepoId("unsloth/whisper-large-v3-turbo", AUDIO_CATALOG)?.task, "stt");
-assert.equal(groupForRepoId("unsloth/Qwen3-ASR-0.6B-GGUF", AUDIO_CATALOG)?.task, "stt");
+assert.equal(groupForRepoId("testorg/whisper-large-v3-turbo", AUDIO_CATALOG)?.task, "stt");
+assert.equal(groupForRepoId("testorg/Qwen3-ASR-0.6B-GGUF", AUDIO_CATALOG)?.task, "stt");
 // A chat model stays unknown to the audio catalog.
-assert.equal(groupForRepoId("unsloth/Llama-3.3-70B-GGUF", AUDIO_CATALOG), null);
+assert.equal(groupForRepoId("testorg/Llama-3.3-70B-GGUF", AUDIO_CATALOG), null);
 
 // ── groupMatchesQuery ──────────────────────────────────────────────────────────
 
@@ -863,7 +863,7 @@ assert.ok(groupMatchesQuery(qwenGroup, "gguf"));
 assert.ok(groupMatchesQuery(qwenGroup, "fp8"));
 assert.ok(groupMatchesQuery(qwenGroup, "4bit"));
 assert.ok(groupMatchesQuery(qwenGroup, "q4_k_m"));
-assert.ok(groupMatchesQuery(qwenGroup, "unsloth/qwen-image-2512-fp8"));
+assert.ok(groupMatchesQuery(qwenGroup, "testorg/qwen-image-2512-fp8"));
 assert.ok(!groupMatchesQuery(qwenGroup, "mlx"));
 assert.ok(!groupMatchesQuery(qwenGroup, "ideogram"));
 assert.ok(groupMatchesQuery(ltx23, "ltx"));
@@ -1035,7 +1035,7 @@ async function checkCatalogAgainstTheHub(catalogs: CatalogGroup[][]): Promise<st
   });
 
   // Advisory only. A canonicalId is a display/grouping key, and 15 of them are deliberately not
-  // repos; but one that is BOTH `unsloth/*`-shaped and dead clears every owner guard in the app,
+  // repos; but one that is BOTH `testorg/*`-shaped and dead clears every owner guard in the app,
   // so it is worth naming without failing a scheduled job over it.
   const artifactIds = new Set([...artifactsByRepo.keys()].map((id) => id.toLowerCase()));
   const orphans = groups

@@ -386,7 +386,7 @@ function VerifiedOwner({ owner }: { owner: string }) {
   return (
     <span className="flex min-w-0 items-center gap-1">
       <span className="truncate">{owner}</span>
-      {owner.toLowerCase() === "unsloth" && (
+      {owner.toLowerCase() === "testorg" && (
         <span
           aria-label="Verified FlickerX"
           className="hub-verified-badge size-3.5 shrink-0 text-verified"

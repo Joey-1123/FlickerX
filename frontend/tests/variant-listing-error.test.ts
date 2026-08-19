@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Engines disagree on what a timed-out fetch rejects with. Measured in real engines:
 // Chromium and Gecko give TimeoutError, WebKit gives AbortError, and engines without

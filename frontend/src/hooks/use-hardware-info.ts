@@ -26,7 +26,7 @@ export interface HardwareInfo {
     // runtime row at all on an Arc host, where cuda and rocm are both null.
     xpu: string | null;
     transformers: string | null;
-    unsloth: string | null;
+    flickerx: string | null;
     llamaCpp: string | null;
     // Whether export can run here (true only on a supported accelerator), with a torch-aware
     // reason. `null` until the authoritative response lands, so callers don't briefly enable
@@ -53,7 +53,7 @@ const DEFAULT: HardwareInfo = {
     rocm: null,
     xpu: null,
     transformers: null,
-    unsloth: null,
+    flickerx: null,
     llamaCpp: null,
     exportSupported: null,
     exportUnsupportedReason: null,
@@ -113,7 +113,7 @@ async function fetchOnce(): Promise<HardwareInfo> {
                 rocm: data?.versions?.rocm ?? null,
                 xpu: data?.versions?.xpu ?? null,
                 transformers: data?.versions?.transformers ?? null,
-                unsloth: data?.versions?.unsloth ?? null,
+                flickerx: data?.versions?.flickerx ?? null,
                 llamaCpp: data?.llama_cpp ?? null,
                 exportSupported: data?.export_supported ?? null,
                 exportUnsupportedReason: data?.export_unsupported_reason ?? null,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -192,7 +192,7 @@ test("the overlay names the wait it is covering", async () => {
   const screen = await source("components/tauri/startup-screen.tsx");
   const body = closingContent(screen);
 
-  assert.match(body, /Closing Unsloth Desktop\.\.\./);
+  assert.match(body, /Closing FlickerX Desktop\.\.\./);
   assert.match(body, /Shutting down the backend\./);
   // A still screen reads as the freeze it is there to explain.
   assert.match(body, /<Spinner className="size-6 text-primary" \/>/);

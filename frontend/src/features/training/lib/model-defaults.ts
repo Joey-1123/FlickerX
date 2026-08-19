@@ -54,7 +54,7 @@ const GRADIENT_CHECKPOINTING_ALIASES = new Map<
   ["no", "none"],
   ["none", "none"],
   ["off", "none"],
-  ["unsloth", "unsloth"],
+  ["flickerx", "flickerx"],
   ["mlx", "mlx"],
 ]);
 
@@ -69,9 +69,9 @@ function toGradientCheckpointing(
     value.trim().toLowerCase(),
   );
   if (resolved === undefined) return undefined;
-  // On Mac, map "unsloth" → "mlx" since FlickerX GC is GPU-only
+  // On Mac, map "flickerx" → "mlx" since FlickerX GC is GPU-only
   if (
-    resolved === "unsloth" &&
+    resolved === "flickerx" &&
     usePlatformStore.getState().deviceType === "mac"
   ) {
     return "mlx";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The research activity scroller follows a run that mutates several times a second, so its
 // per-frame work is what #8483 froze on. Cost and detach behaviour are invisible to a unit test

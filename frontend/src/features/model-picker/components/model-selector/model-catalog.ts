@@ -44,7 +44,7 @@ export interface ModelArtifact {
 }
 
 export interface CatalogGroup {
-  /** Canonical display id, owner spelled once ("unsloth/Qwen-Image-2512"). */
+  /** Canonical display id, owner spelled once ("testorg/Qwen-Image-2512"). */
   canonicalId: string;
   displayName: string;
   /** Row meta line ("Text-to-image", "Image editing", "Text-to-video with audio"). */
@@ -138,54 +138,54 @@ const bf16Single = (
 
 export const IMAGE_CATALOG: CatalogGroup[] = [
   {
-    canonicalId: "unsloth/Z-Image-Turbo",
+    canonicalId: "testorg/Z-Image-Turbo",
     displayName: "Z-Image-Turbo",
     description: "Text-to-image",
     scope: "image",
     artifacts: [
       bf16Pipeline("Tongyi-MAI/Z-Image-Turbo", 30, { totalParams: 6154908736 }),
-      bnb4bit("unsloth/Z-Image-Turbo-flickerx-bnb-4bit", 8, { totalParams: 3210823936 }),
-      gguf("unsloth/Z-Image-Turbo-GGUF"),
+      bnb4bit("testorg/Z-Image-Turbo-flickerx-bnb-4bit", 8, { totalParams: 3210823936 }),
+      gguf("testorg/Z-Image-Turbo-GGUF"),
     ],
   },
   {
-    canonicalId: "unsloth/Z-Image",
+    canonicalId: "testorg/Z-Image",
     displayName: "Z-Image",
     description: "Text-to-image",
     scope: "image",
-    artifacts: [gguf("unsloth/Z-Image-GGUF")],
+    artifacts: [gguf("testorg/Z-Image-GGUF")],
   },
   {
-    canonicalId: "unsloth/Qwen-Image-2512",
+    canonicalId: "testorg/Qwen-Image-2512",
     displayName: "Qwen-Image 2512",
     description: "Text-to-image",
     scope: "image",
     // The prequant repo is real and public, and the backend reaches its int8 half through
     // prequant_repos. It has no artifact row here (see below), so alias it to keep a pasted
     // repo id finding this group.
-    aliases: ["unsloth/Qwen-Image-2512-FP8"],
+    aliases: ["testorg/Qwen-Image-2512-FP8"],
     artifacts: [
       bf16Pipeline("Qwen/Qwen-Image-2512", 54, { totalParams: 20430401088 }),
-      // No FP8 row: unsloth/Qwen-Image-2512-FP8 holds torch prequant .pt checkpoints, not a
+      // No FP8 row: testorg/Qwen-Image-2512-FP8 holds torch prequant .pt checkpoints, not a
       // single-file .safetensors, and fp8 is denied for this family anyway
       // (_FAMILY_SCHEME_DENY: qwen-image renders every frame black under fp8). The repo's int8
       // half is reached through the backend prequant path, not from here.
-      bnb4bit("unsloth/Qwen-Image-2512-flickerx-bnb-4bit", 14, { totalParams: 10850871408 }),
-      gguf("unsloth/Qwen-Image-2512-GGUF"),
+      bnb4bit("testorg/Qwen-Image-2512-flickerx-bnb-4bit", 14, { totalParams: 10850871408 }),
+      gguf("testorg/Qwen-Image-2512-GGUF"),
     ],
   },
   {
-    canonicalId: "unsloth/Qwen-Image",
+    canonicalId: "testorg/Qwen-Image",
     displayName: "Qwen-Image",
     description: "Text-to-image",
     scope: "image",
     artifacts: [
       bf16Pipeline("Qwen/Qwen-Image", 54, { totalParams: 20430401088 }),
-      gguf("unsloth/Qwen-Image-GGUF"),
+      gguf("testorg/Qwen-Image-GGUF"),
     ],
   },
   {
-    canonicalId: "unsloth/FLUX.1-schnell",
+    canonicalId: "testorg/FLUX.1-schnell",
     displayName: "FLUX.1 schnell",
     description: "Text-to-image",
     scope: "image",
@@ -193,18 +193,18 @@ export const IMAGE_CATALOG: CatalogGroup[] = [
       // Apache-2.0 but still gated on the Hub (gated: "auto", a contact-info form), so an
       // anonymous download 401s exactly like dev. The licence and the gate are independent.
       bf16Pipeline("black-forest-labs/FLUX.1-schnell", 32, { gated: true, totalParams: 11891178560 }),
-      gguf("unsloth/FLUX.1-schnell-GGUF"),
+      gguf("testorg/FLUX.1-schnell-GGUF"),
     ],
   },
   {
-    canonicalId: "unsloth/FLUX.1-dev",
+    canonicalId: "testorg/FLUX.1-dev",
     displayName: "FLUX.1 dev",
     description: "Text-to-image",
     scope: "image",
     artifacts: [
       // FLUX.1-dev is gated (license acceptance + token), like FLUX.1-schnell above.
       bf16Pipeline("black-forest-labs/FLUX.1-dev", 32, { gated: true, totalParams: 11901408320 }),
-      gguf("unsloth/FLUX.1-dev-GGUF"),
+      gguf("testorg/FLUX.1-dev-GGUF"),
     ],
   },
   {
@@ -219,38 +219,38 @@ export const IMAGE_CATALOG: CatalogGroup[] = [
     ],
   },
   {
-    canonicalId: "unsloth/FLUX.2-klein-4B",
+    canonicalId: "testorg/FLUX.2-klein-4B",
     displayName: "FLUX.2 klein 4B",
     description: "Text-to-image",
     scope: "image",
-    artifacts: [gguf("unsloth/FLUX.2-klein-4B-GGUF")],
+    artifacts: [gguf("testorg/FLUX.2-klein-4B-GGUF")],
   },
   {
-    canonicalId: "unsloth/FLUX.2-klein-9B",
+    canonicalId: "testorg/FLUX.2-klein-9B",
     displayName: "FLUX.2 klein 9B",
     description: "Text-to-image",
     scope: "image",
-    artifacts: [gguf("unsloth/FLUX.2-klein-9B-GGUF")],
+    artifacts: [gguf("testorg/FLUX.2-klein-9B-GGUF")],
   },
   {
-    canonicalId: "unsloth/Qwen-Image-Edit-2511",
+    canonicalId: "testorg/Qwen-Image-Edit-2511",
     displayName: "Qwen-Image-Edit 2511",
     description: "Image editing",
     scope: "image",
     artifacts: [
       bf16Pipeline("Qwen/Qwen-Image-Edit-2511", 54, { totalParams: 20430401088 }),
-      gguf("unsloth/Qwen-Image-Edit-2511-GGUF"),
+      gguf("testorg/Qwen-Image-Edit-2511-GGUF"),
     ],
   },
   {
-    canonicalId: "unsloth/FLUX.1-Kontext-dev",
+    canonicalId: "testorg/FLUX.1-Kontext-dev",
     displayName: "FLUX.1 Kontext dev",
     description: "Image editing",
     scope: "image",
     artifacts: [
       // FLUX.1-Kontext-dev is gated on the Hub (license acceptance + token).
       bf16Pipeline("black-forest-labs/FLUX.1-Kontext-dev", 32, { gated: true, totalParams: 11901408320 }),
-      gguf("unsloth/FLUX.1-Kontext-dev-GGUF"),
+      gguf("testorg/FLUX.1-Kontext-dev-GGUF"),
     ],
   },
   {
@@ -282,7 +282,7 @@ export const IMAGE_CATALOG: CatalogGroup[] = [
     ],
   },
   {
-    // 17B MoE DiT + four text encoders. The MIT repos ship no Llama text_encoder_4, so the backend assembles it from the open unsloth mirror
+    // 17B MoE DiT + four text encoders. The MIT repos ship no Llama text_encoder_4, so the backend assembles it from the open FlickerX mirror
     // at load time (+16 GB): ~63 GB bf16-resident, a datacenter pick. Full is the undistilled base, Dev and Fast its guidance-free distillations.
     canonicalId: "HiDream-ai/HiDream-I1-Full",
     displayName: "HiDream I1",
@@ -364,7 +364,7 @@ export const VIDEO_CATALOG: CatalogGroup[] = [
       }),
       // One official bundle for both denoiser partitions. The GGUF lister labels every variant
       // Text & frames or References plus its build, so both stay explicit under one repo id.
-      gguf("unsloth/MiniMax-H3-GGUF", {
+      gguf("testorg/MiniMax-H3-GGUF", {
         label: "GGUF",
         keywords: [
           "gguf",
@@ -381,11 +381,11 @@ export const VIDEO_CATALOG: CatalogGroup[] = [
   {
     // The distilled 2.3 release: Lightricks' own bf16/fp8 single-file DiT checkpoints (loaded against the already-trusted LTX-2
     // base for the VAE / Gemma3 encoder) plus the GGUF quants. The single-file ones keep the ~50 GB encoder in bf16, so consumer GPUs route to GGUF.
-    // Keyed on the artifact that exists: unsloth/LTX-2.3 was never published (404), and an
-    // `unsloth/*` id that is not an artifact clears both the picker's owner guard and the
+    // Keyed on the artifact that exists: testorg/LTX-2.3 was never published (404), and an
+    // `testorg/*` id that is not an artifact clears both the picker's owner guard and the
     // backend's, so a pick that reached the fall-through was loaded as a pipeline and only died
     // at the Hub. Lightricks/LTX-2.3 IS an artifact below, so that fall-through cannot fire.
-    // unsloth/LTX-2.3 still resolves to this group: the GGUF artifact claims the same
+    // testorg/LTX-2.3 still resolves to this group: the GGUF artifact claims the same
     // suffix-stripped key.
     canonicalId: "Lightricks/LTX-2.3",
     displayName: "LTX 2.3 distilled",
@@ -400,7 +400,7 @@ export const VIDEO_CATALOG: CatalogGroup[] = [
       ),
       // No FP8 artifact: the LTX-2.3 loader refuses the official scaled-FP8 single file (it carries .weight_scale/.input_scale), so a click would start a ~76 GB download that always fails.
       // 21.0B is what the Hub reports for this repo; carrying it keeps the row identical when the listing is unavailable (offline, rate-limited).
-      gguf("unsloth/LTX-2.3-GGUF", { totalParams: 21_005_004_544 }),
+      gguf("testorg/LTX-2.3-GGUF", { totalParams: 21_005_004_544 }),
     ],
   },
   {
@@ -452,113 +452,113 @@ export const VIDEO_CATALOG: CatalogGroup[] = [
 // the dictation sidecar models in stt-model-catalog.ts, so their sizes are informational only.
 export const AUDIO_CATALOG: CatalogGroup[] = [
   {
-    canonicalId: "unsloth/orpheus-3b-0.1-ft",
+    canonicalId: "testorg/orpheus-3b-0.1-ft",
     displayName: "Orpheus TTS 3B",
     description: "Text-to-speech",
     scope: "audio",
     task: "tts",
     artifacts: [
-      bf16Pipeline("unsloth/orpheus-3b-0.1-ft", 7, { label: "Safetensors" }),
-      gguf("unsloth/orpheus-3b-0.1-ft-GGUF"),
+      bf16Pipeline("testorg/orpheus-3b-0.1-ft", 7, { label: "Safetensors" }),
+      gguf("testorg/orpheus-3b-0.1-ft-GGUF"),
     ],
   },
   {
-    canonicalId: "unsloth/csm-1b",
+    canonicalId: "testorg/csm-1b",
     displayName: "Sesame CSM 1B",
     description: "Text-to-speech",
     scope: "audio",
     task: "tts",
     // No GGUF artifact: the llama.cpp TTS path has no csm decode, so CSM runs transformers-only.
-    artifacts: [bf16Pipeline("unsloth/csm-1b", 6, { label: "Safetensors" })],
+    artifacts: [bf16Pipeline("testorg/csm-1b", 6, { label: "Safetensors" })],
   },
   {
-    canonicalId: "unsloth/Spark-TTS-0.5B",
+    canonicalId: "testorg/Spark-TTS-0.5B",
     displayName: "Spark TTS 0.5B",
     description: "Text-to-speech",
     scope: "audio",
     task: "tts",
-    artifacts: [bf16Pipeline("unsloth/Spark-TTS-0.5B", 3, { label: "Safetensors" })],
+    artifacts: [bf16Pipeline("testorg/Spark-TTS-0.5B", 3, { label: "Safetensors" })],
   },
   {
-    canonicalId: "unsloth/Llama-OuteTTS-1.0-1B",
+    canonicalId: "testorg/Llama-OuteTTS-1.0-1B",
     displayName: "Oute TTS 1B",
     description: "Text-to-speech",
     scope: "audio",
     task: "tts",
     artifacts: [
-      bf16Pipeline("unsloth/Llama-OuteTTS-1.0-1B", 4, { label: "Safetensors" }),
+      bf16Pipeline("testorg/Llama-OuteTTS-1.0-1B", 4, { label: "Safetensors" }),
     ],
   },
   // Llasa is deliberately absent. It speaks XCodec2 (65,536 <|s_N|> tokens), which is
   // neither in _AUDIO_TOKEN_PATTERNS nor in AudioCodecManager, so a curated row here
   // loaded and then failed at generation with "not a supported TTS model". Studio can
-  // still TRAIN Llasa (unsloth_Llasa-3B.yaml); this catalog only feeds the Generate
+  // still TRAIN Llasa (flickerx_Llasa-3B.yaml); this catalog only feeds the Generate
   // picker. Re-add both rows together with an xcodec2 decoder.
   {
-    canonicalId: "unsloth/Qwen3-ASR-0.6B-GGUF",
+    canonicalId: "testorg/Qwen3-ASR-0.6B-GGUF",
     displayName: "Qwen3-ASR 0.6B",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
     artifacts: [
-      gguf("unsloth/Qwen3-ASR-0.6B-GGUF", { deviceQuant: "Q8_0" }),
+      gguf("testorg/Qwen3-ASR-0.6B-GGUF", { deviceQuant: "Q8_0" }),
     ],
   },
   {
-    canonicalId: "unsloth/Qwen3-ASR-1.7B-GGUF",
+    canonicalId: "testorg/Qwen3-ASR-1.7B-GGUF",
     displayName: "Qwen3-ASR 1.7B",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
     artifacts: [
-      gguf("unsloth/Qwen3-ASR-1.7B-GGUF", { deviceQuant: "Q8_0" }),
+      gguf("testorg/Qwen3-ASR-1.7B-GGUF", { deviceQuant: "Q8_0" }),
     ],
   },
   {
-    canonicalId: "unsloth/whisper-large-v3-turbo",
+    canonicalId: "testorg/whisper-large-v3-turbo",
     displayName: "Whisper Large v3 Turbo",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
     artifacts: [
-      bf16Pipeline("unsloth/whisper-large-v3-turbo", 2, { label: "Safetensors" }),
+      bf16Pipeline("testorg/whisper-large-v3-turbo", 2, { label: "Safetensors" }),
     ],
   },
   {
-    canonicalId: "unsloth/whisper-large-v3",
+    canonicalId: "testorg/whisper-large-v3",
     displayName: "Whisper Large v3",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
     artifacts: [
-      bf16Pipeline("unsloth/whisper-large-v3", 4, { label: "Safetensors" }),
+      bf16Pipeline("testorg/whisper-large-v3", 4, { label: "Safetensors" }),
     ],
   },
   {
-    canonicalId: "unsloth/whisper-small",
+    canonicalId: "testorg/whisper-small",
     displayName: "Whisper Small",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
-    artifacts: [bf16Pipeline("unsloth/whisper-small", 1, { label: "Safetensors" })],
+    artifacts: [bf16Pipeline("testorg/whisper-small", 1, { label: "Safetensors" })],
   },
   // Both sidecars carry tiny/base (GGML_STT_REPOS, STT_MODEL_REPOS) and Voice
   // settings lists them; only this picker was missing them.
   {
-    canonicalId: "unsloth/whisper-base",
+    canonicalId: "testorg/whisper-base",
     displayName: "Whisper Base",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
-    artifacts: [bf16Pipeline("unsloth/whisper-base", 1, { label: "Safetensors" })],
+    artifacts: [bf16Pipeline("testorg/whisper-base", 1, { label: "Safetensors" })],
   },
   {
-    canonicalId: "unsloth/whisper-tiny",
+    canonicalId: "testorg/whisper-tiny",
     displayName: "Whisper Tiny",
     description: "Speech-to-text",
     scope: "audio",
     task: "stt",
-    artifacts: [bf16Pipeline("unsloth/whisper-tiny", 1, { label: "Safetensors" })],
+    artifacts: [bf16Pipeline("testorg/whisper-tiny", 1, { label: "Safetensors" })],
   },
 ];
 
@@ -582,7 +582,7 @@ const ARTIFACT_SUFFIXES = [
   "-bf16",
 ] as const;
 
-/** Owner-preserving generic key: lowercase, artifact suffixes stripped off the name. "unsloth/Qwen-Image-2512-GGUF" -> "unsloth/qwen-image-2512". */
+/** Owner-preserving generic key: lowercase, artifact suffixes stripped off the name. "testorg/Qwen-Image-2512-GGUF" -> "testorg/qwen-image-2512". */
 export function canonicalKeyFor(repoId: string): string {
   const lowered = repoId.trim().toLowerCase();
   const slash = lowered.indexOf("/");

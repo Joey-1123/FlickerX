@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -9,8 +9,8 @@ import {
   getGgufVariantsCacheVersion,
 } from "../src/features/hub/inventory/gguf-variants-cache-events.ts";
 
-const REPO = "unsloth/Qwen3-8B-GGUF";
-const OTHER = "unsloth/Llama-3.1-8B-Instruct-GGUF";
+const REPO = "testorg/Qwen3-8B-GGUF";
+const OTHER = "testorg/Llama-3.1-8B-Instruct-GGUF";
 
 /** What the picker watches: one snapshot over the repos it lists. */
 const snapshot = (repoIds: string[]) =>
@@ -39,7 +39,7 @@ test("the aggregated snapshot moves when any listed repo is invalidated", () => 
 test("an unrelated repo's invalidation leaves the snapshot alone", () => {
   const repos = [REPO, OTHER];
   const before = snapshot(repos);
-  bumpGgufVariantsCacheVersion("unsloth/gemma-3-4b-it-GGUF");
+  bumpGgufVariantsCacheVersion("testorg/gemma-3-4b-it-GGUF");
   assert.equal(snapshot(repos), before);
 });
 

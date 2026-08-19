@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The training-start overlay showed resources as "Downloading -- 99%" with no download
 // running (#7858). The backend caps progress at 0.99 until it verifies the snapshot, and
@@ -27,7 +27,7 @@ function state(over: Partial<DownloadState> = {}): DownloadState {
     completedBytes: 0,
     totalBytes: 0,
     percent: 0,
-    cachePath: "/home/u/.cache/huggingface/hub/datasets--unsloth--alpaca-cleaned",
+    cachePath: "/home/u/.cache/huggingface/hub/datasets--testorg--alpaca-cleaned",
     completeOnDisk: false,
     settled: false,
     moving: false,
@@ -48,7 +48,7 @@ test("a verified snapshot settles on the first reading", () => {
     expected_bytes: 1.51 * GB,
     progress: 1,
     complete_on_disk: true,
-    cache_path: "/home/u/.cache/huggingface/hub/datasets--unsloth--LaTeX_OCR",
+    cache_path: "/home/u/.cache/huggingface/hub/datasets--testorg--LaTeX_OCR",
   });
   assert.equal(verified.percent, 100);
   assert.equal(verified.settled, true);
@@ -96,7 +96,7 @@ test("one quiet reading is not enough, because blobs finalize between files", ()
     expected_bytes: 20 * GB,
     progress: 0.25,
     complete_on_disk: false,
-    cache_path: "/home/u/.cache/huggingface/hub/models--unsloth--gpt-oss-120b",
+    cache_path: "/home/u/.cache/huggingface/hub/models--testorg--gpt-oss-120b",
   });
   assert.equal(betweenFiles.settled, false);
   assert.equal(coerceCachedStateReady(betweenFiles).percent, 25);
@@ -110,7 +110,7 @@ test("bytes in flight never settle, however long they sit", () => {
     expected_bytes: 20 * GB,
     progress: 0.99,
     complete_on_disk: false,
-    cache_path: "/home/u/.cache/huggingface/hub/models--unsloth--gpt-oss-120b",
+    cache_path: "/home/u/.cache/huggingface/hub/models--testorg--gpt-oss-120b",
   };
   assert.equal(pollTwice(resuming).settled, false);
 });
@@ -122,7 +122,7 @@ test("a growing download never settles", () => {
     expected_bytes: 20 * GB,
     progress: 0.25,
     complete_on_disk: false,
-    cache_path: "/home/u/.cache/huggingface/hub/models--unsloth--gpt-oss-120b",
+    cache_path: "/home/u/.cache/huggingface/hub/models--testorg--gpt-oss-120b",
   });
   const second = downloadStateFromProgress(
     {
@@ -131,7 +131,7 @@ test("a growing download never settles", () => {
       expected_bytes: 20 * GB,
       progress: 0.3,
       complete_on_disk: false,
-      cache_path: "/home/u/.cache/huggingface/hub/models--unsloth--gpt-oss-120b",
+      cache_path: "/home/u/.cache/huggingface/hub/models--testorg--gpt-oss-120b",
     },
     first,
   );
@@ -147,7 +147,7 @@ test("a transfer that stalled and resumed stops reading as settled", () => {
     expected_bytes: 20 * GB,
     progress: 0.25,
     complete_on_disk: false,
-    cache_path: "/home/u/.cache/huggingface/hub/models--unsloth--gpt-oss-120b",
+    cache_path: "/home/u/.cache/huggingface/hub/models--testorg--gpt-oss-120b",
   };
   const stalled = pollTwice(reading);
   assert.equal(stalled.settled, true);
@@ -233,7 +233,7 @@ test("an orphaned .incomplete blob stops the transfer without ever settling", ()
     expected_bytes: 26.8 * MB,
     progress: 0.52,
     complete_on_disk: false,
-    cache_path: "/home/u/.cache/huggingface/hub/datasets--unsloth--alpaca-cleaned",
+    cache_path: "/home/u/.cache/huggingface/hub/datasets--testorg--alpaca-cleaned",
   };
   const quiet = pollTwice(stuck);
   assert.equal(quiet.settled, false, "an unfinalized blob is never settled");

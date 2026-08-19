@@ -15,27 +15,27 @@ import { getInventoryVersion } from "../stores/inventory-events";
 // substring needles. Per-repo views are not filtered, so reinstall flows still
 // show downloaded files.
 const HIDDEN_NEEDLES = [
-  "bge-small-en-v1.5", // RAG embedder: unsloth/bge-small-en-v1.5[-GGUF]
+  "bge-small-en-v1.5", // RAG embedder: testorg/bge-small-en-v1.5[-GGUF]
   "ggml-org/models", // llama.cpp validation probe repo
   "stories260k.gguf", // probe filename (carries .gguf so it stays specific)
 ];
 const HIDDEN_STT_REPOS = new Set([
   // Transformers safetensors repos and their whisper.cpp GGUF companions
-  // (unslothai/whisper-*-GGUF): STT-only, never chat models. The Qwen3-ASR
+  // (testorg/whisper-*-GGUF): STT-only, never chat models. The Qwen3-ASR
   // GGUFs are here for the same reason: llama.cpp will load one as a chat
   // model, where it only answers with transcripts.
-  "unsloth/whisper-tiny",
-  "unsloth/whisper-base",
-  "unsloth/whisper-small",
-  "unsloth/whisper-large-v3-turbo",
-  "unsloth/whisper-large-v3",
-  "unsloth/whisper-tiny-gguf",
-  "unsloth/whisper-base-gguf",
-  "unsloth/whisper-small-gguf",
-  "unsloth/whisper-large-v3-turbo-gguf",
-  "unsloth/whisper-large-v3-gguf",
-  "unsloth/qwen3-asr-0.6b-gguf",
-  "unsloth/qwen3-asr-1.7b-gguf",
+  "testorg/whisper-tiny",
+  "testorg/whisper-base",
+  "testorg/whisper-small",
+  "testorg/whisper-large-v3-turbo",
+  "testorg/whisper-large-v3",
+  "testorg/whisper-tiny-gguf",
+  "testorg/whisper-base-gguf",
+  "testorg/whisper-small-gguf",
+  "testorg/whisper-large-v3-turbo-gguf",
+  "testorg/whisper-large-v3-gguf",
+  "testorg/qwen3-asr-0.6b-gguf",
+  "testorg/qwen3-asr-1.7b-gguf",
 ]);
 const HIDDEN_STT_CACHE_NAMES = [...HIDDEN_STT_REPOS].map((repo) =>
   repo.replace("/", "--"),

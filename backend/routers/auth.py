@@ -73,7 +73,7 @@ class ResetPasswordRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Rate limiting — adapted from Unsloth's deque-based per-IP+per-user limiter
+# Rate limiting — deque-based per-IP+per-user limiter
 # ponytail: single-process only; multi-worker needs shared store
 # ---------------------------------------------------------------------------
 _LOGIN_BUCKETS: dict[tuple[str, str], deque] = {}

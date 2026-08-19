@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -13,7 +13,7 @@ import { subscribeResidentStatusRefresh } from "../src/features/hub/lib/resident
 import { emptyStore, fakeTargets, spies } from "./helpers/kit.ts";
 
 const RESIDENT = {
-  checkpointId: "unsloth/Qwen3-8B-GGUF",
+  checkpointId: "testorg/Qwen3-8B-GGUF",
   ggufVariant: "Q4_K_M",
 };
 
@@ -45,7 +45,7 @@ test("landing on the Hub applies the whole status, not just the checkpoint", () 
   const adopted = adoptResidentModelStatus(RESIDENT, emptyStore(), actions);
   assert.equal(adopted, true);
   assert.deepEqual(calls, [
-    "setCheckpoint:unsloth/Qwen3-8B-GGUF:Q4_K_M",
+    "setCheckpoint:testorg/Qwen3-8B-GGUF:Q4_K_M",
     "applyStatus",
   ]);
 });
@@ -56,7 +56,7 @@ test("a checkpoint that already matches is still hydrated", () => {
   adoptResidentModelStatus(
     RESIDENT,
     emptyStore({
-      checkpoint: "unsloth/Qwen3-8B-GGUF",
+      checkpoint: "testorg/Qwen3-8B-GGUF",
       activeGgufVariant: "Q4_K_M",
     }),
     actions,
@@ -66,13 +66,13 @@ test("a checkpoint that already matches is still hydrated", () => {
 
 test("an API auto-switch under the tab re-pins the model and the quant", () => {
   for (const stale of [
-    { checkpoint: "unsloth/Llama-3.1-8B-GGUF", activeGgufVariant: "Q4_K_M" },
-    { checkpoint: "unsloth/Qwen3-8B-GGUF", activeGgufVariant: "Q8_0" },
+    { checkpoint: "testorg/Llama-3.1-8B-GGUF", activeGgufVariant: "Q4_K_M" },
+    { checkpoint: "testorg/Qwen3-8B-GGUF", activeGgufVariant: "Q8_0" },
   ]) {
     const { calls, actions } = spies();
     adoptResidentModelStatus(RESIDENT, emptyStore(stale), actions);
     assert.deepEqual(calls, [
-      "setCheckpoint:unsloth/Qwen3-8B-GGUF:Q4_K_M",
+      "setCheckpoint:testorg/Qwen3-8B-GGUF:Q4_K_M",
       "applyStatus",
     ]);
   }
@@ -85,13 +85,13 @@ test("the status applied is the one from before the checkpoint moved", () => {
   adoptResidentModelStatus(
     RESIDENT,
     emptyStore({
-      checkpoint: "unsloth/Qwen3-8B-GGUF",
+      checkpoint: "testorg/Qwen3-8B-GGUF",
       activeGgufVariant: "Q8_0",
     }),
     actions,
   );
   assert.deepEqual(previouslySeen, [
-    { checkpoint: "unsloth/Qwen3-8B-GGUF", ggufVariant: "Q8_0" },
+    { checkpoint: "testorg/Qwen3-8B-GGUF", ggufVariant: "Q8_0" },
   ]);
 });
 
@@ -238,12 +238,12 @@ test("an auto-switch under a mounted Hub stops hiding the live config", () => {
   // read settingsTargetIsResident says it is not resident, so the editor seeds from saved
   // values that Apply then reloads over the API's choice.
   const store = emptyStore({
-    checkpoint: "unsloth/Qwen3-8B-GGUF",
+    checkpoint: "testorg/Qwen3-8B-GGUF",
     activeGgufVariant: "Q4_K_M",
   });
   // What the server reports once the API request has switched it.
   let serverStatus = {
-    checkpointId: "unsloth/Llama-3.1-8B-Instruct-GGUF",
+    checkpointId: "testorg/Llama-3.1-8B-Instruct-GGUF",
     ggufVariant: "Q8_0",
   };
   const readStatusAndAdopt = () => {
@@ -280,11 +280,11 @@ test("an auto-switch under a mounted Hub stops hiding the live config", () => {
   // must not re-pin the model being moved away from.
   store.modelLoading = true;
   serverStatus = {
-    checkpointId: "unsloth/Qwen3-8B-GGUF",
+    checkpointId: "testorg/Qwen3-8B-GGUF",
     ggufVariant: "Q4_K_M",
   };
   targets.fire("window", "focus");
-  assert.equal(store.checkpoint, "unsloth/Llama-3.1-8B-Instruct-GGUF");
+  assert.equal(store.checkpoint, "testorg/Llama-3.1-8B-Instruct-GGUF");
 });
 
 test("unsubscribing stops the reads and leaves no listener behind", () => {

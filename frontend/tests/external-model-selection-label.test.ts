@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // #8405: a connected provider that drops the picked model leaves its
 // `external::<connectionId>::<modelId>` id in the checkpoint with no option behind it, and
@@ -325,7 +325,7 @@ test("a model the connection still offers is not treated as missing", () => {
 
 test("local and hub selections are left to the generic helper", () => {
   for (const id of [
-    "unsloth/gemma-3-4b-it-GGUF",
+    "testorg/gemma-3-4b-it-GGUF",
     "/models/gemma-3-4b-it.gguf",
     "C:\\models\\gemma.gguf",
     "",
@@ -346,14 +346,14 @@ test("compare toasts name the connected model, not its id", () => {
   );
   // Unchanged for everything else.
   assert.equal(
-    compareModelDisplayName("unsloth/gemma-3-4b-it"),
+    compareModelDisplayName("testorg/gemma-3-4b-it"),
     "gemma-3-4b-it",
   );
   assert.equal(compareModelDisplayName("gemma-3-4b-it"), "gemma-3-4b-it");
 });
 
 test("externalModelLabel yields null for a non-external id", () => {
-  assert.equal(externalModelLabel("unsloth/gemma-3-4b-it"), null);
+  assert.equal(externalModelLabel("testorg/gemma-3-4b-it"), null);
   assert.equal(externalModelLabel(null), null);
   assert.equal(externalModelLabel(DROPPED_ID), "kimi-k2.5");
 });

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The Configure preview asks the upgrade check once per model and caches the answer,
 // because the hook behind it runs on every render. That cache used to outlive what it
@@ -19,7 +19,7 @@ import {
 } from "../src/features/training/lib/training-upgrade-notice-cache.ts";
 import type { TransformersUpgradeCheck } from "../src/features/transformers-upgrade/types.ts";
 
-const MODEL = "unsloth/Muse-Glimmer-30B-unsloth-bnb-4bit";
+const MODEL = "testorg/Muse-Glimmer-30B-4bit";
 
 // What the check says before the install: a release to offer, and 4-bit still available
 // because the model's own code can load it on the current transformers.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -213,7 +213,7 @@ test("a slow optional asset does not take the whole origin down", async () => {
     })) as unknown as typeof fetch;
   try {
     await assert.rejects(
-      fetchWithTimeout(`${HF}/api/organizations/unsloth/avatar`, {}, 10),
+      fetchWithTimeout(`${HF}/api/organizations/testorg/avatar`, {}, 10),
       (err: unknown) => {
         assert.ok(isHubFetchError(err), "the caller still gets the diagnosis");
         assert.equal(err.failure.kind, "timeout");

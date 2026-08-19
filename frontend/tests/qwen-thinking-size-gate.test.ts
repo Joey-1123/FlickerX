@@ -26,24 +26,24 @@ function thinkingDefaultOff(modelId: string): boolean {
 }
 
 test("35B-A3B keeps thinking on: total params win over MoE active params", () => {
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-35B-A3B-GGUF"), false);
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.6-35B-A3B-MTP-GGUF"), false);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-35B-A3B-GGUF"), false);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.6-35B-A3B-MTP-GGUF"), false);
 });
 
 test("sub-9B turns thinking off, including directory identifiers", () => {
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-4B-GGUF"), true);
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-0.8B-GGUF"), true);
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-9B-GGUF"), true);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-4B-GGUF"), true);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-0.8B-GGUF"), true);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-9B-GGUF"), true);
   assert.equal(thinkingDefaultOff("/m/Qwen3.5-4B-GGUF/UD-Q4_K_XL"), true);
   assert.equal(
-    thinkingDefaultOff("/c/models--unsloth--Qwen3.5-4B-GGUF/snapshots/bfc15c3"),
+    thinkingDefaultOff("/c/models--testorg--Qwen3.5-4B-GGUF/snapshots/bfc15c3"),
     true,
   );
   assert.equal(thinkingDefaultOff("C:\\models\\Qwen3.5-4B.gguf"), true);
 });
 
 test("a trailing separator does not lose the size", () => {
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-4B/"), true);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-4B/"), true);
   assert.equal(thinkingDefaultOff("/models/Qwen3.5-4B//"), true);
   assert.equal(thinkingDefaultOff("C:\\models\\Qwen3.5-4B\\"), true);
 });
@@ -61,20 +61,20 @@ test("a size-like directory does not shadow the real size", () => {
 
 test("spacing and M-suffixed sizes keep parity with extract_model_size_b", () => {
   assert.equal(thinkingDefaultOff("Qwen3.5-4 B-GGUF"), true);
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-800M-GGUF"), true);
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-4 B"), true);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-800M-GGUF"), true);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-4 B"), true);
 });
 
 test("a quant subdir is never read as a size", () => {
   for (const q of ["Q4_K_M", "Q3_K_M", "IQ3_M", "UD-Q4_K_XL", "Q8_0", "BF16"]) {
-    assert.equal(thinkingDefaultOff(`unsloth/Qwen3.5-35B-A3B-GGUF/${q}`), false);
-    assert.equal(thinkingDefaultOff(`unsloth/Qwen3.5-4B-GGUF/${q}`), true);
+    assert.equal(thinkingDefaultOff(`testorg/Qwen3.5-35B-A3B-GGUF/${q}`), false);
+    assert.equal(thinkingDefaultOff(`testorg/Qwen3.5-4B-GGUF/${q}`), true);
   }
 });
 
 test("non-qwen3.5/3.6 models are never gated", () => {
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3-4B-GGUF"), false);
-  assert.equal(thinkingDefaultOff("unsloth/Qwen3.5-9.5B-GGUF"), false);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3-4B-GGUF"), false);
+  assert.equal(thinkingDefaultOff("testorg/Qwen3.5-9.5B-GGUF"), false);
   assert.equal(thinkingDefaultOff(""), false);
 });
 

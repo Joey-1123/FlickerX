@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -177,7 +177,7 @@ test("provider backfills are finished, not merely started, when the batch resolv
 test("authoritative provider cleanup removes only orphaned legacy keys", async () => {
   const { store } = installLocalStorageFake();
   store.set(
-    "unsloth_chat_external_provider_keys",
+    "flickerx_chat_external_provider_keys",
     JSON.stringify({ retained: "sk-retained", orphan: "sk-orphan" }),
   );
   try {
@@ -186,7 +186,7 @@ test("authoritative provider cleanup removes only orphaned legacy keys", async (
     );
     pruneExternalProviderApiKeys(["retained"]);
     assert.deepEqual(
-      JSON.parse(store.get("unsloth_chat_external_provider_keys") ?? "{}"),
+      JSON.parse(store.get("flickerx_chat_external_provider_keys") ?? "{}"),
       { retained: "sk-retained" },
     );
   } finally {
@@ -371,7 +371,7 @@ test("legacy migration remains installation-wide and retry-safe", () => {
 
 test("HF credential API rejects a successful non-JSON response", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
+  store.set("flickerx_auth_token", "session-token");
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async () =>
     new Response("not json", {
@@ -399,7 +399,7 @@ test("legacy training HF token gets a durable migration copy", async () => {
       "../src/features/hub/stores/hf-token-store.ts"
     );
     hfStore.stageLegacyHfTokenForMigration(" hf_durable ");
-    assert.equal(store.get("unsloth_hf_token_migration_v1"), "hf_durable");
+    assert.equal(store.get("flickerx_hf_token_migration_v1"), "hf_durable");
   } finally {
     Reflect.deleteProperty(globalThis, "window");
     Reflect.deleteProperty(globalThis, "localStorage");
@@ -409,8 +409,8 @@ test("legacy training HF token gets a durable migration copy", async () => {
 
 test("HF store hydrates from the API without recreating plaintext storage", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
-  store.set("unsloth_hf_token", "hf_legacy");
+  store.set("flickerx_auth_token", "session-token");
+  store.set("flickerx_hf_token", "hf_legacy");
   const originalFetch = globalThis.fetch;
   const requests: string[] = [];
   globalThis.fetch = (async (input: RequestInfo | URL) => {
@@ -428,7 +428,7 @@ test("HF store hydrates from the API without recreating plaintext storage", asyn
     await hfStore.hydrateHfTokenFromBackend();
     assert.equal(hfStore.getHfToken(), "hf_server");
     assert.deepEqual(requests, ["/api/settings/hugging-face-token"]);
-    assert.equal(store.has("unsloth_hf_token"), false);
+    assert.equal(store.has("flickerx_hf_token"), false);
   } finally {
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, "window");
@@ -459,7 +459,7 @@ async function settled(
 
 test("HF hydration does not overwrite an in-flight user edit", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
+  store.set("flickerx_auth_token", "session-token");
   const originalFetch = globalThis.fetch;
   let resolveLoad!: (response: Response) => void;
   let resolveSave!: (response: Response) => void;
@@ -509,7 +509,7 @@ test("HF hydration does not overwrite an in-flight user edit", async () => {
 
 test("cross-tab refresh replays after an active HF hydration", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
+  store.set("flickerx_auth_token", "session-token");
   const originalFetch = globalThis.fetch;
   let resolveFirst!: (response: Response) => void;
   let firstStarted!: () => void;
@@ -548,7 +548,7 @@ test("cross-tab refresh replays after an active HF hydration", async () => {
 
 test("a delayed HF write response reconciles a newer cross-tab commit", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
+  store.set("flickerx_auth_token", "session-token");
   const originalFetch = globalThis.fetch;
   let resolveWrite!: (response: Response) => void;
   let writeStarted!: () => void;
@@ -594,7 +594,7 @@ test("a delayed HF write response reconciles a newer cross-tab commit", async ()
 
 test("pending HF edits can be drained before navigation", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
+  store.set("flickerx_auth_token", "session-token");
   const originalFetch = globalThis.fetch;
   let resolveSave!: (response: Response) => void;
   let saveStarted!: () => void;
@@ -625,7 +625,7 @@ test("pending HF edits can be drained before navigation", async () => {
 
 test("a superseded successful HF write advances the rollback baseline", async () => {
   const { store } = installLocalStorageFake();
-  store.set("unsloth_auth_token", "session-token");
+  store.set("flickerx_auth_token", "session-token");
   const originalFetch = globalThis.fetch;
   let resolveFirst!: (response: Response) => void;
   let resolveSecond!: (response: Response) => void;

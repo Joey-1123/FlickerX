@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Exercise the Save/Load path through the real store action.
 
@@ -29,7 +29,7 @@ const { mapBackendModelConfigToTrainingPatch } = await import(
 
 // A tuned shipped config: non-default LR, batch size, optimizer and scheduler.
 const TUNED_MODEL_CONFIG = new URL(
-  "../../backend/assets/configs/model_defaults/llama/unsloth_Llama-3.2-1B-Instruct.yaml",
+  "../../backend/assets/configs/model_defaults/llama/testorg_Llama-3.2-1B-Instruct.yaml",
   import.meta.url,
 );
 
@@ -114,8 +114,8 @@ test("gradient_checkpointing is read from a YAML boolean as well as a string", (
   seedTunedModelDefaults();
   assert.equal(
     useTrainingConfigStore.getState().gradientCheckpointing,
-    "unsloth",
-    "the shipped config asks for Unsloth checkpointing",
+    "flickerx",
+    "the shipped config asks for FlickerX checkpointing",
   );
 
   importConfig("training:\n  gradient_checkpointing: false\n");
@@ -124,16 +124,16 @@ test("gradient_checkpointing is read from a YAML boolean as well as a string", (
   importConfig("training:\n  gradient_checkpointing: true\n");
   assert.equal(useTrainingConfigStore.getState().gradientCheckpointing, "true");
 
-  importConfig("training:\n  gradient_checkpointing: unsloth\n");
+  importConfig("training:\n  gradient_checkpointing: flickerx\n");
   assert.equal(
     useTrainingConfigStore.getState().gradientCheckpointing,
-    "unsloth",
+    "flickerx",
   );
 });
 
 test("a quoted checkpointing value means what the trainer says it means", () => {
   // trainer.py accepts these spellings, so the picker must not silently ignore
-  // one and leave Unsloth GC selected on a config that asked for none.
+  // one and leave FlickerX GC selected on a config that asked for none.
   for (const off of ["false", '"false"', "'0'", "no", "OFF", '" none "']) {
     seedTunedModelDefaults();
     importConfig(`training:\n  gradient_checkpointing: ${off}\n`);
@@ -158,7 +158,7 @@ test("a quoted checkpointing value means what the trainer says it means", () => 
     importConfig(`training:\n  gradient_checkpointing: ${ignored}\n`);
     assert.equal(
       useTrainingConfigStore.getState().gradientCheckpointing,
-      "unsloth",
+      "flickerx",
       ignored,
     );
   }

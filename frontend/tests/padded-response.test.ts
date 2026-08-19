@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 /**
  * A truncated padded reply is not a successful load.
@@ -64,10 +64,10 @@ test("only the two padded routes require a payload", () => {
 test("the Python client agrees", () => {
   // If only one client rejects a truncated reply, one reads success where the other fails.
   const cli = readFileSync(
-    new URL("../../../unsloth_cli/_inference.py", import.meta.url),
+    new URL("../../../flickerx_cli/_inference.py", import.meta.url),
     "utf8",
   );
   assert.ok(cli.includes("def require_completed_padded_body("));
-  // unsloth_cli/tests/test_inference_chat.py asserts it actually raises.
+  // flickerx_cli/tests/test_inference_chat.py asserts it actually raises.
   assert.ok(cli.includes("if isinstance(body, dict) and body:"));
 });

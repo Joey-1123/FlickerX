@@ -2,24 +2,25 @@
 
 ## Overview
 
-FlickerX is an AI chat and file intelligence platform. Users chat with AI models via OpenRouter, upload files to Cloudinary, and get structured answers — all through a dark-mode-ready React frontend with JWT auth.
+FlickerX is a local-first AI studio — universal model marketplace with GPU-accelerated inference. Chat, generate images/video, fine-tune models, run RAG, and manage datasets — all from a single process.
 
-**Goal:** Simple, maintainable, production-ready AI chat.
+**Goal:** Simple, maintainable, production-ready AI studio.
 
-**Mission:** Build an AI chat platform that is maintainable, fast, privacy-conscious, secure, and easy to contribute to. Every decision should support this mission.
+**Mission:** Build an AI platform that is maintainable, fast, privacy-conscious, secure, and easy to contribute to. Every decision should support this mission.
 
 ---
 
 ## Tech Stack
 
-| Layer     | Tech                                                   |
-| --------- | ------------------------------------------------------ |
-| Frontend  | React 19, Vite, Tailwind CSS, React Router, Lucide     |
-| Backend   | Express 5, Helmet, CORS, Cookie Parser                 |
-| Auth      | JWT (access + refresh tokens), bcryptjs                |
-| AI        | OpenRouter API (multi-model with automatic fallbacks)  |
-| Storage   | Cloudinary (file uploads)                              |
-| Validation| Zod                                                    |
+| Layer     | Tech |
+| --------- | ---- |
+| Frontend  | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend   | Python 3.10+, FastAPI, SQLite (aiosqlite), structlog |
+| Auth      | JWT (HS256, 15min) + refresh tokens (30d, rotated) + bcrypt |
+| AI        | llama-cpp-python (local), OpenRouter (cloud), diffusers |
+| Storage   | SQLite database, local filesystem (`~/.flickerx/`) |
+| GPU       | CUDA, ROCm, Vulkan, Intel XPU, Apple Metal, CPU fallback |
+| Build     | uv (Python), npm (frontend), Vite (build) |
 
 ---
 
@@ -29,118 +30,62 @@ FlickerX is an AI chat and file intelligence platform. Users chat with AI models
 - Predictable, consistent APIs
 - Explicit over implicit
 - Minimal dependencies — stdlib first
+- Local-first — no external services required
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐
-│  React SPA  │────▶│  Express API │────▶│  OpenRouter  │
-│  (Vite)     │     │  (Server)    │     │  (AI Models) │
-└─────────────┘     └──────┬───────┘     └──────────────┘
-                           │
-                    ┌──────▼───────┐
-                    │  Cloudinary  │
-                    │  (Uploads)   │
-                    └──────────────┘
+┌─────────────────────────────────────────────────┐
+│                  Frontend (React)                │
+│  Vite dev server :5173 → proxy /api, /v1 → :8080│
+└──────────────────────┬──────────────────────────┘
+                       │ HTTP + SSE
+┌──────────────────────▼──────────────────────────┐
+│                Backend (FastAPI)                  │
+│  Python 3.10+, 18 routers, 262 endpoints        │
+│  SQLite (WAL mode), JWT auth, structlog          │
+├──────────────────────────────────────────────────┤
+│  Routers:                                        │
+│    auth.py      → /api/auth/*        (15+ eps)  │
+│    chat.py      → /api/chat/* + /v1/* (30+ eps) │
+│    models.py    → /api/models/*      (15+ eps)  │
+│    hub.py       → /api/hub/*         (25+ eps)  │
+│    inference.py → /api/inference/*   (10+ eps)  │
+│    images.py    → /api/images/*      (8+ eps)   │
+│    video.py     → /api/video/*       (6+ eps)   │
+│    audio.py     → /api/audio/*       (8+ eps)   │
+│    train.py     → /api/train/*       (10+ eps)  │
+│    datasets.py  → /api/datasets/*    (8+ eps)   │
+│    rag.py       → /api/rag/*         (10+ eps)  │
+│    research.py  → /api/research/*    (6+ eps)   │
+│    export.py    → /api/export/*      (8+ eps)   │
+│    providers.py → /api/providers/*   (6+ eps)   │
+│    prompts.py   → /api/prompts/*     (8+ eps)   │
+│    mcp.py       → /api/mcp/*         (6+ eps)   │
+│    settings.py  → /api/settings/*    (6+ eps)   │
+│    system.py    → /api/system/*      (10+ eps)  │
+├──────────────────────────────────────────────────┤
+│  Storage:                                        │
+│    ~/.flickerx/studio/auth.db   (users, keys)   │
+│    ~/.flickerx/studio/studio.db (projects, RAG) │
+│    ~/.flickerx/studio/models/   (GGUF files)    │
+│    ~/.flickerx/studio/cache/    (HF cache)      │
+└──────────────────────────────────────────────────┘
 ```
 
 ### Layer Rules
 
 ```
-backend/
-  controllers/    HTTP only — parse request, delegate, respond
-  services/       Business logic — AI calls, auth workflows
-  middleware/     Cross-cutting — auth, rate limiting
-  routes/         Route definitions only
-  config/         Configuration only
-
-frontend/
-  src/
-    pages/        Route-level components
-    components/   Reusable UI
-    services/     API client functions
-    context/      React context providers
-    utils/        Pure helper functions
+Router → Service → External API    ✓
+Router → Router                    ✗
+Service → Router                   ✗
 ```
 
-**Flow constraints (never violate):**
-
-```
-Controller → Service → External API    ✓
-Controller → Controller                 ✗
-Service → Controller                    ✗
-```
-
----
-
-## Project Structure
-
-```
-FlickerX/
-├── backend/
-│   ├── config/           # Cloudinary config
-│   ├── controllers/      # Route handlers
-│   │   ├── authController.js
-│   │   ├── chatController.js
-│   │   └── uploadController.js
-│   ├── middleware/        # Auth, rate limiting
-│   │   ├── authMiddleware.js
-│   │   └── rateLimit.js
-│   ├── routes/            # Express route definitions
-│   │   ├── authRoutes.js
-│   │   ├── chatRoutes.js
-│   │   ├── uploadRoutes.js
-│   │   └── adminRoutes.js
-│   ├── services/          # Business logic
-│   │   ├── openrouterService.js
-│   │   └── tokenService.js
-│   ├── .env               # Local secrets (gitignored)
-│   └── server.js          # Entry point
-├── frontend/
-│   ├── public/
-│   │   ├── logo.svg
-│   │   ├── favicon.svg
-│   │   └── manifest.json
-│   └── src/
-│       ├── assets/
-│       ├── auth/
-│       │   └── AuthContext.jsx
-│       ├── components/    # Reusable UI
-│       │   ├── ChatBox.jsx
-│       │   ├── ChatInput.jsx
-│       │   ├── Navbar.jsx
-│       │   ├── Sidebar.jsx
-│       │   ├── ProtectedRoute.jsx
-│       │   └── AdminRoute.jsx
-│       ├── context/
-│       │   └── ThemeContext.jsx
-│       ├── pages/
-│       │   ├── Chat.jsx
-│       │   ├── Home.jsx
-│       │   ├── Login.jsx
-│       │   ├── Register.jsx
-│       │   ├── Profile.jsx
-│       │   ├── Admin.jsx
-│       │   ├── About.jsx
-│       │   ├── Contact.jsx
-│       │   └── Policies.jsx
-│       ├── services/
-│       │   ├── api.js
-│       │   ├── auth.js
-│       │   └── admin.js
-│       └── utils/
-│           ├── models.js
-│           └── sessions.js
-├── AGENTS.md
-├── CLAUDE.md
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── LICENSE
-└── package.json
-```
+- **Routers:** HTTP only — parse request, delegate, respond
+- **Services:** Business logic — no `req`/`res`
+- **Middleware:** Cross-cutting concerns only — auth, rate limiting
 
 ---
 
@@ -148,108 +93,122 @@ FlickerX/
 
 | File | Purpose |
 |------|---------|
-| `backend/server.js` | Express entry point, middleware setup, route mounting |
-| `backend/services/openrouterService.js` | AI model calls, fallback logic, error normalization |
-| `backend/controllers/chatController.js` | Chat + streaming SSE endpoints |
-| `backend/controllers/authController.js` | Register, login, refresh, logout, profile, password reset |
-| `backend/middleware/authMiddleware.js` | JWT verification, admin check |
-| `backend/middleware/rateLimit.js` | Per-endpoint rate limiting |
-| `frontend/src/services/api.js` | API client: chat, stream, upload |
-| `frontend/src/services/auth.js` | Auth API client |
-| `frontend/src/pages/Chat.jsx` | Main chat UI with streaming |
+| `backend/main.py` | FastAPI app, SPA serving, router registration, middleware |
+| `backend/cli.py` | CLI entry point (`FlickerX` command) |
+| `backend/config.py` | Paths, secrets, ports, token expiry |
+| `backend/database.py` | SQLite setup, schema, migrations, `execute_returning()` |
+| `backend/auth.py` | JWT creation/validation, bcrypt hashing |
+| `backend/middleware.py` | Security headers, body size limit, request logging |
+| `backend/pyproject.toml` | Python deps, optional `[torch]` extras |
+| `frontend/vite.config.ts` | Vite config, proxy → :8080 |
 
 ---
 
-## Model Configuration
+## Startup Commands
 
-Default model: `google/gemma-4-31b-it:free`
+```bash
+# Production — single process, single port
+cd backend && uv run python cli.py               # http://127.0.0.1:8080
+cd backend && uv run python cli.py --port 3000   # custom port
 
-Fallback order (on rate-limit or failure):
-1. `nvidia/nemotron-3-super-120b-a12b:free`
-2. `poolside/laguna-m.1:free`
-3. `inclusionai/ling-3.0-flash:free`
-4. `openai/gpt-oss-20b:free`
+# Development — Vite hot reload
+cd backend && uv run python cli.py --dev
+npm run dev
 
-All models are fetched at build time from `https://openrouter.ai/api/v1/models`.
+# Build frontend
+npm run build
+
+# uv dependency management
+cd backend && uv sync
+cd backend && uv add <package>
+```
 
 ---
 
-## Environment Variables
+## Installation
 
-### Backend `.env`
+### Quick install
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `OPENROUTER_API_KEY` | — | OpenRouter API key |
-| `OPENROUTER_BASE` | `https://openrouter.ai/api/v1/chat/completions` | API base URL |
-| `OPENROUTER_TIMEOUT_MS` | `10000` | HTTP request timeout |
-| `OPENROUTER_STREAM_TIMEOUT_MS` | `30000` | Stream timeout |
-| `JWT_SECRET` | — | JWT signing secret |
-| `JWT_ACCESS_EXPIRES` | `15m` | Access token TTL |
-| `JWT_REFRESH_EXPIRES_SECONDS` | `2592000` (30d) | Refresh token TTL |
-| `JWT_ALGORITHM` | `HS256` | JWT algorithm |
-| `RESET_TOKEN_EXPIRES_MS` | `3600000` (1h) | Password reset TTL |
-| `RATE_LIMIT_CHAT_MAX` | `20` | Chat requests per window |
-| `RATE_LIMIT_AUTH_MAX` | `10` | Auth requests per window |
-| `RATE_LIMIT_WINDOW_MS` | `60000` | Rate limit window |
-| `CLOUD_NAME` | — | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | — | Cloudinary API key |
-| `CLOUDINARY_API_SECRET` | — | Cloudinary secret |
-| `FRONTEND_ORIGIN` | `http://localhost:5173` | CORS origin |
-| `BCRYPT_SALT_ROUNDS` | `12` | Hash rounds |
-| `PORT` | `5000` | Server port |
+```bash
+bash install.sh                    # auto-detect GPU
+bash install.sh --gpu cuda         # force NVIDIA CUDA
+bash install.sh --gpu rocm         # force AMD ROCm
+bash install.sh --gpu vulkan       # force Vulkan
+bash install.sh --gpu intel        # force Intel XPU
+bash install.sh --gpu metal        # force Apple Metal
+bash install.sh --gpu cpu          # CPU only
+bash install.sh --with-torch       # + image/video generation
+```
 
-### Frontend `.env`
+### Windows
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `VITE_API_BASE` | `http://localhost:5000` | Backend URL |
+```powershell
+.\install.ps1                     # auto-detect
+.\install.ps1 -Gpu cuda           # force CUDA
+.\install.ps1 -WithTorch          # + torch
+```
+
+### GPU Backends
+
+| Backend | Pre-built wheel | Detection |
+|---------|----------------|-----------|
+| NVIDIA CUDA | `cu118`–`cu130` | `nvidia-smi` |
+| AMD ROCm | `rocm72` (Linux), `hip-radeon` (Windows) | `rocm-smi`, WMI |
+| Intel XPU | Build from source (SYCL) | WMI, `sycl-ls` |
+| Vulkan | `vulkan` | `vulkaninfo` |
+| Apple Metal | `metal` | macOS auto |
+| CPU | fallback | none detected |
 
 ---
 
 ## Coding Standards
 
-### JavaScript
+### Python
 
-```js
-// Prefer
-const                     // over let/var
-async/await               // over .then()
-optional chaining (?.)    // over && chains
-early returns             // over deep if/else
-destructuring             // over direct access
-template literals         // over string concat
+```python
+# Prefer
+type hints              # on all public functions
+async/await             # for I/O
+early return            # over deep if/else
+f-strings               # over .format()
+dataclasses/Pydantic    # over raw dicts
 
-// Avoid
+# Avoid
 deep nesting (>3 levels)
 magic numbers (name them)
 duplicate logic
 boolean flags as function params
-hidden state / mutations
+```
+
+### TypeScript
+
+```typescript
+// Prefer
+const                   // over let/let
+async/await             // over .then()
+optional chaining (?.)  // over && chains
+early returns           // over deep if/else
+
+// Avoid
+deep nesting (>3 levels)
+magic numbers
+duplicate logic
 ```
 
 ### Naming
 
-```js
-// Good
-fetchUser()
-getChatResponse()
-parseJsonResponse()
-FREE_FALLBACKS
-OPENROUTER_BASE
-
-// Bad
-run()
-temp()
-newThing()
-helper()
-data
+```
+fetchUser()           ✓
+getChatResponse()     ✓
+run()                 ✗
+temp()                ✗
+helper()              ✗
 ```
 
 ### Functions
 
 - Single responsibility
-- Descriptive names (verb + noun)
+- Descriptive verb+noun names
 - Early return over nested if
 - Pure where possible (no side effects)
 - Ideal: 20-40 lines
@@ -258,22 +217,8 @@ data
 ### Files
 
 - Ideal: <300 lines
-- Maximum: <500 lines (services)
+- Maximum: <500 lines
 - Split before navigation suffers
-
-### React
-
-- Functional components + hooks only
-- No class components
-- No prop drilling — use context or composition
-- Memoize expensive computations (`useMemo`/`useCallback`)
-- Avoid unnecessary re-renders
-
-### CSS
-
-- Tailwind CSS utility classes
-- Dark mode via `dark:` prefix
-- Consistent with `ThemeContext` accent colors
 
 ---
 
@@ -282,18 +227,14 @@ data
 ### Endpoints
 
 - RESTful, predictable URLs
-- Versioned via path (`/api/v1/...`) if needed
 - Consistent JSON response shape
 - POST for mutations, GET for reads
+- SSE for real-time streaming
 
-### Request/Response
+### Response Shape
 
-```js
-// Success
-{ "reply": "..." }
-{ "user": { ... } }
-
-// Error
+```json
+{ "status": "ok", "data": { ... } }
 { "error": "Human-readable message" }
 ```
 
@@ -303,28 +244,17 @@ data
 - Validate input before business logic
 - Keep handlers stateless
 - Return appropriate HTTP status codes
-- Rate-limit auth and chat endpoints separately
+- Rate-limit auth endpoints
 
 ---
 
 ## Error Handling
 
-### Backend
-
 - Fail fast — validate at the boundary
 - Throw descriptive errors with meaningful messages
 - Log unexpected failures with context
 - Never silently swallow exceptions
-- Centralized error handler catches everything that slips through (`server.js:37`)
-- 404 handler returns consistent `{"error":"Route not found."}`
-
-### Frontend
-
-- Catch API errors and show toast notifications
-- Never expose raw error objects to users
-- Graceful degradation on network failure
-
-### Error Messages
+- Never leak stack traces to the client
 
 ```
 Bad:  "Failed."
@@ -339,14 +269,12 @@ Good: "Failed to upload image: Cloudinary returned HTTP 403."
 
 | Rule | Enforcement |
 |------|-------------|
-| Validate all input | Zod schemas + middleware |
+| Validate all input | Pydantic v2 schemas |
 | Escape all output | React auto-escapes |
 | Secrets from env only | `process.env.*`, gitignored `.env` |
-| HTTPS only | Set `NODE_ENV=production` |
-| Rate limiting | `express-rate-limit` per endpoint |
+| Rate limiting | FastAPI middleware |
 | Authentication | JWT required for protected routes |
 | Authorization | Admin check on admin routes |
-| Cookies | `httpOnly: true`, `sameSite: "strict"`, `secure` in production |
 
 ### Never
 
@@ -357,29 +285,15 @@ Good: "Failed to upload image: Cloudinary returned HTTP 403."
 - Bypass authentication
 - Log passwords, tokens, or API keys
 
-### Security Checklist
-
-- [ ] Input validated
-- [ ] Output escaped
-- [ ] Queries parameterized
-- [ ] Least privilege applied
-- [ ] Secrets from environment
-- [ ] HTTPS enforced
-- [ ] Rate limiting active
-- [ ] Authentication verified
-- [ ] Authorization checked
-
 ---
 
 ## Logging
 
 Logs should explain: **what happened**, **why**, and **relevant identifiers**.
 
-```js
-console.error("Chat failed:", err.message);       // ✓
-console.log(`User ${userId} logged in`);           // ✓
-console.log(`Password reset link: ${resetUrl}`);   // ✗ (leaks token)
-console.log("Decoded token:", decodedUnsafe);     // ✗ (leaks secrets)
+```python
+structlog.info("user_login", user_id=user.id)           # ✓
+structlog.info("password_reset_token", token=reset_url)  # ✗ (leaks token)
 ```
 
 ### Never log
@@ -391,32 +305,12 @@ console.log("Decoded token:", decodedUnsafe);     // ✗ (leaks secrets)
 
 ---
 
-## Performance
-
-### Avoid
-
-- N+1 loops over API calls
-- Duplicate network requests
-- Blocking filesystem operations in request handlers
-- Large JSON parse/copy in hot paths
-- Repeated parsing of the same data
-
-### Prefer
-
-- Streaming over buffering (SSE for chat)
-- Pagination over loading all data
-- Debouncing rapid user input
-- Memoizing expensive computations
-
----
-
 ## Testing Policy
 
-- Non-trivial logic leaves one runnable check (inline `__main__` or `test_*.py`)
+- Non-trivial logic leaves one runnable check
+- Bug fixes: reproduce → fix → verify
 - No test frameworks unless explicitly requested
-- Every bug fix includes: reproduction → fix → verification
 - Priority: unit → integration → end-to-end
-- Prefer fast tests that cover the actual failure mode
 
 ---
 
@@ -428,12 +322,12 @@ npm run dev                   # Both frontend + backend
 npm run backend               # Backend only
 npm run frontend              # Frontend only
 
+# Production
+npm run FlickerX              # Single process SPA
+
 # Verification
 cd frontend && npm run lint   # ESLint
-node -c backend/server.js     # Syntax check
-node -c backend/controllers/*.js
-node -c backend/services/*.js
-node -c backend/middleware/*.js
+cd backend && python -c "import main"  # Syntax check
 ```
 
 ---
@@ -453,14 +347,16 @@ Before adding a package, ask:
 
 ### Current Key Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| express | ^5.0.0 | HTTP server |
-| react | ^19.0.0 | UI framework |
-| vite | ^6.0.0 | Build tool |
-| tailwindcss | ^3.4.0 | CSS utility framework |
-| axios | ^1.16.0 | HTTP client (backend) |
-| zod | ^4.4.0 | Schema validation |
+| Package | Purpose |
+|---------|---------|
+| fastapi | HTTP server |
+| uvicorn | ASGI server |
+| llama-cpp-python | GGUF inference |
+| pydantic | Validation |
+| structlog | Logging |
+| aiosqlite | SQLite async |
+| huggingface-hub | Model downloads |
+| psutil | System metrics |
 
 ---
 
@@ -471,9 +367,7 @@ Branch (feat/my-change)
     ↓
 Implement
     ↓
-Syntax check
-    ↓
-Lint (frontend)
+Verify (syntax + lint)
     ↓
 Commit (conventional)
     ↓
@@ -500,44 +394,9 @@ Every commit should compile, pass checks, be reversible, and represent one logic
 - `node_modules/`
 - `.env` files
 - `dist/`, `build/`
-- Coverage reports
-- Log files
-- Cache directories
+- `__pycache__/`
+- `.venv/`
 - API keys or secrets
-
----
-
-## Code Review Checklist
-
-Before committing, ask:
-
-- [ ] Can this be deleted?
-- [ ] Can this be shorter?
-- [ ] Can stdlib solve it?
-- [ ] Will a new contributor understand it?
-- [ ] Does this duplicate existing logic?
-- [ ] Are there edge cases not handled?
-- [ ] Are there security implications?
-
----
-
-## Refactoring Rules
-
-Refactoring should never change behavior, API shape, or output format — unless explicitly requested. One change per refactor.
-
----
-
-## Code Smells
-
-Watch for:
-
-- Magic numbers without named constants
-- Duplicate code blocks
-- Functions over 80 lines
-- Boolean flags as function parameters
-- Deep nesting (>3 levels)
-- Hidden mutations of input data
-- Circular imports
 
 ---
 
@@ -550,7 +409,7 @@ These must always remain true:
 - API responses are backwards compatible
 - No breaking route changes without deprecation
 - Error responses always include an `error` field
-- The app starts with `npm run dev`
+- The app starts with `npm run dev` or `FlickerX`
 
 ---
 
@@ -561,20 +420,6 @@ If an implementation fails:
 2. Identify root cause (why did it fail?)
 3. Retry with a simpler approach
 4. Never stack speculative fixes on top of broken ones
-
----
-
-## Future Roadmap
-
-Current priority areas (unordered):
-
-- Authentication and session management
-- Real-time streaming (SSE)
-- Multi-model routing with fallbacks
-- File upload and analysis
-- Chat history and persistence
-- Admin dashboard
-- PWA offline support
 
 ---
 

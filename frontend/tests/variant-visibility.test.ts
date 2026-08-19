@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -128,10 +128,10 @@ test("clicking a row held back by its probe opens it", () => {
   // pending probe means it renders nothing.
   const next = toggleAutoExpandedRow(
     { collapsed: new Set(), reopened: new Set() },
-    { repoId: "unsloth/Qwen3-8B-GGUF", showing: false },
+    { repoId: "testorg/Qwen3-8B-GGUF", showing: false },
   );
   assert.deepEqual([...next.collapsed], []);
-  assert.deepEqual([...next.reopened], ["unsloth/Qwen3-8B-GGUF"]);
+  assert.deepEqual([...next.reopened], ["testorg/Qwen3-8B-GGUF"]);
   // Reopened rows stop following the preference, so the wait no longer applies.
   assert.equal(
     shouldMountVariantExpander({
@@ -145,10 +145,10 @@ test("clicking a row held back by its probe opens it", () => {
 
 test("clicking a showing row collapses it and clears the reopen mark", () => {
   const next = toggleAutoExpandedRow(
-    { collapsed: new Set(), reopened: new Set(["unsloth/Qwen3-8B-GGUF"]) },
-    { repoId: "unsloth/Qwen3-8B-GGUF", showing: true },
+    { collapsed: new Set(), reopened: new Set(["testorg/Qwen3-8B-GGUF"]) },
+    { repoId: "testorg/Qwen3-8B-GGUF", showing: true },
   );
-  assert.deepEqual([...next.collapsed], ["unsloth/Qwen3-8B-GGUF"]);
+  assert.deepEqual([...next.collapsed], ["testorg/Qwen3-8B-GGUF"]);
   assert.deepEqual([...next.reopened], []);
 });
 

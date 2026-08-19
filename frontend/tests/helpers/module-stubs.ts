@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // Kept out of kit.ts on purpose, like tsx-ast.ts: only the few tests that drive a
 // component or a hook directly should pay for loading the TypeScript compiler.

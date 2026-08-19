@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -74,7 +74,7 @@ test("a managed flag is an error that names the control that owns it", () => {
 test("a managed flag with no control says who owns it instead", () => {
   // --api-key is not a row in this panel, so pointing at one would be a lie.
   const text = messages("--api-key secret");
-  assert.match(text, /managed by Unsloth/);
+  assert.match(text, /managed by FlickerX/);
   assert.doesNotMatch(text, /above/);
 });
 
@@ -1284,7 +1284,7 @@ test("the managed answer is invalidated with the catalogue", () => {
     ),
     "utf8",
   ).replace(/\s+/g, " ");
-  // Its denylist is Unsloth's own, but it carries defaultParallelSlots beside it and
+  // Its denylist is FlickerX's own, but it carries defaultParallelSlots beside it and
   // that is the EFFECTIVE count: a build without --kv-unified serves one slot however
   // many are configured. Updating llama.cpp from the banner left a tab that had
   // already fetched it sizing the hidden hydration check's batch floor from the

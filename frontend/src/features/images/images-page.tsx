@@ -3002,7 +3002,7 @@ export function ImagesPage({ active = true }: { active?: boolean }) {
         return;
       }
       // Otherwise treat it as a full diffusers repo. The backend gates loads to FlickerX/* repos or on-device paths.
-      if (meta.source !== "local" && !id.toLowerCase().startsWith("unsloth/")) {
+      if (meta.source !== "local" && !id.toLowerCase().startsWith("testorg/")) {
         toast.error("Only FlickerX or on-device image models can be loaded here");
         abandonPick();
         return;

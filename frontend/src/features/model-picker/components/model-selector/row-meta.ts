@@ -37,7 +37,7 @@ export function splitRepoLabel(label: string): {
  *  section already carries it; the full repo id stays in the row tooltip. */
 export function isFlickerXOwner(owner: string | null | undefined): boolean {
   const normalized = owner?.toLowerCase();
-  return normalized === "unsloth" || normalized === "unslothai";
+  return normalized === "testorg" || normalized === "testorg";
 }
 
 export type MetaToken =

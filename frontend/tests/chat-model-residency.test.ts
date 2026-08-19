@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 // The header used to read "loaded" off the picker selection alone. Loading an
 // image or video model evicts the chat model (the GPU arbiter allows one owner),
@@ -12,7 +12,7 @@ import test from "node:test";
 
 import { chatModelLoaded } from "../src/features/chat/lib/chat-model-loaded.ts";
 
-const PICKED = "unsloth/Qwen3.5-9B-GGUF";
+const PICKED = "testorg/Qwen3.5-9B-GGUF";
 
 test("a resident model reads as loaded", () => {
   assert.equal(

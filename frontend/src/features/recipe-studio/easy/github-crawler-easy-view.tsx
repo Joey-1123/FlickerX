@@ -205,7 +205,7 @@ export function GithubCrawlerEasyView({
                 className="nodrag font-mono text-xs"
                 value={modelValue}
                 onChange={(event) => handleModelChange(event.target.value)}
-                placeholder="unsloth/gemma-4-E2B-it-GGUF"
+                placeholder="testorg/gemma-4-E2B-it-GGUF"
                 disabled={!modelConfig}
               />
             )}

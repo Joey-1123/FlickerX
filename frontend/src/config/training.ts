@@ -69,7 +69,7 @@ export const DEFAULT_HYPERPARAMS = {
   contextLength: 2048,
   visionImageSize: null as number | null,
   learningRate: LR_DEFAULT_LORA,
-  // null = let backend auto-compute (lr/10 per Unsloth CPT recipe). Only used by CPT.
+  // null = let backend auto-compute (lr/10 per FlickerX CPT recipe). Only used by CPT.
   embeddingLearningRate: null as number | null,
   optimizerType: "adamw_8bit",
   lrSchedulerType: "linear",
@@ -86,7 +86,7 @@ export const DEFAULT_HYPERPARAMS = {
   evalSteps: 0.0,
   packing: false,
   trainOnCompletions: false,
-  gradientCheckpointing: "unsloth" as const,
+  gradientCheckpointing: "flickerx" as const,
   randomSeed: 3407,
   enableWandb: false,
   wandbToken: "",
@@ -125,20 +125,20 @@ export const MODEL_TYPE_TO_HF_TASKS: Record<
 };
 
 export const PRIORITY_TRAINING_MODELS: readonly string[] = [
-  "unsloth/gemma-4-E2B-it",
-  "unsloth/gemma-4-E4B-it",
-  "unsloth/gemma-4-31B-it",
-  "unsloth/gemma-4-26B-A4B-it",
-  "unsloth/Qwen3.5-2B",
-  "unsloth/Qwen3.5-9B",
-  "unsloth/gpt-oss-20b",
-  "unsloth/NVIDIA-Nemotron-3-Nano-4B",
-  "unsloth/Qwen3-0.6B",
-  "unsloth/gemma-3-4b-it",
-  "unsloth/embeddinggemma-300m",
-  "unsloth/orpheus-3b-0.1-ft",
-  "unsloth/Llama-3.1-8B-Instruct",
-  "unsloth/Llama-3.2-3B-Instruct",
+  "testorg/gemma-4-E2B-it",
+  "testorg/gemma-4-E4B-it",
+  "testorg/gemma-4-31B-it",
+  "testorg/gemma-4-26B-A4B-it",
+  "testorg/Qwen3.5-2B",
+  "testorg/Qwen3.5-9B",
+  "testorg/gpt-oss-20b",
+  "testorg/NVIDIA-Nemotron-3-Nano-4B",
+  "testorg/Qwen3-0.6B",
+  "testorg/gemma-3-4b-it",
+  "testorg/embeddinggemma-300m",
+  "testorg/orpheus-3b-0.1-ft",
+  "testorg/Llama-3.1-8B-Instruct",
+  "testorg/Llama-3.2-3B-Instruct",
 ];
 
 /** Pin priority models to the top of a list of model IDs, preserving their defined order. */

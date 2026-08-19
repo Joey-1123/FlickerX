@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -65,7 +65,7 @@ test("the bounds mirror the backend range", () => {
 });
 
 test("fractionToPercent rounds rather than truncating", () => {
-  // A value set through UNSLOTH_VRAM_FRACTION need not land on the grid.
+  // A value set through FLICKERX_VRAM_FRACTION need not land on the grid.
   assert.equal(vramFractionToPercent(0.8555), 85.6);
   assert.equal(vramFractionToPercent(0.8554), 85.5);
 });
@@ -420,7 +420,7 @@ test("the budget closes while Run settles it, instead of racing the load", () =>
 
 test("a stored budget can be cleared back to the inherited one", () => {
   const row = vramBudgetRowSource().replace(/\s+/g, " ");
-  // Stored beats UNSLOTH_VRAM_FRACTION, so without this the first drag masks the
+  // Stored beats FLICKERX_VRAM_FRACTION, so without this the first drag masks the
   // variable for good: dragging back to the same number stores that number.
   assert.match(row, /\{settings\.isStored && \( <button/);
   assert.match(row, /updateVramBudgetSettings\(null\)/);

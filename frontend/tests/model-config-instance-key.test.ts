@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -7,7 +7,7 @@ import test from "node:test";
 import { modelConfigInstanceKey } from "../src/features/model-picker/model-config/config-signature.ts";
 import type { PerModelConfig } from "../src/features/model-picker/model-config/per-model-config.ts";
 
-const MODEL = "unsloth/Qwen3-8B-GGUF";
+const MODEL = "testorg/Qwen3-8B-GGUF";
 const VARIANT = "Q4_K_M";
 
 // What the model is actually running with, as useActiveModelConfig reports it.
@@ -124,7 +124,7 @@ test("every mirrored setting moves the instance key", () => {
 
 test("the model and its quant still key the editor", () => {
   const base = modelConfigInstanceKey(MODEL, VARIANT, LIVE);
-  assert.notEqual(modelConfigInstanceKey("unsloth/Other-GGUF", VARIANT, LIVE), base);
+  assert.notEqual(modelConfigInstanceKey("testorg/Other-GGUF", VARIANT, LIVE), base);
   assert.notEqual(modelConfigInstanceKey(MODEL, "Q8_0", LIVE), base);
   // A loose .gguf carries no quant; null and undefined are the same absence.
   assert.equal(

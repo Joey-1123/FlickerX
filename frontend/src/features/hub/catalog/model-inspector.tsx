@@ -614,7 +614,7 @@ export const ModelInspector = memo(function ModelInspector({
             </div>
             <div className="mt-0.5 flex min-w-0 items-center gap-1 text-ui-15 leading-ui-24 text-muted-foreground">
               <span className="truncate">{model.owner}</span>
-              {model.owner.toLowerCase() === "unsloth" && (
+              {model.owner.toLowerCase() === "testorg" && (
                 <span
                   aria-label="Verified FlickerX"
                   className="hub-verified-badge size-[18px] shrink-0 text-verified"

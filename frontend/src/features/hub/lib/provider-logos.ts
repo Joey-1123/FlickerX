@@ -3,7 +3,7 @@
 
 /**
  * Provider-logo registry for FlickerX re-uploads. FlickerX re-uploads upstream
- * models (e.g. unsloth/Qwen2.5-7B is Alibaba's Qwen); we show the upstream
+ * models (e.g. testorg/Qwen2.5-7B is Alibaba's Qwen); we show the upstream
  * provider's logo in place of the FlickerX picture (username stays "flickerx").
  *
  * Matching: providers are evaluated in declaration order; a provider matches if

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+// Copyright 2026-present the FlickerX team. All rights reserved.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -70,7 +70,7 @@ test("file and foreign drags are not claimed", () => {
 
 test("the drag type is private to the queue", () => {
   // A generic type would collide with drags from other panes.
-  assert.match(PROMPT_QUEUE_DRAG_TYPE, /^application\/x-unsloth-/);
+  assert.match(PROMPT_QUEUE_DRAG_TYPE, /^application\/x-flickerx-/);
 });
 
 const pending = (threadId: string | null, cancelled = false) => ({
