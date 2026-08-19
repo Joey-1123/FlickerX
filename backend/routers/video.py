@@ -1,21 +1,27 @@
-"""Video generation endpoints — /api/inference/video/*"""
+"""Video generation — lazy-install diffusers pipeline, real generation."""
 
 from __future__ import annotations
 
 import asyncio
+import importlib
+import subprocess
+import sys
 import time
 import uuid
-from typing import Optional
+from pathlib import Path
+from typing import Any, Optional
 
+import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+logger = structlog.get_logger()
 router = APIRouter(prefix="/api/inference/video", tags=["video"])
 
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
-_status = {
+_status: dict[str, Any] = {
     "loaded": False,
     "loading": False,
     "model": None,
@@ -27,6 +33,8 @@ _load_progress: dict = {}
 _gen_progress: dict = {"active": False, "phase": None, "step": 0, "total": 0, "eta_seconds": 0, "video": None, "error": None}
 _gallery: list[dict] = []
 _cancel_requested = False
+_pipeline: Any = None
+_DEFAULT_MODEL = "ali-vilab/text-to-video-ms-1.7b"
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +79,7 @@ class VideoGenerateRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Model lifecycle
+# Model lifecycle — lazy-install pattern (same as images)
 # ---------------------------------------------------------------------------
 @router.get("/status")
 async def video_status():
@@ -96,17 +104,52 @@ async def video_generate_progress():
 
 @router.post("/load")
 async def video_load(req: VideoLoadRequest):
+    global _pipeline
     _status["loading"] = True
-    _status["model"] = req.model_path
+    _status["model"] = req.model_path or _DEFAULT_MODEL
     _status["model_kind"] = req.model_kind
     _load_progress.update({"phase": "downloading", "bytes_downloaded": 0, "bytes_total": 0, "fraction": 0, "error": None})
 
-    await asyncio.sleep(2)
+    try:
+        # Lazy install torch + diffusers if not present
+        if importlib.util.find_spec("torch") is None:
+            _load_progress.update({"phase": "installing dependencies", "fraction": 0.05})
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url",
+                 "https://download.pytorch.org/whl/cpu"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        if importlib.util.find_spec("diffusers") is None:
+            _load_progress.update({"phase": "installing diffusers", "fraction": 0.3})
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "diffusers", "transformers", "accelerate", "safetensors"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
 
-    _status["loaded"] = True
-    _status["loading"] = False
-    _load_progress.update({"phase": "ready", "fraction": 1.0})
-    return {"loaded": True, "loading": False, "model": _status["model"], "model_kind": _status["model_kind"], "device": _status["device"]}
+        _load_progress.update({"phase": "loading model", "fraction": 0.5})
+
+        import torch
+        from diffusers import TextToVideoSDPipeline
+
+        model_id = req.model_path or _DEFAULT_MODEL
+        pipe = TextToVideoSDPipeline.from_pretrained(
+            model_id,
+            torch_dtype=torch.float32,
+            safety_checker=None,
+        )
+        pipe.to("cpu")
+
+        _pipeline = pipe
+        _status["loaded"] = True
+        _status["loading"] = False
+        _status["model"] = model_id
+        _load_progress.update({"phase": "ready", "fraction": 1.0})
+        return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": "cpu"}
+
+    except Exception as e:
+        _status["loading"] = False
+        _load_progress.update({"phase": "error", "error": str(e)})
+        raise HTTPException(status_code=500, detail=f"Failed to load video model: {e}")
 
 
 @router.post("/download-plan")
@@ -120,22 +163,26 @@ async def video_download_plan(req: VideoLoadRequest):
 
 @router.post("/unload")
 async def video_unload():
+    global _pipeline
+    _pipeline = None
     _status.update({"loaded": False, "loading": False, "model": None, "model_kind": None})
     _load_progress.clear()
     return {"loaded": False, "loading": False, "model": None, "model_kind": None, "device": _status["device"]}
 
 
 # ---------------------------------------------------------------------------
-# Generation (async — frontend polls generate-progress)
+# Generation — REAL with diffusers pipeline
 # ---------------------------------------------------------------------------
 @router.post("/generate")
 async def video_generate(req: VideoGenerateRequest):
-    global _cancel_requested
+    global _cancel_requested, _pipeline
     _cancel_requested = False
+
+    if _pipeline is None:
+        raise HTTPException(status_code=400, detail="No video model loaded. Call /load first.")
 
     vid_id = uuid.uuid4().hex[:12]
     total = req.steps
-    phases = ["queued", "denoise", "decode", "export"]
     seed = req.seed if req.seed is not None else int(time.time()) % (2**31)
     duration_s = req.num_frames / max(req.fps, 1)
 
@@ -143,49 +190,80 @@ async def video_generate(req: VideoGenerateRequest):
         "active": True, "phase": "denoise", "step": 0, "total": total, "eta_seconds": total * 2.0, "video": None, "error": None
     })
 
-    # Simulate generation
-    for step in range(1, total + 1):
-        if _cancel_requested:
-            _gen_progress.update({"active": False, "phase": "failed", "error": "Cancelled"})
-            return {"status": "cancelled", "video": None}
-        _gen_progress.update({"step": step, "eta_seconds": (total - step) * 2.0})
-        await asyncio.sleep(0.15)
+    try:
+        import torch
+        generator = torch.Generator("cpu").manual_seed(seed)
 
-    # Decode phase
-    _gen_progress.update({"phase": "decode", "step": total, "eta_seconds": 1.0})
-    await asyncio.sleep(0.5)
+        # Generate frames
+        frames = _pipeline(
+            prompt=req.prompt,
+            negative_prompt=req.negative_prompt or "",
+            width=req.width,
+            height=req.height,
+            num_frames=req.num_frames,
+            num_inference_steps=req.steps,
+            guidance_scale=req.guidance,
+            generator=generator,
+        ).frames[0]
 
-    video = {
-        "id": vid_id,
-        "url": f"/api/inference/video/gallery/{vid_id}/file",
-        "prompt": req.prompt,
-        "negative_prompt": req.negative_prompt,
-        "width": req.width,
-        "height": req.height,
-        "num_frames": req.num_frames,
-        "fps": req.fps,
-        "duration_s": duration_s,
-        "steps": req.steps,
-        "guidance": req.guidance,
-        "seed": seed,
-        "has_audio": False,
-        "conditioning": None,
-        "flow_shift": req.flow_shift,
-        "audio_flow_shift": req.audio_flow_shift,
-        "model": _status.get("model", "unknown"),
-        "model_kind": _status.get("model_kind"),
-        "transformer_quant": None,
-        "text_encoder_quant": None,
-        "memory_mode": None,
-        "offload_policy": None,
-        "created_at": time.time(),
-        "pinned": False,
-        "archived": False,
-    }
-    _gallery.append(video)
+        # Save frames as individual images, then assemble
+        vid_dir = Path.home() / ".flickerx" / "studio" / "videos"
+        vid_dir.mkdir(parents=True, exist_ok=True)
+        vid_path = vid_dir / vid_id
+        vid_path.mkdir(exist_ok=True)
 
-    _gen_progress.update({"active": False, "phase": "completed", "step": total, "eta_seconds": 0, "video": video})
-    return {"status": "started", "video": video}
+        for i, frame in enumerate(frames):
+            frame.save(str(vid_path / f"frame_{i:04d}.png"))
+
+        # Try to assemble into a GIF with Pillow
+        gif_path = vid_dir / f"{vid_id}.gif"
+        try:
+            frames[0].save(
+                str(gif_path),
+                save_all=True,
+                append_images=frames[1:],
+                duration=int(1000 / req.fps),
+                loop=0,
+            )
+        except Exception:
+            pass
+
+        video = {
+            "id": vid_id,
+            "url": f"/api/inference/video/gallery/{vid_id}/file",
+            "prompt": req.prompt,
+            "negative_prompt": req.negative_prompt,
+            "width": req.width,
+            "height": req.height,
+            "num_frames": req.num_frames,
+            "fps": req.fps,
+            "duration_s": duration_s,
+            "steps": req.steps,
+            "guidance": req.guidance,
+            "seed": seed,
+            "has_audio": False,
+            "conditioning": None,
+            "flow_shift": req.flow_shift,
+            "audio_flow_shift": req.audio_flow_shift,
+            "model": _status.get("model", "unknown"),
+            "model_kind": _status.get("model_kind"),
+            "transformer_quant": None,
+            "text_encoder_quant": None,
+            "memory_mode": None,
+            "offload_policy": None,
+            "created_at": time.time(),
+            "pinned": False,
+            "archived": False,
+        }
+        _gallery.append(video)
+
+        _gen_progress.update({"active": False, "phase": "completed", "step": total, "eta_seconds": 0, "video": video})
+        return {"status": "started", "video": video}
+
+    except Exception as e:
+        _gen_progress.update({"active": False, "phase": "failed", "error": str(e)})
+        logger.error("video_generation_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Video generation failed: {e}")
 
 
 @router.post("/generate/cancel")
@@ -225,6 +303,14 @@ async def video_gallery_delete(video_id: str):
     _gallery = [v for v in _gallery if v["id"] != video_id]
     if len(_gallery) == before:
         raise HTTPException(404, "Video not found")
+    # Clean up files
+    vid_dir = Path.home() / ".flickerx" / "studio" / "videos" / video_id
+    gif_path = Path.home() / ".flickerx" / "studio" / "videos" / f"{video_id}.gif"
+    import shutil
+    if vid_dir.exists():
+        shutil.rmtree(str(vid_dir))
+    if gif_path.exists():
+        gif_path.unlink()
     return None
 
 
@@ -243,8 +329,17 @@ async def video_signed_url(video_id: str):
     raise HTTPException(404, "Video not found")
 
 
+@router.get("/gallery/{video_id}/file")
+async def video_gallery_file(video_id: str):
+    from fastapi.responses import FileResponse
+    gif_path = Path.home() / ".flickerx" / "studio" / "videos" / f"{video_id}.gif"
+    if not gif_path.exists():
+        raise HTTPException(404, "Video file not found")
+    return FileResponse(str(gif_path), media_type="image/gif")
+
+
 @router.get("/gallery/{video_id}/export")
-async def video_export(video_id: str, format: str = "webm"):
+async def video_export(video_id: str, format: str = "gif"):
     for v in _gallery:
         if v["id"] == video_id:
             return {"url": v["url"], "format": format}

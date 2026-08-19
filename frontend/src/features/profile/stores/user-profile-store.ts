@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright 2026-present the FlickerX AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
+
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+export type AvatarShape = "circle" | "rounded";
+export const PROFILE_TEXT_MAX_LENGTH = 200;
+
+export interface UserProfileState {
+  displayName: string;
+  nickname: string;
+  avatarDataUrl: string | null;
+  avatarShape: AvatarShape;
+  showGreetingAvatar: boolean;
+  setDisplayName: (displayName: string) => void;
+  setNickname: (nickname: string) => void;
+  setAvatarDataUrl: (avatarDataUrl: string | null) => void;
+  setAvatarShape: (avatarShape: AvatarShape) => void;
+  setShowGreetingAvatar: (showGreetingAvatar: boolean) => void;
+}
+
+export const useUserProfileStore = create<UserProfileState>()(
+  persist(
+    (set) => ({
+      displayName: "",
+      nickname: "",
+      avatarDataUrl: null,
+      avatarShape: "circle",
+      showGreetingAvatar: true,
+      setDisplayName: (displayName) => set({ displayName }),
+      setNickname: (nickname) => set({ nickname }),
+      setAvatarDataUrl: (avatarDataUrl) => set({ avatarDataUrl }),
+      setAvatarShape: (avatarShape) => set({ avatarShape }),
+      setShowGreetingAvatar: (showGreetingAvatar) => set({ showGreetingAvatar }),
+    }),
+    { name: "flickerx_user_profile" },
+  ),
+);

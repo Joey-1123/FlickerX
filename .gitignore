@@ -23,17 +23,32 @@ dist-ssr
 *.sln
 *.sw?
 
-#environment variables
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+uv.lock
+
+# Environment variables
 .env
 backend/.env
-
 backend/data/users.json
 
 # UI backups
 frontend/src.bak*
+frontend.bak/
 
 # LLM memory / context file
 memory_flickerX.md
 
-# Graphify knowledge graph
-graphify-out/__pycache__/
+# Knowledge graph
+graphify-out/
+
+# Skills
+.agents/
+.claude/
+skills-lock.json
+
+# Smoke test files
+frontend/smoke-*

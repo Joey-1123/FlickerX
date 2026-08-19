@@ -1,32 +1,37 @@
-"""LLM Provider configuration endpoints — /api/providers/*"""
+"""LLM Provider configuration — real HTTP testing, model listing via /v1/models."""
 
 from __future__ import annotations
 
+import asyncio
 import time
 import uuid
-from typing import Optional
+from typing import Any, Optional
 
+import httpx
+import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+logger = structlog.get_logger()
 router = APIRouter(prefix="/api/providers", tags=["providers"])
 
 # ---------------------------------------------------------------------------
-# State
+# Registry — known providers with defaults
 # ---------------------------------------------------------------------------
+_PROVIDER_DEFAULTS: dict[str, dict[str, Any]] = {
+    "openai": {"base_url": "https://api.openai.com/v1", "requires_key": True},
+    "anthropic": {"base_url": "https://api.anthropic.com/v1", "requires_key": True},
+    "google": {"base_url": "https://generativelanguage.googleapis.com/v1beta", "requires_key": True},
+    "groq": {"base_url": "https://api.groq.com/openai/v1", "requires_key": True},
+    "openrouter": {"base_url": "https://openrouter.ai/api/v1", "requires_key": True},
+    "together": {"base_url": "https://api.together.xyz/v1", "requires_key": True},
+    "deepseek": {"base_url": "https://api.deepseek.com/v1", "requires_key": True},
+    "fireworks": {"base_url": "https://api.fireworks.ai/inference/v1", "requires_key": True},
+    "mistral": {"base_url": "https://api.mistral.ai/v1", "requires_key": True},
+    "ollama": {"base_url": "http://localhost:11434/v1", "requires_key": False},
+}
+
 _configs: list[dict] = []
-_registry: list[dict] = [
-    {"id": "openai", "name": "OpenAI", "base_url": "https://api.openai.com/v1", "requires_key": True, "models_endpoint": "/v1/models"},
-    {"id": "anthropic", "name": "Anthropic", "base_url": "https://api.anthropic.com/v1", "requires_key": True},
-    {"id": "google", "name": "Google AI", "base_url": "https://generativelanguage.googleapis.com/v1", "requires_key": True},
-    {"id": "groq", "name": "Groq", "base_url": "https://api.groq.com/openai/v1", "requires_key": True},
-    {"id": "openrouter", "name": "OpenRouter", "base_url": "https://openrouter.ai/api/v1", "requires_key": True},
-    {"id": "together", "name": "Together AI", "base_url": "https://api.together.xyz/v1", "requires_key": True},
-    {"id": "deepseek", "name": "DeepSeek", "base_url": "https://api.deepseek.com/v1", "requires_key": True},
-    {"id": "fireworks", "name": "Fireworks AI", "base_url": "https://api.fireworks.ai/inference/v1", "requires_key": True},
-    {"id": "mistral", "name": "Mistral AI", "base_url": "https://api.mistral.ai/v1", "requires_key": True},
-    {"id": "ollama", "name": "Ollama (Local)", "base_url": "http://localhost:11434/v1", "requires_key": False},
-]
 
 
 # ---------------------------------------------------------------------------
@@ -48,19 +53,115 @@ class ProviderConfigUpdate(BaseModel):
 
 
 class ProviderTestRequest(BaseModel):
-    provider_id: str
-    api_key: Optional[str] = None
+    provider_type: str
+    provider_id: Optional[str] = None
+    encrypted_api_key: Optional[str] = None
     base_url: Optional[str] = None
+    model_id: Optional[str] = None
 
 
 class ProviderModelsRequest(BaseModel):
-    provider_id: str
-    api_key: Optional[str] = None
+    provider_type: str
+    provider_id: Optional[str] = None
+    encrypted_api_key: Optional[str] = None
     base_url: Optional[str] = None
 
 
 class ApiKeyMigrate(BaseModel):
     api_key: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def _resolve_config(provider_type: str, provider_id: Optional[str] = None) -> dict:
+    """Find the stored config for a provider, falling back to registry defaults."""
+    if provider_id:
+        for c in _configs:
+            if c["id"] == provider_id:
+                return c
+    for c in _configs:
+        if c["provider_id"] == provider_type:
+            return c
+    defaults = _PROVIDER_DEFAULTS.get(provider_type, {})
+    return {"provider_id": provider_type, "base_url": defaults.get("base_url", ""), "api_key": None}
+
+
+def _get_api_key(provider_type: str, provider_id: Optional[str] = None,
+                 encrypted_key: Optional[str] = None) -> Optional[str]:
+    """Resolve API key: explicit encrypted key takes precedence over saved."""
+    config = _resolve_config(provider_type, provider_id)
+    # ponytail: encrypted_api_key is RSA-OAEP from the frontend. We accept it as-is
+    # for now. In production, decrypt with the private key. The frontend encrypts
+    # client-side, but for local dev we pass it through.
+    if encrypted_key:
+        return encrypted_key
+    return config.get("api_key")
+
+
+def _get_base_url(provider_type: str, provider_id: Optional[str] = None,
+                   base_url: Optional[str] = None) -> str:
+    if base_url:
+        return base_url
+    config = _resolve_config(provider_type, provider_id)
+    return config.get("base_url") or _PROVIDER_DEFAULTS.get(provider_type, {}).get("base_url", "")
+
+
+async def _fetch_models(base_url: str, api_key: Optional[str]) -> list[dict]:
+    """Fetch model list from an OpenAI-compatible /v1/models endpoint."""
+    url = f"{base_url.rstrip('/')}/models"
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+        models = []
+        for m in data.get("data", []):
+            models.append({
+                "id": m.get("id", ""),
+                "display_name": m.get("id", ""),
+                "context_length": None,
+                "owned_by": m.get("owned_by"),
+            })
+        return models
+
+
+async def _test_connection(base_url: str, api_key: Optional[str],
+                            model_id: Optional[str] = None) -> dict:
+    """Test provider connectivity. Tries /v1/models first, falls back to chat probe."""
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        # Try /v1/models
+        try:
+            resp = await client.get(f"{base_url.rstrip('/')}/models", headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                count = len(data.get("data", []))
+                return {"success": True, "message": f"Connected ({count} models)", "models_count": count}
+        except Exception:
+            pass
+
+        # Fallback: 1-token chat probe
+        try:
+            probe_model = model_id or "gpt-3.5-turbo"
+            resp = await client.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers={**headers, "Content-Type": "application/json"},
+                json={"model": probe_model, "messages": [{"role": "user", "content": "ping"}], "max_tokens": 1},
+                timeout=10.0,
+            )
+            if resp.status_code in (200, 401, 403):
+                msg = "Connection successful" if resp.status_code == 200 else f"Endpoint reachable (HTTP {resp.status_code})"
+                return {"success": True, "message": msg, "models_count": None}
+        except Exception:
+            pass
+
+    return {"success": False, "message": f"Failed to connect to {base_url}", "models_count": None}
 
 
 # ---------------------------------------------------------------------------
@@ -76,12 +177,15 @@ async def public_key():
 # ---------------------------------------------------------------------------
 @router.get("/registry")
 async def list_registry(include_hidden: bool = False):
-    providers = _registry if include_hidden else [p for p in _registry if not p.get("hidden")]
+    providers = [
+        {"id": pid, "name": pid.replace("_", " ").title(), **info}
+        for pid, info in _PROVIDER_DEFAULTS.items()
+    ]
     return {"providers": providers}
 
 
 # ---------------------------------------------------------------------------
-# Provider configs
+# Provider configs CRUD
 # ---------------------------------------------------------------------------
 @router.get("/")
 async def list_configs():
@@ -140,20 +244,28 @@ async def migrate_api_key(config_id: str, body: ApiKeyMigrate):
 
 
 # ---------------------------------------------------------------------------
-# Test / List models
+# Test / List models — REAL HTTP calls
 # ---------------------------------------------------------------------------
 @router.post("/test")
 async def test_provider(req: ProviderTestRequest):
-    return {"success": True, "message": "Connection successful", "latency_ms": 150}
+    base_url = _get_base_url(req.provider_type, req.provider_id, req.base_url)
+    api_key = _get_api_key(req.provider_type, req.provider_id, req.encrypted_api_key)
+    result = await _test_connection(base_url, api_key, req.model_id)
+    logger.info("provider_test", provider=req.provider_type, base_url=base_url, success=result["success"])
+    return result
 
 
 @router.post("/models")
 async def list_provider_models(req: ProviderModelsRequest):
-    return {"models": [
-        {"id": "gpt-4o", "name": "GPT-4o"},
-        {"id": "gpt-4o-mini", "name": "GPT-4o Mini"},
-        {"id": "claude-3.5-sonnet", "name": "Claude 3.5 Sonnet"},
-    ]}
+    base_url = _get_base_url(req.provider_type, req.provider_id, req.base_url)
+    api_key = _get_api_key(req.provider_type, req.provider_id, req.encrypted_api_key)
+    try:
+        models = await _fetch_models(base_url, api_key)
+        return models
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"Provider returned error: {e.response.text}")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch models: {e}")
 
 
 # ---------------------------------------------------------------------------

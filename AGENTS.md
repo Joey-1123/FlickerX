@@ -264,7 +264,8 @@ A task is complete only when:
 - No TODOs or debugging artifacts left
 - Committed with conventional message
 - Working tree clean
-
+- Should never be One OS speficic , must be     universal
+- 
 ---
 
 ## Quick Reference

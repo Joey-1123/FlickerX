@@ -7,9 +7,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+
+from middleware import SecurityHeadersMiddleware, BodySizeMiddleware, RequestLoggingMiddleware
 
 from config import ensure_dirs, HOST, PORT, STUDIO_HOME
 from database import init_auth_db, init_studio_db
@@ -36,6 +39,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(BodySizeMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 # --- Import and register routers ---
 from routers.auth import router as auth_router
@@ -95,8 +101,58 @@ def studio_update_status():
 
 # Serve frontend static files (if built)
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+FRONTEND_DIST_RESOLVED = FRONTEND_DIST.resolve()
+
+
+class _ImmutableStaticFiles(StaticFiles):
+    """Serve Vite's content-hashed assets without browser revalidation."""
+
+    def file_response(self, full_path, stat_result, scope, status_code=200):
+        response = super().file_response(full_path, stat_result, scope, status_code)
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+def _build_index_html():
+    return (FRONTEND_DIST / "index.html").read_bytes()
+
+
+def _frontend_request_allowed(request: Request) -> bool:
+    return True  # ponytail: no tunnel restriction, add when LAN/Cloudflare support exists
+
+
 if FRONTEND_DIST.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+    _assets_dir = FRONTEND_DIST / "assets"
+    if _assets_dir.exists():
+        app.mount("/assets", _ImmutableStaticFiles(directory=str(_assets_dir)), name="assets")
+
+    @app.get("/")
+    async def serve_root(request: Request):
+        if not _frontend_request_allowed(request):
+            return Response(status_code=404)
+        return HTMLResponse(
+            content=_build_index_html(),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(request: Request, full_path: str):
+        if full_path.startswith(("api/", "v1/")):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+        if not _frontend_request_allowed(request):
+            return Response(status_code=404)
+
+        file_path = (FRONTEND_DIST / full_path).resolve()
+        if not file_path.is_relative_to(FRONTEND_DIST_RESOLVED):
+            return Response(status_code=403)
+        if file_path.is_file():
+            return FileResponse(file_path)
+
+        return HTMLResponse(
+            content=_build_index_html(),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
 
 
 def main():

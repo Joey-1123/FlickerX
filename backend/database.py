@@ -119,15 +119,43 @@ def _get_conn(db_path: Path) -> sqlite3.Connection:
     return conn
 
 
+_AUTH_MIGRATIONS = [
+    ("ALTER TABLE users ADD COLUMN email TEXT",),
+    ("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'",),
+    ("ALTER TABLE users ADD COLUMN display_name TEXT",),
+    ("ALTER TABLE users ADD COLUMN system_prompt TEXT",),
+    ("ALTER TABLE users ADD COLUMN policies_accepted INTEGER DEFAULT 0",),
+]
+
+
+def _run_migrations(conn: sqlite3.Connection, migrations: list[tuple[str, ...]]) -> None:
+    for (sql,) in migrations:
+        try:
+            conn.execute(sql)
+        except Exception:
+            pass
+
+
 def init_auth_db() -> None:
     with _schema_lock:
         conn = _get_conn(AUTH_DB)
         try:
             conn.executescript(_AUTH_SCHEMA)
-            try:
-                conn.execute("ALTER TABLE users ADD COLUMN email TEXT")
-            except Exception:
-                pass
+            _run_migrations(conn, _AUTH_MIGRATIONS)
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS password_resets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    token_hash TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
+                CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+                CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id);
+                CREATE INDEX IF NOT EXISTS idx_password_resets_hash ON password_resets(token_hash);
+            """)
             conn.commit()
         finally:
             conn.close()
@@ -166,6 +194,17 @@ def execute(db_path: Path, sql: str, params: tuple[Any, ...] = ()) -> sqlite3.Cu
         cursor = conn.execute(sql, params)
         conn.commit()
         return cursor
+    finally:
+        conn.close()
+
+
+def execute_returning(db_path: Path, sql: str, params: tuple[Any, ...] = ()) -> list[sqlite3.Row]:
+    conn = _get_conn(db_path)
+    try:
+        cursor = conn.execute(sql, params)
+        rows = cursor.fetchall()
+        conn.commit()
+        return rows
     finally:
         conn.close()
 
