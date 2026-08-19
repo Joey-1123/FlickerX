@@ -32,20 +32,57 @@ def chat_completions(req: ChatCompletionRequest):
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
 
-    # Non-streaming: return a single response
+    # Non-streaming fallback (when model not loaded)
     generation_id = str(uuid.uuid4())
-    return {
-        "id": f"chatcmpl-{generation_id}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": req.model,
-        "choices": [{
-            "index": 0,
-            "message": {"role": "assistant", "content": f"[FlickerX] Model '{req.model}' is not loaded. Load a model to start chatting."},
-            "finish_reason": "stop",
-        }],
-        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
-    }
+    from routers.inference import _llm
+    if _llm is None:
+        return {
+            "id": f"chatcmpl-{generation_id}",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": req.model,
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": f"Model '{req.model}' is not loaded. Load a model to start chatting."},
+                "finish_reason": "stop",
+            }],
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
+
+    messages = [{"role": m.role, "content": m.content or ""} for m in req.messages]
+    try:
+        resp = _llm.create_chat_completion(
+            messages=messages,
+            temperature=req.temperature,
+            top_p=req.top_p,
+            max_tokens=req.max_tokens,
+            stop=req.stop,
+        )
+        return {
+            "id": f"chatcmpl-{generation_id}",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": req.model,
+            "choices": [{
+                "index": 0,
+                "message": resp["choices"][0]["message"],
+                "finish_reason": "stop",
+            }],
+            "usage": resp.get("usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}),
+        }
+    except Exception as e:
+        return {
+            "id": f"chatcmpl-{generation_id}",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": req.model,
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": f"[Error] {e}"},
+                "finish_reason": "stop",
+            }],
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
 
 
 async def _stream_chat(req: ChatCompletionRequest):
@@ -53,12 +90,9 @@ async def _stream_chat(req: ChatCompletionRequest):
     generation_id = str(uuid.uuid4())
     model_name = req.model
 
-    with _inference_lock:
-        is_loaded = _inference_state["loaded"]
-        model_path = _inference_state.get("model_path")
+    from routers.inference import _llm
 
-    if not is_loaded:
-        # Yield error as SSE
+    if _llm is None:
         error_chunk = {
             "error": {"message": f"Model '{model_name}' is not loaded. Load a model first.", "type": "invalid_request_error"}
         }
@@ -66,26 +100,44 @@ async def _stream_chat(req: ChatCompletionRequest):
         yield "data: [DONE]\n\n"
         return
 
-    # Simulate a response (real implementation would use llama-cpp-python)
-    response_text = f"[FlickerX] Model loaded from {model_path}. This is a placeholder response — real inference will be implemented with llama-cpp-python."
+    messages = [{"role": m.role, "content": m.content or ""} for m in req.messages]
+    prompt_tokens = 0
+    completion_tokens = 0
 
-    # Stream token by token
-    tokens = response_text.split()
-    for i, token in enumerate(tokens):
-        chunk = {
-            "id": f"chatcmpl-{generation_id}",
-            "object": "chat.completion.chunk",
-            "created": int(time.time()),
-            "model": model_name,
-            "choices": [{
-                "index": 0,
-                "delta": {"content": token + " "},
-                "finish_reason": None,
-            }],
-        }
-        yield f"data: {json.dumps(chunk)}\n\n"
+    try:
+        stream = _llm.create_chat_completion(
+            messages=messages,
+            temperature=req.temperature,
+            top_p=req.top_p,
+            max_tokens=req.max_tokens,
+            top_k=req.top_k,
+            stop=req.stop,
+            stream=True,
+        )
+        prompt_tokens = len(messages) * 4  # rough estimate
 
-    # Final chunk with usage
+        for chunk in stream:
+            delta = chunk["choices"][0].get("delta", {})
+            if delta.get("content"):
+                completion_tokens += 1
+                sse_chunk = {
+                    "id": f"chatcmpl-{generation_id}",
+                    "object": "chat.completion.chunk",
+                    "created": int(time.time()),
+                    "model": model_name,
+                    "choices": [{
+                        "index": 0,
+                        "delta": {"content": delta["content"]},
+                        "finish_reason": None,
+                    }],
+                }
+                yield f"data: {json.dumps(sse_chunk)}\n\n"
+
+    except Exception as e:
+        error_chunk = {"error": {"message": str(e), "type": "inference_error"}}
+        yield f"data: {json.dumps(error_chunk)}\n\n"
+
+    # Final chunk
     final_chunk = {
         "id": f"chatcmpl-{generation_id}",
         "object": "chat.completion.chunk",
@@ -96,7 +148,7 @@ async def _stream_chat(req: ChatCompletionRequest):
             "delta": {},
             "finish_reason": "stop",
         }],
-        "usage": {"prompt_tokens": 0, "completion_tokens": len(tokens), "total_tokens": len(tokens)},
+        "usage": {"prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens, "total_tokens": prompt_tokens + completion_tokens},
     }
     yield f"data: {json.dumps(final_chunk)}\n\n"
     yield "data: [DONE]\n\n"

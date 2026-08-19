@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import importlib
+import io
 import json
+import subprocess
+import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -17,7 +22,7 @@ router = APIRouter(prefix="/api/inference/images", tags=["images"])
 # ---------------------------------------------------------------------------
 # State (in-memory, model not loaded)
 # ---------------------------------------------------------------------------
-_status = {
+_status: dict[str, Any] = {
     "loaded": False,
     "loading": False,
     "model": None,
@@ -30,6 +35,9 @@ _gen_progress: dict = {"active": False, "step": 0, "total_steps": 0, "fraction":
 _gallery: list[dict] = []
 _active_gen: dict | None = None
 _cancel_requested = False
+_pipeline: Any = None  # ponytail: global diffusers pipeline, lazy-loaded
+
+_DEFAULT_MODEL = "segmind/small-sd"  # ponytail: ~500MB, fastest SD variant
 
 
 # ---------------------------------------------------------------------------
@@ -112,18 +120,52 @@ async def image_generate_progress():
 
 @router.post("/load")
 async def image_load(req: DiffusionLoadRequest):
+    global _pipeline
     _status["loading"] = True
-    _status["model"] = req.model_path
+    _status["model"] = req.model_path or _DEFAULT_MODEL
     _status["model_kind"] = req.model_kind
     _load_progress.update({"phase": "downloading", "bytes_downloaded": 0, "bytes_total": 0, "fraction": 0, "error": None})
 
-    # Simulate load (2s)
-    await asyncio.sleep(2)
+    try:
+        # Lazy install torch + diffusers if not present
+        if importlib.util.find_spec("torch") is None:
+            _load_progress.update({"phase": "installing dependencies", "fraction": 0.05})
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url",
+                 "https://download.pytorch.org/whl/cpu"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        if importlib.util.find_spec("diffusers") is None:
+            _load_progress.update({"phase": "installing diffusers", "fraction": 0.3})
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "diffusers", "transformers", "accelerate", "safetensors"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
 
-    _status["loaded"] = True
-    _status["loading"] = False
-    _load_progress.update({"phase": "ready", "fraction": 1.0})
-    return {"loaded": True, "loading": False, "model": _status["model"], "model_kind": _status["model_kind"], "device": _status["device"]}
+        _load_progress.update({"phase": "loading model", "fraction": 0.5})
+
+        import torch
+        from diffusers import StableDiffusionPipeline
+
+        model_id = req.model_path or _DEFAULT_MODEL
+        pipe = StableDiffusionPipeline.from_pretrained(
+            model_id,
+            torch_dtype=torch.float32,
+            safety_checker=None,
+        )
+        pipe.to("cpu")
+
+        _pipeline = pipe
+        _status["loaded"] = True
+        _status["loading"] = False
+        _status["model"] = model_id
+        _load_progress.update({"phase": "ready", "fraction": 1.0})
+        return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": "cpu"}
+
+    except Exception as e:
+        _status["loading"] = False
+        _load_progress.update({"phase": "error", "error": str(e)})
+        raise HTTPException(status_code=500, detail=f"Failed to load image model: {e}")
 
 
 @router.post("/download-plan")
@@ -137,6 +179,8 @@ async def image_download_plan(req: DiffusionLoadRequest):
 
 @router.post("/unload")
 async def image_unload():
+    global _pipeline
+    _pipeline = None
     _status.update({"loaded": False, "loading": False, "model": None, "model_kind": None})
     _load_progress.clear()
     return {"loaded": False, "loading": False, "model": None, "model_kind": None, "device": _status["device"]}
@@ -147,62 +191,87 @@ async def image_unload():
 # ---------------------------------------------------------------------------
 @router.post("/generate")
 async def image_generate(req: DiffusionGenerateRequest):
-    global _active_gen, _cancel_requested
+    global _active_gen, _cancel_requested, _pipeline
     _cancel_requested = False
+
+    if _pipeline is None:
+        raise HTTPException(status_code=400, detail="No image model loaded. Call /load first.")
 
     seed = req.seed if req.seed is not None else int(time.time()) % (2**31)
     total_steps = req.steps
-    _gen_progress.update({"active": True, "step": 0, "total_steps": total_steps, "fraction": 0.0, "eta_seconds": total_steps * 0.5})
+    _gen_progress.update({"active": True, "step": 0, "total_steps": total_steps, "fraction": 0.0, "eta_seconds": total_steps * 2.0})
     _active_gen = {"seed": seed, "started": time.time()}
 
-    # Simulate generation
-    for step in range(1, total_steps + 1):
-        if _cancel_requested:
-            _gen_progress.update({"active": False, "step": step, "fraction": step / total_steps, "eta_seconds": 0})
+    try:
+        import torch
+        generator = torch.Generator("cpu").manual_seed(seed)
+
+        # Progress callback for step tracking
+        def step_callback(pipe, step, timestep, callback_kwargs):
+            if _cancel_requested:
+                raise Exception("Cancelled")
+            _gen_progress.update({"step": step + 1, "fraction": (step + 1) / total_steps, "eta_seconds": (total_steps - step - 1) * 2.0})
+            return callback_kwargs
+
+        result = _pipeline(
+            prompt=req.prompt,
+            negative_prompt=req.negative_prompt or "",
+            width=req.width,
+            height=req.height,
+            num_inference_steps=req.steps,
+            guidance_scale=req.guidance,
+            generator=generator,
+            num_images_per_prompt=req.batch_size,
+            callback_on_step_end=step_callback,
+        )
+
+        images = []
+        for i, img in enumerate(result.images):
+            img_id = uuid.uuid4().hex[:12]
+
+            # Save to disk
+            img_dir = Path.home() / ".flickerx" / "studio" / "images"
+            img_dir.mkdir(parents=True, exist_ok=True)
+            img_path = img_dir / f"{img_id}.png"
+            img.save(str(img_path))
+
+            # Convert to base64 for response
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+            gallery_entry = {
+                "id": img_id,
+                "url": f"/api/inference/images/gallery/{img_id}/file",
+                "prompt": req.prompt,
+                "negative_prompt": req.negative_prompt,
+                "width": req.width,
+                "height": req.height,
+                "steps": req.steps,
+                "guidance": req.guidance,
+                "seed": seed + i,
+                "batch_seed": seed,
+                "batch_index": i,
+                "batch_size": req.batch_size,
+                "model": _status.get("model", "unknown"),
+                "model_kind": _status.get("model_kind"),
+                "created_at": time.time(),
+                "pinned": False,
+                "archived": False,
+            }
+            _gallery.append(gallery_entry)
+            images.append(gallery_entry)
+
+        _gen_progress.update({"active": False, "step": total_steps, "fraction": 1.0, "eta_seconds": 0})
+        _active_gen = None
+        return {"images": images}
+
+    except Exception as e:
+        _gen_progress.update({"active": False})
+        _active_gen = None
+        if "Cancelled" in str(e):
             return {"images": []}
-        _gen_progress.update({"step": step, "fraction": step / total_steps, "eta_seconds": (total_steps - step) * 0.5})
-        await asyncio.sleep(0.1)
-
-    images = []
-    for i in range(req.batch_size):
-        img_id = uuid.uuid4().hex[:12]
-        gallery_entry = {
-            "id": img_id,
-            "url": f"/api/inference/images/gallery/{img_id}/file",
-            "prompt": req.prompt,
-            "negative_prompt": req.negative_prompt,
-            "width": req.width,
-            "height": req.height,
-            "steps": req.steps,
-            "guidance": req.guidance,
-            "seed": seed + i,
-            "batch_seed": seed,
-            "batch_index": i,
-            "batch_size": req.batch_size,
-            "model": _status.get("model", "unknown"),
-            "model_kind": _status.get("model_kind"),
-            "transformer_quant": None,
-            "text_encoder_quant": None,
-            "memory_mode": None,
-            "offload_policy": None,
-            "baked_loras": None,
-            "loras": req.loras,
-            "controlnet": req.controlnet,
-            "workflow": None,
-            "strength": req.strength,
-            "upscale": req.upscale,
-            "controlnet_guidance": None,
-            "reference_image_count": len(req.reference_images) if req.reference_images else 0,
-            "created_at": time.time(),
-            "pinned": False,
-            "archived": False,
-        }
-        _gallery.append(gallery_entry)
-        images.append(gallery_entry)
-
-    _gen_progress.update({"active": False, "step": total_steps, "fraction": 1.0, "eta_seconds": 0})
-    _active_gen = None
-    return {"images": images}
+        raise HTTPException(status_code=500, detail=f"Image generation failed: {e}")
 
 
 @router.post("/generate/cancel")
@@ -252,3 +321,12 @@ async def image_gallery_clear():
     count = len(_gallery)
     _gallery.clear()
     return None
+
+
+@router.get("/gallery/{image_id}/file")
+async def image_gallery_file(image_id: str):
+    from fastapi.responses import FileResponse
+    img_path = Path.home() / ".flickerx" / "studio" / "images" / f"{image_id}.png"
+    if not img_path.exists():
+        raise HTTPException(404, "Image file not found")
+    return FileResponse(str(img_path), media_type="image/png")

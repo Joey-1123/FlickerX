@@ -36,4 +36,4 @@ frontend/src.bak*
 memory_flickerX.md
 
 # Graphify knowledge graph
-graphify-out/
+graphify-out/__pycache__/

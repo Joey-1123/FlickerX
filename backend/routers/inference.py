@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import threading
 import uuid
@@ -28,6 +29,9 @@ _inference_state: dict[str, Any] = {
 }
 _inference_lock = threading.Lock()
 _active_generations: dict[str, dict] = {}
+
+# ponytail: global LLM instance — one model at a time, swap requires unload+load
+_llm: Any = None  # llama_cpp.Llama instance
 
 
 class LoadModelRequest(BaseModel):
@@ -125,10 +129,31 @@ def active_generations():
 
 @router.post("/load")
 def load_model(req: LoadModelRequest, user: dict = Depends(get_current_user)):
+    global _llm
     from pathlib import Path
     path = Path(req.model_path)
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Model not found: {req.model_path}")
+
+    # Unload existing model first
+    if _llm is not None:
+        del _llm
+        _llm = None
+
+    try:
+        from llama_cpp import Llama
+        n_threads = req.n_threads or max(1, os.cpu_count() // 2)
+        _llm = Llama(
+            model_path=str(path),
+            n_ctx=req.n_ctx,
+            n_gpu_layers=req.gpu_layers if req.gpu_layers >= 0 else 0,
+            n_batch=req.n_batch,
+            n_threads=n_threads,
+            verbose=False,
+        )
+    except Exception as e:
+        _llm = None
+        raise HTTPException(status_code=500, detail=f"Failed to load model: {e}")
 
     with _inference_lock:
         _inference_state.update({
@@ -152,6 +177,10 @@ def load_model(req: LoadModelRequest, user: dict = Depends(get_current_user)):
 
 @router.post("/unload")
 def unload_model(req: UnloadModelRequest | None = None, user: dict = Depends(get_current_user)):
+    global _llm
+    if _llm is not None:
+        del _llm
+        _llm = None
     with _inference_lock:
         _inference_state.update({
             "loaded": False,

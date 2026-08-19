@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import io
+import tempfile
 import time
 import uuid
-from typing import Optional
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -17,6 +19,8 @@ router = APIRouter(prefix="/api/inference/audio", tags=["audio"])
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
+_stt_model: Any = None  # ponytail: global whisper instance — one at a time
+
 _stt_status = {
     "available": False,
     "loaded_model": None,
@@ -115,13 +119,19 @@ async def stt_validate(req: SttValidateRequest):
 
 @router.post("/stt/load")
 async def stt_load(req: SttLoadRequest):
+    global _stt_model
     _stt_status["loading"] = True
     _stt_status["available"] = False
-    await asyncio.sleep(1)
-    _stt_status["loading"] = False
-    _stt_status["available"] = True
-    _stt_status["loaded_model"] = req.model
-    return {"loaded": True, "model": req.model}
+    try:
+        from faster_whisper import WhisperModel
+        _stt_model = WhisperModel(req.model, device="cpu", compute_type="int8")
+        _stt_status["loading"] = False
+        _stt_status["available"] = True
+        _stt_status["loaded_model"] = req.model
+        return {"loaded": True, "model": req.model}
+    except Exception as e:
+        _stt_status["loading"] = False
+        raise HTTPException(status_code=500, detail=f"Failed to load STT model: {e}")
 
 
 @router.post("/stt/download")
@@ -136,14 +146,58 @@ async def stt_download_cancel(req: SttLoadRequest):
 
 @router.post("/stt/unload")
 async def stt_unload(engine: str = "", model: str = ""):
+    global _stt_model
+    _stt_model = None
     _stt_status.update({"available": False, "loaded_model": None})
     return {"unloaded": True}
 
 
 @router.post("/transcribe/raw")
-async def transcribe_raw(model: str = "openai/whisper-base", fast: bool = True, engine: str = "", language: str = ""):
-    # Placeholder — real impl would run whisper
-    return {"text": "(Transcription placeholder — no STT model loaded)"}
+async def transcribe_raw(
+    request: Request,
+    model: str = "openai/whisper-base",
+    fast: bool = True,
+    engine: str = "",
+    language: str = "",
+):
+    global _stt_model
+
+    if _stt_model is None:
+        raise HTTPException(status_code=400, detail="No STT model loaded. Call /stt/load first.")
+
+    audio_bytes = await request.body()
+    if not audio_bytes:
+        raise HTTPException(status_code=400, detail="No audio data in request body")
+
+    # Write to temp file — faster-whisper needs a file path or numpy array
+    suffix = ".webm"
+    ct = request.headers.get("content-type", "")
+    if "wav" in ct:
+        suffix = ".wav"
+    elif "mp3" in ct:
+        suffix = ".mp3"
+    elif "ogg" in ct:
+        suffix = ".ogg"
+    elif "flac" in ct:
+        suffix = ".flac"
+    elif "mpeg" in ct:
+        suffix = ".mp3"
+
+    try:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
+            tmp.write(audio_bytes)
+            tmp.flush()
+            segments, info = _stt_model.transcribe(
+                tmp.name,
+                language=language if language else None,
+                beam_size=1 if fast else 5,
+                vad_filter=fast,
+            )
+            text = " ".join(seg.text.strip() for seg in segments)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {e}")
+
+    return {"text": text, "language": info.language if info else language}
 
 
 # ---------------------------------------------------------------------------
