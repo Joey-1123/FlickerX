@@ -66,3 +66,31 @@ def import_settings(body: dict, user: dict = Depends(get_current_user)):
                 (key, value))
         count += 1
     return {"ok": True, "imported": count}
+
+
+# ---------------------------------------------------------------------------
+# Convenience endpoints the frontend expects
+# ---------------------------------------------------------------------------
+@router.get("/hugging-face-token")
+def get_hugging_face_token(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'hugging_face_token'")
+    token = rows[0]["value"] if rows else None
+    return {"token": token}
+
+
+@router.get("/personalization")
+def get_personalization(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'personalization'")
+    if rows:
+        try:
+            return json.loads(rows[0]["value"])
+        except Exception:
+            return {"personalization": rows[0]["value"]}
+    return {"theme": "dark", "language": "en", "notifications": True}
+
+
+@router.put("/personalization")
+def save_personalization(body: dict, user: dict = Depends(get_current_user)):
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('personalization', ?, datetime('now'))",
+            (json.dumps(body),))
+    return {"saved": True}

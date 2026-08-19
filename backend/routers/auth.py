@@ -63,7 +63,9 @@ def register(req: LoginRequest):
     if existing:
         raise HTTPException(status_code=400, detail="Username already taken")
     pw_hash = hash_password(req.password)
-    cursor = execute(AUTH_DB, "INSERT INTO users (username, password_hash) VALUES (?, ?)", (req.username, pw_hash))
+    is_email = "@" in req.username
+    cursor = execute(AUTH_DB, "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+                     (req.username, req.username if is_email else None, pw_hash))
     user_id = cursor.lastrowid
     access = create_access_token(user_id, req.username)
     refresh = create_refresh_token(user_id)
@@ -73,6 +75,8 @@ def register(req: LoginRequest):
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest):
     rows = query(AUTH_DB, "SELECT id, password_hash, must_change_password FROM users WHERE username = ?", (req.username,))
+    if not rows:
+        rows = query(AUTH_DB, "SELECT id, password_hash, must_change_password FROM users WHERE email = ?", (req.username,))
     if not rows:
         raise HTTPException(status_code=401, detail="Invalid username or password")
     row = rows[0]

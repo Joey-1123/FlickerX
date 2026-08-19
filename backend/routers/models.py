@@ -219,3 +219,13 @@ def browse_folders(path: str = "/", show_hidden: bool = False):
             continue
         entries.append({"name": entry.name, "path": str(entry), "is_dir": entry.is_dir()})
     return {"path": str(p), "entries": entries}
+
+
+@router.get("/loras")
+def list_loras(outputs_dir: str = ""):
+    return {"loras": []}
+
+
+@router.get("/checkpoints")
+def list_checkpoints():
+    return {"outputs_dir": str(MODELS_DIR), "models": []}

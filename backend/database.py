@@ -18,6 +18,7 @@ _AUTH_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
+    email TEXT,
     password_hash TEXT NOT NULL,
     must_change_password INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
@@ -123,6 +124,10 @@ def init_auth_db() -> None:
         conn = _get_conn(AUTH_DB)
         try:
             conn.executescript(_AUTH_SCHEMA)
+            try:
+                conn.execute("ALTER TABLE users ADD COLUMN email TEXT")
+            except Exception:
+                pass
             conn.commit()
         finally:
             conn.close()

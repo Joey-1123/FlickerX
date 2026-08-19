@@ -83,6 +83,16 @@ def health():
     return {"status": "ok", "version": "0.1.0"}
 
 
+@app.get("/api/llama/update-status")
+def llama_update_status(force_refresh: bool = False):
+    return {"update_available": False, "current_version": "0.1.0", "latest_version": "0.1.0"}
+
+
+@app.get("/api/studio/update-status")
+def studio_update_status():
+    return {"update_available": False, "current_version": "0.1.0", "latest_version": "0.1.0"}
+
+
 # Serve frontend static files (if built)
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
 if FRONTEND_DIST.exists():

@@ -316,3 +316,8 @@ def transport_pref():
 @router.get("/download-paths")
 def download_paths():
     return {"paths": [str(MODELS_DIR)]}
+
+
+@router.get("/hidden-models")
+def hidden_models():
+    return {"models": []}
