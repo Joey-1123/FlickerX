@@ -552,3 +552,18 @@ def _row_to_dict(row) -> dict:
             d[field] = bool(d[field])
     return d
 
+
+# ===== OpenAI-compat model list =====
+
+@router.get("/models")
+def list_models():
+    try:
+        from routers.inference import _inference_state
+        loaded = _inference_state.get("model_name")
+    except Exception:
+        loaded = None
+    models = []
+    if loaded:
+        models.append({"id": loaded, "loaded": True})
+    return {"data": models}
+

@@ -269,7 +269,79 @@ def youtube_transcript():
 
 @app.get("/api/system")
 def system_info():
-    return {"status": "ok", "version": "0.1.0"}
+    import time as _time
+    import platform
+    import psutil
+    mem = psutil.virtual_memory()
+    disk = psutil.disk_usage("/")
+    cpu_freq = psutil.cpu_freq()
+    gpus = []
+    try:
+        r = _sp.run(
+            ["nvidia-smi", "--query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu,temperature.gpu",
+             "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if r.returncode == 0:
+            for line in r.stdout.strip().split("\n"):
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) >= 6:
+                    gpus.append({
+                        "name": parts[0],
+                        "memory_total_gb": round(int(parts[1]) / 1024, 2),
+                        "vram_used_gb": round(int(parts[2]) / 1024, 2),
+                        "vram_free_gb": round(int(parts[3]) / 1024, 2),
+                        "vram_utilization_pct": int(parts[4]),
+                    })
+    except Exception:
+        pass
+    device_backend = "cpu"
+    if gpus and gpus[0].get("name", "No GPU") != "No GPU detected":
+        device_backend = "cuda"
+    proc = psutil.Process()
+    ml_torch = ""
+    ml_transformers = ""
+    try:
+        import torch
+        ml_torch = getattr(torch, "__version__", "")
+    except Exception:
+        pass
+    try:
+        import transformers
+        ml_transformers = getattr(transformers, "__version__", "")
+    except Exception:
+        pass
+    return {
+        "platform": platform.system(),
+        "python_version": platform.python_version(),
+        "device_backend": device_backend,
+        "uptime_seconds": int(_time.time() - proc.create_time()),
+        "cpu": {
+            "logical_count": psutil.cpu_count() or 0,
+            "physical_count": psutil.cpu_count(logical=False) or 0,
+            "usage_percent": psutil.cpu_percent(interval=0),
+            "frequency_mhz": round(cpu_freq.current) if cpu_freq else None,
+        },
+        "memory": {
+            "total_gb": round(mem.total / (1024**3), 2),
+            "available_gb": round(mem.available / (1024**3), 2),
+            "percent_used": mem.percent,
+            "process_used_mb": round(proc.memory_info().rss / (1024**2)),
+        },
+        "disk": {
+            "total_gb": round(disk.total / (1024**3), 2),
+            "free_gb": round(disk.free / (1024**3), 2),
+            "percent_used": round(disk.percent, 1),
+        },
+        "gpu": {
+            "available": bool(gpus),
+            "devices": gpus,
+        },
+        "ml_packages": {
+            "torch": ml_torch or None,
+            "transformers": ml_transformers or None,
+        },
+    }
 
 
 # Serve frontend static files (if built)

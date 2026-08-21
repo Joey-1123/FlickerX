@@ -205,6 +205,8 @@ _AUTH_MIGRATIONS = [
     ("ALTER TABLE users ADD COLUMN display_name TEXT",),
     ("ALTER TABLE users ADD COLUMN system_prompt TEXT",),
     ("ALTER TABLE users ADD COLUMN policies_accepted INTEGER DEFAULT 0",),
+    ("ALTER TABLE api_keys ADD COLUMN last_used_at TEXT",),
+    ("ALTER TABLE api_keys ADD COLUMN is_active INTEGER DEFAULT 1",),
 ]
 
 

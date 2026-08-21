@@ -410,8 +410,14 @@ async def serve_upload(filename: str):
 # ---------------------------------------------------------------------------
 @router.get("/api-keys")
 def list_api_keys(user: dict = Depends(get_current_user)):
-    rows = query(AUTH_DB, "SELECT id, name, key_prefix, expires_at, created_at FROM api_keys WHERE user_id = ?", (user["id"],))
-    return {"api_keys": [dict(r) for r in rows]}
+    rows = query(AUTH_DB, "SELECT id, name, key_prefix, expires_at, created_at, last_used_at, is_active FROM api_keys WHERE user_id = ?", (user["id"],))
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["is_active"] = bool(d.get("is_active", 1))
+        d["last_used_at"] = d.get("last_used_at")
+        result.append(d)
+    return {"api_keys": result}
 
 
 @router.post("/api-keys")
@@ -424,7 +430,7 @@ def create_api_key(req: CreateApiKeyRequest, user: dict = Depends(get_current_us
         expires_at = (datetime.now(timezone.utc) + timedelta(days=req.expires_in_days)).isoformat()
     cursor = execute(AUTH_DB, "INSERT INTO api_keys (user_id, name, key_hash, key_prefix, expires_at) VALUES (?, ?, ?, ?, ?)",
                      (user["id"], req.name, key_hash, prefix, expires_at))
-    api_key = {"id": cursor.lastrowid, "name": req.name, "key_prefix": prefix, "expires_at": expires_at, "created_at": datetime.now(timezone.utc).isoformat()}
+    api_key = {"id": cursor.lastrowid, "name": req.name, "key_prefix": prefix, "expires_at": expires_at, "created_at": datetime.now(timezone.utc).isoformat(), "last_used_at": None, "is_active": True}
     return {"key": raw_key, "api_key": api_key}
 
 

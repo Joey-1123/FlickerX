@@ -160,8 +160,27 @@ def get_personalization(user: dict = Depends(get_current_user)):
         try:
             return json.loads(rows[0]["value"])
         except Exception:
-            return {"personalization": rows[0]["value"]}
-    return {"theme": "dark", "language": "en", "notifications": True}
+            pass
+    return {
+        "version": 1,
+        "profile": {
+            "displayName": "",
+            "nickname": "",
+            "avatarDataUrl": None,
+            "avatarShape": "circle",
+            "showGreetingAvatar": True,
+        },
+        "appearance": {
+            "theme": "dark",
+            "palette": "standard",
+            "language": "en",
+            "customization": {},
+        },
+        "saved": False,
+        "customizationSaved": False,
+        "paletteSaved": False,
+        "greetingAvatarSaved": False,
+    }
 
 
 @router.put("/personalization")
@@ -247,7 +266,7 @@ def get_preview_sharing(user: dict = Depends(get_current_user)):
 def save_preview_sharing(body: dict, user: dict = Depends(get_current_user)):
     execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('preview_sharing', ?, datetime('now'))",
             (json.dumps(body),))
-    return {"ok": True}
+    return {"enabled": body.get("enabled", True), "default_enabled": True}
 
 
 # ---------------------------------------------------------------------------
@@ -256,20 +275,37 @@ def save_preview_sharing(body: dict, user: dict = Depends(get_current_user)):
 @router.get("/upload-limit")
 def get_upload_limit(user: dict = Depends(get_current_user)):
     rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'upload_limits'")
+    stored = {}
     if rows:
         try:
-            limits = json.loads(rows[0]["value"])
-            return {
-                "max_upload_size_mb": limits.get("max_file_size_mb", 100),
-                "max_total_mb": limits.get("max_total_mb", 1024),
-                "allowed_types": limits.get("allowed_types", ["image/*", "audio/*", "video/*", "application/pdf"]),
-            }
+            stored = json.loads(rows[0]["value"])
         except Exception:
             pass
+    max_mb = stored.get("max_file_size_mb", 500)
+    max_bytes = max_mb * 1024 * 1024
     return {
-        "max_upload_size_mb": 100,
-        "max_total_mb": 1024,
-        "allowed_types": ["image/*", "audio/*", "video/*", "application/pdf"],
+        "max_upload_size_mb": max_mb,
+        "max_upload_size_bytes": max_bytes,
+        "max_upload_size_label": f"{max_mb}MB",
+        "default_upload_size_mb": 500,
+        "min_upload_size_mb": 1,
+        "max_allowed_upload_size_mb": max_mb,
+    }
+
+
+@router.put("/upload-limit")
+def save_upload_limit(body: dict, user: dict = Depends(get_current_user)):
+    max_mb = body.get("max_upload_size_mb", 500)
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('upload_limits', ?, datetime('now'))",
+            (json.dumps({"max_file_size_mb": max_mb, "max_total_mb": 1024, "allowed_types": ["image/*", "audio/*", "video/*", "application/pdf"]}),))
+    max_bytes = max_mb * 1024 * 1024
+    return {
+        "max_upload_size_mb": max_mb,
+        "max_upload_size_bytes": max_bytes,
+        "max_upload_size_label": f"{max_mb}MB",
+        "default_upload_size_mb": 500,
+        "min_upload_size_mb": 1,
+        "max_allowed_upload_size_mb": max_mb,
     }
 
 
@@ -300,12 +336,44 @@ def get_coding_agents(user: dict = Depends(get_current_user)):
 @router.get("/model-memory")
 def get_model_memory(user: dict = Depends(get_current_user)):
     rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'model_memory'")
+    stored = {}
     if rows:
         try:
-            return json.loads(rows[0]["value"])
+            stored = json.loads(rows[0]["value"])
         except Exception:
             pass
-    return {"keep_resident": True, "no_ram_reserve": False, "auto_unload_minutes": 30}
+    return {
+        "keep_resident": stored.get("keep_resident", True),
+        "no_ram_reserve": stored.get("no_ram_reserve", False),
+        "default_keep_resident": True,
+        "default_no_ram_reserve": False,
+        "mlock_active": not stored.get("no_ram_reserve", False),
+        "reload_required": False,
+        "memlock_limit_bytes": None,
+    }
+
+
+@router.put("/model-memory")
+def save_model_memory(body: dict, user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'model_memory'")
+    stored = {}
+    if rows:
+        try:
+            stored = json.loads(rows[0]["value"])
+        except Exception:
+            pass
+    stored.update(body)
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('model_memory', ?, datetime('now'))",
+            (json.dumps(stored),))
+    return {
+        "keep_resident": stored.get("keep_resident", True),
+        "no_ram_reserve": stored.get("no_ram_reserve", False),
+        "default_keep_resident": True,
+        "default_no_ram_reserve": False,
+        "mlock_active": not stored.get("no_ram_reserve", False),
+        "reload_required": False,
+        "memlock_limit_bytes": None,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -314,12 +382,50 @@ def get_model_memory(user: dict = Depends(get_current_user)):
 @router.get("/openai-auto-switch")
 def get_openai_auto_switch(user: dict = Depends(get_current_user)):
     rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'openai_auto_switch'")
+    stored = {}
     if rows:
         try:
-            return json.loads(rows[0]["value"])
+            stored = json.loads(rows[0]["value"])
         except Exception:
             pass
-    return {"enabled": False, "auto_unload_idle_seconds": 300}
+    return {
+        "enabled": stored.get("enabled", False),
+        "auto_unload_idle_seconds": stored.get("auto_unload_idle_seconds", 300),
+        "default_enabled": False,
+        "idle_unload_active": stored.get("enabled", False),
+        "auto_unload_keep_kv": stored.get("auto_unload_keep_kv", True),
+        "auto_download_model": stored.get("auto_download_model", False),
+        "auto_unload_api_only": stored.get("auto_unload_api_only", False),
+        "media_auto_unload_idle_seconds": stored.get("media_auto_unload_idle_seconds", 0),
+        "media_idle_unload_active": False,
+        "media_auto_switch_model": stored.get("media_auto_switch_model", False),
+    }
+
+
+@router.put("/openai-auto-switch")
+def save_openai_auto_switch(body: dict, user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'openai_auto_switch'")
+    stored = {}
+    if rows:
+        try:
+            stored = json.loads(rows[0]["value"])
+        except Exception:
+            pass
+    stored.update(body)
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('openai_auto_switch', ?, datetime('now'))",
+            (json.dumps(stored),))
+    return {
+        "enabled": stored.get("enabled", False),
+        "auto_unload_idle_seconds": stored.get("auto_unload_idle_seconds", 300),
+        "default_enabled": False,
+        "idle_unload_active": stored.get("enabled", False),
+        "auto_unload_keep_kv": stored.get("auto_unload_keep_kv", True),
+        "auto_download_model": stored.get("auto_download_model", False),
+        "auto_unload_api_only": stored.get("auto_unload_api_only", False),
+        "media_auto_unload_idle_seconds": stored.get("media_auto_unload_idle_seconds", 0),
+        "media_idle_unload_active": False,
+        "media_auto_switch_model": stored.get("media_auto_switch_model", False),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -328,12 +434,38 @@ def get_openai_auto_switch(user: dict = Depends(get_current_user)):
 @router.get("/vram-budget")
 def get_vram_budget(user: dict = Depends(get_current_user)):
     rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'vram_budget'")
+    stored = {}
     if rows:
         try:
-            return json.loads(rows[0]["value"])
+            stored = json.loads(rows[0]["value"])
         except Exception:
             pass
-    return {"fraction": 0.9, "is_stored": False}
+    return {
+        "fraction": stored.get("fraction", 0.9),
+        "is_stored": bool(stored.get("fraction")),
+        "default_fraction": 0.9,
+        "min_fraction": 0.1,
+        "max_fraction": 1.0,
+        "reload_required": False,
+    }
+
+
+@router.put("/vram-budget")
+def save_vram_budget(body: dict, user: dict = Depends(get_current_user)):
+    fraction = body.get("fraction")
+    if fraction is not None:
+        execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('vram_budget', ?, datetime('now'))",
+                (json.dumps({"fraction": fraction}),))
+    else:
+        execute(AUTH_DB, "DELETE FROM settings WHERE key = 'vram_budget'")
+    return {
+        "fraction": fraction if fraction is not None else 0.9,
+        "is_stored": fraction is not None,
+        "default_fraction": 0.9,
+        "min_fraction": 0.1,
+        "max_fraction": 1.0,
+        "reload_required": False,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -341,7 +473,74 @@ def get_vram_budget(user: dict = Depends(get_current_user)):
 # ---------------------------------------------------------------------------
 @router.get("/remote-access")
 def get_remote_access(user: dict = Depends(get_current_user)):
-    return {"state": "disabled", "url": None, "error": None}
+    return {
+        "state": "off",
+        "url": None,
+        "error": None,
+        "auto_start": False,
+        "default_auto_start": False,
+        "available": False,
+        "managed_by": None,
+        "can_start": False,
+        "can_stop": False,
+        "block_reason": None,
+        "password_pending": False,
+        "streaming_supported": False,
+    }
+
+
+@router.post("/remote-access/start")
+def start_remote_access(user: dict = Depends(get_current_user)):
+    return {
+        "state": "off",
+        "url": None,
+        "error": "Remote access is not configured in this deployment",
+        "auto_start": False,
+        "default_auto_start": False,
+        "available": False,
+        "managed_by": None,
+        "can_start": False,
+        "can_stop": False,
+        "block_reason": None,
+        "password_pending": False,
+        "streaming_supported": False,
+    }
+
+
+@router.post("/remote-access/stop")
+def stop_remote_access(user: dict = Depends(get_current_user)):
+    return {
+        "state": "off",
+        "url": None,
+        "error": None,
+        "auto_start": False,
+        "default_auto_start": False,
+        "available": False,
+        "managed_by": None,
+        "can_start": False,
+        "can_stop": False,
+        "block_reason": None,
+        "password_pending": False,
+        "streaming_supported": False,
+    }
+
+
+@router.put("/remote-access/auto-start")
+def update_remote_access_auto_start(body: dict, user: dict = Depends(get_current_user)):
+    return {
+        "state": "off",
+        "url": None,
+        "error": None,
+        "auto_start": body.get("enabled", False),
+        "default_auto_start": False,
+        "available": False,
+        "managed_by": None,
+        "can_start": False,
+        "can_stop": False,
+        "block_reason": None,
+        "password_pending": False,
+        "streaming_supported": False,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -352,10 +551,61 @@ def get_debug_log_sources(user: dict = Depends(get_current_user)):
     from config import LOGS_DIR
     sources = []
     if LOGS_DIR.exists():
-        for f in LOGS_DIR.iterdir():
-            if f.is_file() and f.suffix == ".log":
-                sources.append({"id": f.name, "name": f.name, "path": str(f), "size_bytes": f.stat().st_size})
-    return {"sources": sources, "default_source_id": sources[0]["id"] if sources else None}
+        for f in sorted(LOGS_DIR.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True):
+            if f.is_file():
+                sources.append({
+                    "id": f.name,
+                    "family": f.suffix.lstrip(".") or "log",
+                    "label": f.stem.replace("-", " ").replace("_", " ").title(),
+                    "realpath": str(f.resolve()),
+                    "size_bytes": f.stat().st_size,
+                    "modified_at": int(f.stat().st_mtime),
+                    "is_current": len(sources) == 0,
+                })
+    default_id = sources[0]["id"] if sources else None
+    return {"sources": sources, "default_source_id": default_id, "file_logging_disabled": False}
+
+
+@router.get("/debug/logs")
+def get_debug_logs(source: str = "", cursor: str = "", user: dict = Depends(get_current_user)):
+    from config import LOGS_DIR
+    lines = []
+    status = "ok"
+    realpath = None
+    size_bytes = 0
+    log_files = sorted(LOGS_DIR.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True) if LOGS_DIR.exists() else []
+    target = None
+    for f in log_files:
+        if f.name == source or (not source and len(lines) == 0):
+            target = f
+            break
+    if not target and log_files:
+        target = log_files[0]
+    if target and target.exists():
+        realpath = str(target.resolve())
+        size_bytes = target.stat().st_size
+        try:
+            with open(target) as fh:
+                lines = [l.rstrip() for l in fh.readlines()[-200:]]
+        except Exception:
+            status = "unreadable"
+    elif not log_files:
+        status = "missing"
+    return {
+        "status": status,
+        "reason": None,
+        "source_id": target.name if target else None,
+        "realpath": realpath,
+        "lines": lines,
+        "cursor": None,
+        "reset": False,
+        "reset_reason": None,
+        "dropped_bytes": 0,
+        "truncated_head": False,
+        "more_pending": False,
+        "file_logging_disabled": False,
+        "size_bytes": size_bytes,
+    }
 
 
 # ---------------------------------------------------------------------------
