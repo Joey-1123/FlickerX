@@ -1,6 +1,8 @@
 <p align="center">
-  <img src="frontend/public/flickerx-logo.svg" alt="FlickerX" width="400">
+  <img src="frontend/public/flickerx-mascot.svg" alt="FlickerX Mascot" width="120">
 </p>
+
+<h1 align="center">FlickerX</h1>
 
 <p align="center">
   Local-first AI studio — chat, generate, train, research.
@@ -9,10 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="CODE_OF_CONDUCT.md">Code of Conduct</a> •
-  <a href="CONTRIBUTING.md">Contributing</a> •
-  <a href="SECURITY.md">Security</a> •
-  <a href="LICENSE">License</a>
+  <a href="https://github.com/Joey-1123/FlickerX/actions"><img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+  <a href="https://github.com/Joey-1123/FlickerX"><img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey" alt="Platform"></a>
 </p>
 
 ---
@@ -26,7 +27,7 @@
 | **Image Generation** | Stable Diffusion via diffusers (CUDA/ROCm/Metal) |
 | **Video Generation** | Text-to-video with diffusers pipelines |
 | **Audio** | TTS/STT with faster-whisper |
-| **Fine-tuning** | LoRA training with transformers |
+| **Fine-tuning** | LoRA, QLoRA, full fine-tune, DPO, GRPO, pre-training |
 | **RAG** | Retrieval-augmented generation with SQLite knowledge bases |
 | **Deep Research** | Multi-step research agents with local LLMs |
 | **Dataset Management** | HuggingFace dataset download and management |
@@ -42,8 +43,8 @@
 | Layer     | Tech |
 | --------- | ---- |
 | Frontend  | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui |
-| Backend   | Python 3.10+, FastAPI, SQLite (aiosqlite), structlog |
-| Auth      | JWT (HS256, 15min) + refresh tokens (30d, rotated) + bcrypt |
+| Backend   | Python 3.10+, FastAPI, SQLite, structlog |
+| Auth      | JWT (HS256) + refresh tokens + bcrypt |
 | AI        | llama-cpp-python (local), OpenRouter (cloud), diffusers |
 | Storage   | SQLite database, local filesystem (`~/.flickerx/`) |
 | GPU       | CUDA, ROCm, Vulkan, Intel XPU, Apple Metal, CPU fallback |
@@ -55,7 +56,7 @@
 
 ```bash
 # Linux/macOS — auto-detects GPU
-curl -sL https://raw.githubusercontent.com/joey/flickerx/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/Joey-1123/FlickerX/main/install.sh | bash
 
 # Or clone and install
 git clone https://github.com/Joey-1123/FlickerX.git
@@ -109,15 +110,7 @@ bash install.sh --with-torch   # installs torch + diffusers
 cd backend && uv pip install -e ".[torch]"
 ```
 
-## Scripts
-
-| Command | Description |
-| ------- | ----------- |
-| `npm run FlickerX` | Production — single process, SPA serving |
-| `npm run dev` | Development — Vite hot reload + backend |
-| `npm run build` | Build frontend only |
-
-### CLI Options
+## CLI
 
 ```bash
 FlickerX                    # http://127.0.0.1:8080
@@ -137,26 +130,25 @@ FlickerX/
 │   ├── main.py              # FastAPI app, SPA serving, router registration
 │   ├── cli.py               # CLI entry point (FlickerX command)
 │   ├── config.py            # Paths, constants, HOST, PORT
-│   ├── database.py          # SQLite init, migrations, execute_returning()
+│   ├── database.py          # SQLite init, migrations
 │   ├── middleware.py         # Security headers, body size limit, logging
 │   ├── auth.py              # JWT creation/verification, bcrypt
-│   ├── pyproject.toml       # Python deps, [project.scripts]
-│   └── routers/             # 18 API routers (262 endpoints)
-│       ├── auth.py          # Register, login, logout, refresh, admin CRUD, API keys
+│   └── routers/             # 18 API routers (~280 endpoints)
+│       ├── auth.py          # Register, login, logout, refresh, admin, API keys
 │       ├── chat.py          # OpenAI-compatible chat completions (SSE)
-│       ├── models.py        # Model listing, config, load/unload
+│       ├── models.py        # Local model scan, config, load/unload
 │       ├── hub.py           # HuggingFace hub search, download, cache
 │       ├── inference.py     # Local LLM inference (llama-cpp-python)
 │       ├── images.py        # Image generation (diffusers)
 │       ├── video.py         # Video generation (diffusers)
 │       ├── audio.py         # TTS/STT (faster-whisper)
-│       ├── train.py         # LoRA fine-tuning
+│       ├── train.py         # LoRA, QLoRA, full fine-tune, DPO, GRPO
 │       ├── datasets.py      # Dataset management (HF snapshot_download)
 │       ├── rag.py           # RAG (SQLite KBs, chunks, keyword search)
 │       ├── research.py      # Research agents (llama-cpp local LLM)
 │       ├── export.py        # GGUF export, LoRA export, HF Hub push
-│       ├── providers.py     # External provider management (HTTP test)
-│       ├── prompts.py       # Prompt entry/list management (SQLite)
+│       ├── providers.py     # External provider management
+│       ├── prompts.py       # Prompt entry/list management
 │       ├── mcp.py           # MCP server probing (JSON-RPC)
 │       ├── settings.py      # HF token, generation presets, upload limits
 │       └── system.py        # Hardware info, GPU, metrics, logs
@@ -175,28 +167,23 @@ FlickerX/
 | -------- | ------- | ----------- |
 | `FLICKERX_HOST` | `127.0.0.1` | Backend bind host |
 | `FLICKERX_PORT` | `8080` | Backend bind port |
-| `JWT_SECRET` | (generated) | JWT signing secret |
-| `HF_TOKEN` | (none) | HuggingFace API token |
+| `FLICKERX_SECRET_KEY` | (dev default) | JWT signing secret |
+| `FLICKERX_STUDIO_HOME` | `~/.flickerx/studio` | Data directory |
 
 ## Security
 
-See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities.
+See [SECURITY.md](SECURITY.md) for our security policy.
 
 ## Documentation
 
-- [API Reference](docs/api-reference.md) — all 262 endpoints
+- [API Reference](docs/api-reference.md) — all endpoints
 - [User Guide](docs/user-guide.md) — step-by-step workflows
 - [Architecture](docs/architecture.md) — system design and data flow
 - [GPU Setup](docs/gpu-setup.md) — CUDA, ROCm, Metal, Vulkan, Intel XPU
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on commits, PRs, and code style.
-
-## Code of Conduct
-
-This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
-By participating, you are expected to uphold this code.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
