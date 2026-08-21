@@ -1,20 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <!-- Body - tall rounded blob -->
-  <path d="M70,180 L70,80 Q70,30 100,30 Q130,30 130,80 L130,180" 
-        fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Left eye -->
-  <circle cx="88" cy="75" r="5" fill="currentColor"/>
-  <!-- Right eye -->
-  <circle cx="112" cy="75" r="5" fill="currentColor"/>
-  <!-- Cup body -->
-  <rect x="82" y="110" width="36" height="30" rx="5" fill="#16a34a" stroke="currentColor" stroke-width="5"/>
-  <!-- Cup handle -->
-  <path d="M118,118 Q132,118 132,130 Q132,142 118,142" 
-        fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-  <!-- Left arm reaching to cup -->
-  <path d="M75,120 Q82,115 82,115" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-  <!-- Steam line 1 -->
-  <path d="M94,105 Q92,95 96,88" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
-  <!-- Steam line 2 -->
-  <path d="M106,105 Q108,95 104,88" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+<svg width="120" height="168" viewBox="0 0 120 168" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mg" x1="0" y1="0" x2="120" y2="168" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff6b6b"/><stop offset=".5" stop-color="#c45cfc"/><stop offset="1" stop-color="#5c9bfc"/>
+    </linearGradient>
+    <linearGradient id="mgh" x1="0" y1="0" x2="120" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff6b6b"/><stop offset=".5" stop-color="#c45cfc"/><stop offset="1" stop-color="#5c9bfc"/>
+    </linearGradient>
+    <linearGradient id="mbody" x1="30" y1="70" x2="90" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a1030"/><stop offset="1" stop-color="#0d0820"/>
+    </linearGradient>
+    <filter id="mglow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path d="M36 34 A26 26 0 0 1 84 34" stroke="url(#mgh)" stroke-width="3" stroke-linecap="round" filter="url(#mglow)"/>
+  <path d="M78 25 L84 34 L74 32" stroke="#5c9bfc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#mglow)"/>
+  <circle cx="60" cy="10" r="2.5" fill="url(#mg)"/>
+  <rect x="52" y="78" width="16" height="8" rx="3" fill="#16102a"/>
+  <rect x="34" y="30" width="52" height="50" rx="10" fill="#1e1238"/>
+  <rect x="34" y="30" width="52" height="50" rx="10" stroke="url(#mgh)" stroke-width="1.2" fill="none" opacity="0.7"/>
+  <rect x="26" y="42" width="10" height="22" rx="4" fill="#16102a" stroke="url(#mg)" stroke-width="0.8" opacity="0.9"/>
+  <rect x="84" y="42" width="10" height="22" rx="4" fill="#16102a" stroke="url(#mg)" stroke-width="0.8" opacity="0.9"/>
+  <ellipse cx="50" cy="54" rx="10" ry="8" fill="#0a0518"/>
+  <ellipse cx="50" cy="54" rx="6" ry="5" fill="#ff6b6b" opacity="0.9" filter="url(#mglow)"/>
+  <line x1="46" y1="50" x2="54" y2="58" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="54" y1="50" x2="46" y2="58" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <ellipse cx="70" cy="54" rx="10" ry="8" fill="#0a0518"/>
+  <ellipse cx="70" cy="54" rx="6" ry="5" fill="#5c9bfc" opacity="0.9" filter="url(#mglow)"/>
+  <line x1="66" y1="50" x2="74" y2="58" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="74" y1="50" x2="66" y2="58" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M47 68 Q55 74 60 70 Q65 66 73 70" stroke="url(#mgh)" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M38 86 L82 86 L87 148 L33 148Z" fill="url(#mbody)"/>
+  <path d="M38 86 L82 86 L87 148 L33 148Z" stroke="url(#mgh)" stroke-width="1" fill="none" opacity="0.5"/>
+  <circle cx="60" cy="108" r="14" fill="#0a0518"/>
+  <path d="M48 108 A12 12 0 0 1 72 108" stroke="url(#mgh)" stroke-width="2.5" stroke-linecap="round" filter="url(#mglow)"/>
+  <path d="M72 108 A12 12 0 0 1 48 108" stroke="url(#mgh)" stroke-width="2.5" stroke-linecap="round" opacity="0.25"/>
+  <path d="M68 101 L72 108 L63 106" stroke="#5c9bfc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#mglow)"/>
+  <circle cx="60" cy="108" r="3" fill="url(#mg)" filter="url(#mglow)"/>
+  <path d="M34 90 Q20 108 24 130" stroke="url(#mg)" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+  <path d="M34 90 Q20 108 24 130" stroke="#0a0518" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="25" cy="133" r="7" fill="#1a1030" stroke="url(#mg)" stroke-width="1"/>
+  <circle cx="25" cy="133" r="3.5" fill="#ff6b6b" opacity="0.8" filter="url(#mglow)"/>
+  <path d="M86 90 Q100 108 96 130" stroke="url(#mg)" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+  <path d="M86 90 Q100 108 96 130" stroke="#0a0518" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="95" cy="133" r="7" fill="#1a1030" stroke="url(#mg)" stroke-width="1"/>
+  <circle cx="95" cy="133" r="3.5" fill="#5c9bfc" opacity="0.8" filter="url(#mglow)"/>
+  <path d="M46 146 L42 162" stroke="url(#mg)" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+  <path d="M46 146 L42 162" stroke="#0a0518" stroke-width="5" stroke-linecap="round"/>
+  <rect x="34" y="160" width="16" height="6" rx="3" fill="#16102a" stroke="url(#mg)" stroke-width="0.8"/>
+  <path d="M74 146 L78 162" stroke="url(#mg)" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+  <path d="M74 146 L78 162" stroke="#0a0518" stroke-width="5" stroke-linecap="round"/>
+  <rect x="70" y="160" width="16" height="6" rx="3" fill="#16102a" stroke="url(#mg)" stroke-width="0.8"/>
+  <path d="M18 76 L20 70 L19 75 L23 69" stroke="#ff6b6b" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M102 76 L100 70 L101 75 L97 69" stroke="#5c9bfc" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
 </svg>
