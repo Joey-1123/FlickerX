@@ -11,9 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Joey-1123/FlickerX/actions"><img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
-  <a href="https://github.com/Joey-1123/FlickerX"><img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey" alt="Platform"></a>
+  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey" alt="Platform">
 </p>
 
 ---
@@ -55,11 +54,8 @@
 ### Install (recommended)
 
 ```bash
-# Linux/macOS — auto-detects GPU
-curl -sL https://raw.githubusercontent.com/Joey-1123/FlickerX/main/install.sh | bash
-
-# Or clone and install
-git clone https://github.com/Joey-1123/FlickerX.git
+# Clone and install — auto-detects GPU
+git clone FlickerX
 cd FlickerX
 bash install.sh
 ```
@@ -72,7 +68,7 @@ bash install.sh
 ### Manual Setup
 
 ```bash
-git clone https://github.com/Joey-1123/FlickerX.git
+git clone FlickerX
 cd FlickerX
 
 # Backend
