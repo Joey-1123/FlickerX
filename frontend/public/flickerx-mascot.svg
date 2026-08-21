@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Body - tall rounded blob -->
+  <path d="M70,180 L70,80 Q70,30 100,30 Q130,30 130,80 L130,180" 
+        fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Left eye -->
+  <circle cx="88" cy="75" r="5" fill="currentColor"/>
+  <!-- Right eye -->
+  <circle cx="112" cy="75" r="5" fill="currentColor"/>
+  <!-- Cup body -->
+  <rect x="82" y="110" width="36" height="30" rx="5" fill="#16a34a" stroke="currentColor" stroke-width="5"/>
+  <!-- Cup handle -->
+  <path d="M118,118 Q132,118 132,130 Q132,142 118,142" 
+        fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+  <!-- Left arm reaching to cup -->
+  <path d="M75,120 Q82,115 82,115" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+  <!-- Steam line 1 -->
+  <path d="M94,105 Q92,95 96,88" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <!-- Steam line 2 -->
+  <path d="M106,105 Q108,95 104,88" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+</svg>

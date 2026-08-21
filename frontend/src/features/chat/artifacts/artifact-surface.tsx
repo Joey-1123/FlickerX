@@ -78,7 +78,7 @@ function ArtifactGeneratingPanel() {
     <div className="flex h-full min-h-0 flex-col items-center justify-center bg-muted/10 px-6 text-center">
       <div className="max-w-[30ch] space-y-1.5">
         <MascotImg
-          src="flickerx-gem.png"
+          src="flickerx-mascot.svg"
           aria-hidden={true}
           className="mx-auto mb-3 size-20 object-contain"
         />

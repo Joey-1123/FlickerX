@@ -11,6 +11,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from config import STUDIO_DB
+from database import execute, query
+
 router = APIRouter(prefix="/api/train", tags=["training"])
 
 # ---------------------------------------------------------------------------
@@ -21,6 +24,34 @@ _runs: list[dict] = []
 _metric_history: list[dict] = []
 _cancel_requested = False
 _start_requests: dict[str, dict] = {}
+
+
+def _load_runs_from_db() -> None:
+    for row in query(STUDIO_DB, "SELECT * FROM training_runs ORDER BY created_at"):
+        entry = dict(row)
+        if entry.get("config_json"):
+            entry["config"] = __import__("json").loads(entry["config_json"])
+            del entry["config_json"]
+        _runs.append(entry)
+
+
+def _save_run_to_db(run: dict) -> None:
+    import json
+    execute(
+        STUDIO_DB,
+        "INSERT OR REPLACE INTO training_runs (id, model_name, display_name, training_type, status, config_json, completed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (run.get("job_id"), run.get("model_name"), run.get("display_name"),
+         run.get("training_type"), run.get("status"),
+         json.dumps(run.get("config", {})),
+         run.get("completed_at"), run.get("started_at", run.get("completed_at", time.time()))),
+    )
+
+
+def _delete_run_from_db(run_id: str) -> None:
+    execute(STUDIO_DB, "DELETE FROM training_runs WHERE id = ?", (run_id,))
+
+
+_load_runs_from_db()
 
 
 # ---------------------------------------------------------------------------
@@ -134,12 +165,14 @@ async def train_stop(req: TrainingStopRequest):
     _job["is_training_running"] = False
     _job["phase"] = "stopped"
     # Save to runs history
-    _runs.append({
+    run_record = {
         **_job,
         "display_name": _job["model_name"],
         "completed_at": time.time(),
         "status": "stopped",
-    })
+    }
+    _runs.append(run_record)
+    _save_run_to_db(run_record)
     job = _job
     _job = None
     return {"status": "stopped", "message": f"Training stopped at step {job['step']}"}
@@ -211,7 +244,9 @@ async def _progress_stream():
     if _job:
         _job["is_training_running"] = False
         _job["phase"] = "completed"
-        _runs.append({**_job, "display_name": _job["model_name"], "completed_at": time.time(), "status": "completed"})
+        run_record = {**_job, "display_name": _job["model_name"], "completed_at": time.time(), "status": "completed"}
+        _runs.append(run_record)
+        _save_run_to_db(run_record)
     yield f"data: {__import__('json').dumps({'done': True})}\n\n"
 
 
@@ -274,6 +309,7 @@ async def train_run_delete(run_id: str, delete_artifacts: bool = False):
     _runs = [r for r in _runs if r.get("job_id") != run_id]
     if len(_runs) == before:
         raise HTTPException(404, "Run not found")
+    _delete_run_from_db(run_id)
     return {"status": "deleted", "message": "Run deleted", "artifacts_deleted": delete_artifacts, "artifacts_kept_reason": None}
 
 

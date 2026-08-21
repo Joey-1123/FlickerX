@@ -37,7 +37,7 @@ _llm: Any = None  # llama_cpp.Llama instance
 class LoadModelRequest(BaseModel):
     model_path: str
     n_ctx: int = 4096
-    gpu_layers: int = -1
+    gpu_layers: int | None = None  # None = auto-detect GPU
     n_batch: int = 512
     n_threads: int | None = None
     adapter_path: str | None = None
@@ -141,12 +141,14 @@ def load_model(req: LoadModelRequest, user: dict = Depends(get_current_user)):
         _llm = None
 
     try:
+        from gpu import get_n_gpu_layers
         from llama_cpp import Llama
         n_threads = req.n_threads or max(1, os.cpu_count() // 2)
+        resolved_gpu_layers = req.gpu_layers if req.gpu_layers is not None else get_n_gpu_layers()
         _llm = Llama(
             model_path=str(path),
             n_ctx=req.n_ctx,
-            n_gpu_layers=req.gpu_layers if req.gpu_layers >= 0 else 0,
+            n_gpu_layers=resolved_gpu_layers,
             n_batch=req.n_batch,
             n_threads=n_threads,
             verbose=False,
@@ -161,7 +163,7 @@ def load_model(req: LoadModelRequest, user: dict = Depends(get_current_user)):
             "model_path": str(path),
             "model_name": path.name,
             "n_ctx": req.n_ctx,
-            "gpu_layers": req.gpu_layers,
+            "gpu_layers": resolved_gpu_layers,
             "loaded_at": time.time(),
             "load_progress": {"phase": "loaded", "bytes_loaded": 0, "bytes_total": 0, "fraction": 1.0},
         })
@@ -171,7 +173,7 @@ def load_model(req: LoadModelRequest, user: dict = Depends(get_current_user)):
         "model_path": str(path),
         "model_name": path.name,
         "n_ctx": req.n_ctx,
-        "gpu_layers": req.gpu_layers,
+        "gpu_layers": resolved_gpu_layers,
     }
 
 

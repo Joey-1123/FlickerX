@@ -182,6 +182,13 @@ FlickerX/
 
 See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities.
 
+## Documentation
+
+- [API Reference](docs/api-reference.md) — all 262 endpoints
+- [User Guide](docs/user-guide.md) — step-by-step workflows
+- [Architecture](docs/architecture.md) — system design and data flow
+- [GPU Setup](docs/gpu-setup.md) — CUDA, ROCm, Metal, Vulkan, Intel XPU
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on commits, PRs, and code style.

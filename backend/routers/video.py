@@ -15,6 +15,9 @@ import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from config import STUDIO_DB
+from database import execute, query
+
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/inference/video", tags=["video"])
 
@@ -32,6 +35,42 @@ _status: dict[str, Any] = {
 _load_progress: dict = {}
 _gen_progress: dict = {"active": False, "phase": None, "step": 0, "total": 0, "eta_seconds": 0, "video": None, "error": None}
 _gallery: list[dict] = []
+
+
+def _load_from_db() -> None:
+    for row in query(STUDIO_DB, "SELECT * FROM video_gallery ORDER BY created_at"):
+        entry = dict(row)
+        entry["pinned"] = bool(entry["pinned"])
+        entry["archived"] = bool(entry["archived"])
+        entry["url"] = f"/api/inference/video/gallery/{entry['id']}/file"
+        _gallery.append(entry)
+
+
+def _save_to_db(entry: dict) -> None:
+    execute(
+        STUDIO_DB,
+        "INSERT OR REPLACE INTO video_gallery (id, prompt, negative_prompt, width, height, num_frames, fps, duration_s, steps, guidance, seed, model, model_kind, pinned, archived, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            entry["id"], entry["prompt"], entry.get("negative_prompt"),
+            entry["width"], entry["height"], entry.get("num_frames"),
+            entry.get("fps"), entry.get("duration_s"), entry["steps"],
+            entry["guidance"], entry["seed"], entry.get("model"),
+            entry.get("model_kind"), int(entry.get("pinned", False)),
+            int(entry.get("archived", False)), entry["created_at"],
+        ),
+    )
+
+
+def _delete_from_db(entry_id: str) -> None:
+    execute(STUDIO_DB, "DELETE FROM video_gallery WHERE id = ?", (entry_id,))
+
+
+def _clear_db() -> None:
+    execute(STUDIO_DB, "DELETE FROM video_gallery")
+
+
+_load_from_db()
+
 _cancel_requested = False
 _pipeline: Any = None
 _DEFAULT_MODEL = "ali-vilab/text-to-video-ms-1.7b"
@@ -111,12 +150,14 @@ async def video_load(req: VideoLoadRequest):
     _load_progress.update({"phase": "downloading", "bytes_downloaded": 0, "bytes_total": 0, "fraction": 0, "error": None})
 
     try:
+        from gpu import get_device, is_cuda_available
+
         # Lazy install torch + diffusers if not present
         if importlib.util.find_spec("torch") is None:
             _load_progress.update({"phase": "installing dependencies", "fraction": 0.05})
+            torch_url = "https://download.pytorch.org/whl/cu121" if is_cuda_available() else "https://download.pytorch.org/whl/cpu"
             subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url",
-                 "https://download.pytorch.org/whl/cpu"],
+                [sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url", torch_url],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
         if importlib.util.find_spec("diffusers") is None:
@@ -131,20 +172,22 @@ async def video_load(req: VideoLoadRequest):
         import torch
         from diffusers import TextToVideoSDPipeline
 
+        device = get_device()
         model_id = req.model_path or _DEFAULT_MODEL
         pipe = TextToVideoSDPipeline.from_pretrained(
             model_id,
-            torch_dtype=torch.float32,
+            torch_dtype=torch.float16 if device != "cpu" else torch.float32,
             safety_checker=None,
         )
-        pipe.to("cpu")
+        pipe.to(device)
 
         _pipeline = pipe
         _status["loaded"] = True
         _status["loading"] = False
         _status["model"] = model_id
+        _status["device"] = device
         _load_progress.update({"phase": "ready", "fraction": 1.0})
-        return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": "cpu"}
+        return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": device}
 
     except Exception as e:
         _status["loading"] = False
@@ -192,7 +235,9 @@ async def video_generate(req: VideoGenerateRequest):
 
     try:
         import torch
-        generator = torch.Generator("cpu").manual_seed(seed)
+        from gpu import get_device
+        device = get_device()
+        generator = torch.Generator(device).manual_seed(seed)
 
         # Generate frames
         frames = _pipeline(
@@ -256,6 +301,7 @@ async def video_generate(req: VideoGenerateRequest):
             "archived": False,
         }
         _gallery.append(video)
+        _save_to_db(video)
 
         _gen_progress.update({"active": False, "phase": "completed", "step": total, "eta_seconds": 0, "video": video})
         return {"status": "started", "video": video}
@@ -292,6 +338,11 @@ async def video_gallery_update(video_id: str, body: dict):
                 v["pinned"] = body["pinned"]
             if "archived" in body:
                 v["archived"] = body["archived"]
+            execute(
+                STUDIO_DB,
+                "UPDATE video_gallery SET pinned = ?, archived = ? WHERE id = ?",
+                (int(v["pinned"]), int(v["archived"]), video_id),
+            )
             return v
     raise HTTPException(404, "Video not found")
 
@@ -311,6 +362,7 @@ async def video_gallery_delete(video_id: str):
         shutil.rmtree(str(vid_dir))
     if gif_path.exists():
         gif_path.unlink()
+    _delete_from_db(video_id)
     return None
 
 
@@ -318,6 +370,7 @@ async def video_gallery_delete(video_id: str):
 async def video_gallery_clear():
     global _gallery
     _gallery.clear()
+    _clear_db()
     return None
 
 

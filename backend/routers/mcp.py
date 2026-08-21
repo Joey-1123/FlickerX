@@ -13,6 +13,9 @@ import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from backend.config import STUDIO_DB
+from backend.database import execute, query
+
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/mcp/servers", tags=["mcp"])
 
@@ -20,6 +23,58 @@ router = APIRouter(prefix="/api/mcp/servers", tags=["mcp"])
 # State
 # ---------------------------------------------------------------------------
 _servers: list[dict] = []
+
+
+# ---------------------------------------------------------------------------
+# SQLite persistence
+# ---------------------------------------------------------------------------
+def _load_from_db():
+    """Load all MCP servers from SQLite into the in-memory list."""
+    rows = query(STUDIO_DB, "SELECT * FROM mcp_servers ORDER BY created_at")
+    for row in rows:
+        _servers.append({
+            "id": row["id"],
+            "name": row["name"],
+            "transport": row["transport"],
+            "command": row["command"],
+            "args": json.loads(row["args_json"] or "[]"),
+            "url": row["url"],
+            "headers": json.loads(row["headers_json"] or "{}"),
+            "env": json.loads(row["env_json"] or "{}"),
+            "enabled": bool(row["enabled"]),
+            "tools": [],
+            "status": "disconnected",
+            "last_error": None,
+            "created_at": row["created_at"],
+        })
+
+
+def _save_to_db(server: dict):
+    """Insert or replace a single MCP server in SQLite."""
+    execute(STUDIO_DB, """
+        INSERT OR REPLACE INTO mcp_servers
+            (id, name, transport, command, args_json, url, headers_json, env_json, enabled, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        server["id"],
+        server["name"],
+        server["transport"],
+        server["command"],
+        json.dumps(server.get("args") or []),
+        server["url"],
+        json.dumps(server.get("headers") or {}),
+        json.dumps(server.get("env") or {}),
+        int(server.get("enabled", True)),
+        server["created_at"],
+    ))
+
+
+def _delete_from_db(server_id: str):
+    """Delete an MCP server from SQLite."""
+    execute(STUDIO_DB, "DELETE FROM mcp_servers WHERE id = ?", (server_id,))
+
+
+_load_from_db()
 
 
 # ---------------------------------------------------------------------------
@@ -204,6 +259,7 @@ async def create_server(req: McpServerCreate):
         "created_at": time.time(),
     }
     _servers.append(server)
+    _save_to_db(server)
     return server
 
 
@@ -216,6 +272,7 @@ async def update_server(server_id: str, body: McpServerUpdate):
             # Invalidate tool cache if connection-relevant fields changed
             s["tools"] = []
             s["status"] = "disconnected"
+            _save_to_db(s)
             return s
     raise HTTPException(404, "MCP server not found")
 
@@ -227,6 +284,7 @@ async def delete_server(server_id: str):
     _servers = [s for s in _servers if s["id"] != server_id]
     if len(_servers) == before:
         raise HTTPException(404, "MCP server not found")
+    _delete_from_db(server_id)
     return None
 
 
@@ -274,5 +332,6 @@ async def import_servers(req: McpImport):
             "created_at": time.time(),
         }
         _servers.append(server)
+        _save_to_db(server)
         imported.append(server)
     return {"imported": len(imported), "servers": imported}

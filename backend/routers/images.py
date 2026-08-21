@@ -17,6 +17,9 @@ from typing import Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from config import STUDIO_DB
+from database import execute, query
+
 router = APIRouter(prefix="/api/inference/images", tags=["images"])
 
 # ---------------------------------------------------------------------------
@@ -33,6 +36,42 @@ _status: dict[str, Any] = {
 _load_progress: dict = {}
 _gen_progress: dict = {"active": False, "step": 0, "total_steps": 0, "fraction": 0.0, "eta_seconds": 0}
 _gallery: list[dict] = []
+
+
+def _load_from_db() -> None:
+    for row in query(STUDIO_DB, "SELECT * FROM image_gallery ORDER BY created_at"):
+        entry = dict(row)
+        entry["pinned"] = bool(entry["pinned"])
+        entry["archived"] = bool(entry["archived"])
+        entry["url"] = f"/api/inference/images/gallery/{entry['id']}/file"
+        _gallery.append(entry)
+
+
+def _save_to_db(entry: dict) -> None:
+    execute(
+        STUDIO_DB,
+        "INSERT OR REPLACE INTO image_gallery (id, prompt, negative_prompt, width, height, steps, guidance, seed, batch_seed, batch_index, batch_size, model, model_kind, pinned, archived, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            entry["id"], entry["prompt"], entry.get("negative_prompt"),
+            entry["width"], entry["height"], entry["steps"], entry["guidance"],
+            entry["seed"], entry.get("batch_seed"), entry.get("batch_index"),
+            entry.get("batch_size"), entry.get("model"), entry.get("model_kind"),
+            int(entry.get("pinned", False)), int(entry.get("archived", False)),
+            entry["created_at"],
+        ),
+    )
+
+
+def _delete_from_db(entry_id: str) -> None:
+    execute(STUDIO_DB, "DELETE FROM image_gallery WHERE id = ?", (entry_id,))
+
+
+def _clear_db() -> None:
+    execute(STUDIO_DB, "DELETE FROM image_gallery")
+
+
+_load_from_db()
+
 _active_gen: dict | None = None
 _cancel_requested = False
 _pipeline: Any = None  # ponytail: global diffusers pipeline, lazy-loaded
@@ -127,12 +166,14 @@ async def image_load(req: DiffusionLoadRequest):
     _load_progress.update({"phase": "downloading", "bytes_downloaded": 0, "bytes_total": 0, "fraction": 0, "error": None})
 
     try:
+        from gpu import get_device, is_cuda_available
+
         # Lazy install torch + diffusers if not present
         if importlib.util.find_spec("torch") is None:
             _load_progress.update({"phase": "installing dependencies", "fraction": 0.05})
+            torch_url = "https://download.pytorch.org/whl/cu121" if is_cuda_available() else "https://download.pytorch.org/whl/cpu"
             subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url",
-                 "https://download.pytorch.org/whl/cpu"],
+                [sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url", torch_url],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
         if importlib.util.find_spec("diffusers") is None:
@@ -147,20 +188,22 @@ async def image_load(req: DiffusionLoadRequest):
         import torch
         from diffusers import StableDiffusionPipeline
 
+        device = get_device()
         model_id = req.model_path or _DEFAULT_MODEL
         pipe = StableDiffusionPipeline.from_pretrained(
             model_id,
-            torch_dtype=torch.float32,
+            torch_dtype=torch.float16 if device != "cpu" else torch.float32,
             safety_checker=None,
         )
-        pipe.to("cpu")
+        pipe.to(device)
 
         _pipeline = pipe
         _status["loaded"] = True
         _status["loading"] = False
         _status["model"] = model_id
+        _status["device"] = device
         _load_progress.update({"phase": "ready", "fraction": 1.0})
-        return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": "cpu"}
+        return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": device}
 
     except Exception as e:
         _status["loading"] = False
@@ -204,7 +247,9 @@ async def image_generate(req: DiffusionGenerateRequest):
 
     try:
         import torch
-        generator = torch.Generator("cpu").manual_seed(seed)
+        from gpu import get_device
+        device = get_device()
+        generator = torch.Generator(device).manual_seed(seed)
 
         # Progress callback for step tracking
         def step_callback(pipe, step, timestep, callback_kwargs):
@@ -260,6 +305,7 @@ async def image_generate(req: DiffusionGenerateRequest):
                 "archived": False,
             }
             _gallery.append(gallery_entry)
+            _save_to_db(gallery_entry)
             images.append(gallery_entry)
 
         _gen_progress.update({"active": False, "step": total_steps, "fraction": 1.0, "eta_seconds": 0})
@@ -301,6 +347,11 @@ async def image_gallery_update(image_id: str, body: dict):
                 g["pinned"] = body["pinned"]
             if "archived" in body:
                 g["archived"] = body["archived"]
+            execute(
+                STUDIO_DB,
+                "UPDATE image_gallery SET pinned = ?, archived = ? WHERE id = ?",
+                (int(g["pinned"]), int(g["archived"]), image_id),
+            )
             return g
     raise HTTPException(404, "Image not found")
 
@@ -312,6 +363,7 @@ async def image_gallery_delete(image_id: str):
     _gallery = [g for g in _gallery if g["id"] != image_id]
     if len(_gallery) == before:
         raise HTTPException(404, "Image not found")
+    _delete_from_db(image_id)
     return None
 
 
@@ -320,6 +372,7 @@ async def image_gallery_clear():
     global _gallery
     count = len(_gallery)
     _gallery.clear()
+    _clear_db()
     return None
 
 

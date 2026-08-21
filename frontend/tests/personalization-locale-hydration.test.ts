@@ -28,7 +28,7 @@ type Profile = {
   nickname: string;
   avatarDataUrl: string | null;
   avatarShape: "circle" | "rounded";
-  showGreetingSloth: boolean;
+  showGreetingMascot: boolean;
 };
 
 type SavedPayload = {
@@ -167,7 +167,7 @@ function remotePersonalization(language: string) {
       nickname: "",
       avatarDataUrl: null,
       avatarShape: "circle" as const,
-      showGreetingSloth: true,
+      showGreetingMascot: true,
     },
     appearance: {
       theme: "system",
@@ -178,7 +178,7 @@ function remotePersonalization(language: string) {
     saved: true,
     customizationSaved: true,
     paletteSaved: true,
-    greetingSlothSaved: true,
+    greetingMascotSaved: true,
   };
 }
 
@@ -192,7 +192,7 @@ function setup(localeResult: "superseded" | "cancelled" | "stalled") {
     nickname: "",
     avatarDataUrl: null,
     avatarShape: "circle",
-    showGreetingSloth: true,
+    showGreetingMascot: true,
   };
   // A newer request already took French, which is the state "superseded"
   // reports: the hydrated language is not the one in effect.

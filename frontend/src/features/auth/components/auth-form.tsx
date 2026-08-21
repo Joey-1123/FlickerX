@@ -17,7 +17,7 @@ import { refreshSession } from "../api";
 // while default admin must_change_password is true)
 declare global {
   interface Window {
-    __UNFLICKERX_BOOTSTRAP__?: { username: string; password: string };
+    __FLICKERX_BOOTSTRAP__?: { username: string; password: string };
   }
 }
 
@@ -154,7 +154,7 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
   // Seed password from bootstrap credentials injected into HTML by web CLI.
   useEffect(() => {
     function loadBootstrap() {
-      const bootstrap = window.__UNFLICKERX_BOOTSTRAP__;
+      const bootstrap = window.__FLICKERX_BOOTSTRAP__;
       if (bootstrap && !isLoginMode && !password) {
         setPassword(bootstrap.password);
       }
@@ -184,11 +184,11 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
   const switchText = "Password already setup? ";
   const switchLinkTo = "/login";
   const switchLinkText = "Back to login";
-  const currentPassword = password || window.__UNFLICKERX_BOOTSTRAP__?.password || "";
-  // On first boot the backend injects __UNFLICKERX_BOOTSTRAP__ and we silently
+  const currentPassword = password || window.__FLICKERX_BOOTSTRAP__?.password || "";
+  // On first boot the backend injects __FLICKERX_BOOTSTRAP__ and we silently
   // reuse that password; the Current password input is only rendered for the
   // admin-forced must_change_password path where no bootstrap is available.
-  const hasBootstrapPassword = Boolean(window.__UNFLICKERX_BOOTSTRAP__?.password);
+  const hasBootstrapPassword = Boolean(window.__FLICKERX_BOOTSTRAP__?.password);
   const invalidChangePasswordForm =
     !isLoginMode &&
     (currentPassword.length < 8 ||
@@ -315,7 +315,7 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
     <div className="w-full max-w-sm space-y-6">
       <div className="space-y-1.5 text-center">
         <MascotImg
-          src="flickerx-gem.png"
+          src="flickerx-mascot.svg"
           className="mx-auto mb-2 h-20 w-20 object-contain"
         />
         <h2 className="text-2xl font-semibold text-foreground">{title}</h2>

@@ -14,6 +14,9 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from config import STUDIO_DB
+from database import execute, query
+
 router = APIRouter(prefix="/api/inference/audio", tags=["audio"])
 
 # ---------------------------------------------------------------------------
@@ -38,6 +41,31 @@ _stt_status = {
 }
 
 _audio_gallery: list[dict] = []
+
+
+def _load_from_db() -> None:
+    for row in query(STUDIO_DB, "SELECT * FROM audio_gallery ORDER BY created_at"):
+        _audio_gallery.append(dict(row))
+
+
+def _save_to_db(clip: dict) -> None:
+    execute(
+        STUDIO_DB,
+        "INSERT OR REPLACE INTO audio_gallery (id, prompt, model, audio_type, sample_rate, duration_s, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (clip["id"], clip.get("prompt"), clip.get("model"), clip.get("audio_type"),
+         clip.get("sample_rate"), clip.get("duration_s"), clip["created_at"]),
+    )
+
+
+def _delete_from_db(clip_id: str) -> None:
+    execute(STUDIO_DB, "DELETE FROM audio_gallery WHERE id = ?", (clip_id,))
+
+
+def _clear_db() -> None:
+    execute(STUDIO_DB, "DELETE FROM audio_gallery")
+
+
+_load_from_db()
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +122,7 @@ async def audio_generate(req: TTSRequest):
         "created_at": time.time(),
     }
     _audio_gallery.append(clip)
+    _save_to_db(clip)
 
     return {
         "model": "tts-placeholder",
@@ -124,7 +153,11 @@ async def stt_load(req: SttLoadRequest):
     _stt_status["available"] = False
     try:
         from faster_whisper import WhisperModel
-        _stt_model = WhisperModel(req.model, device="cpu", compute_type="int8")
+        from gpu import get_device
+        device = get_device()
+        compute_type = "float16" if device != "cpu" else "int8"
+        _stt_model = WhisperModel(req.model, device=device, compute_type=compute_type)
+        _stt_status["device"] = device
         _stt_status["loading"] = False
         _stt_status["available"] = True
         _stt_status["loaded_model"] = req.model
@@ -222,6 +255,7 @@ async def audio_gallery_delete(clip_id: str):
     _audio_gallery = [c for c in _audio_gallery if c["id"] != clip_id]
     if len(_audio_gallery) == before:
         raise HTTPException(404, "Clip not found")
+    _delete_from_db(clip_id)
     return None
 
 
@@ -230,6 +264,7 @@ async def audio_gallery_clear():
     global _audio_gallery
     count = len(_audio_gallery)
     _audio_gallery.clear()
+    _clear_db()
     return {"removed": count}
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 import uuid
 from typing import Any, Optional
@@ -11,6 +12,9 @@ import httpx
 import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+from config import STUDIO_DB
+from database import execute, query
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/providers", tags=["providers"])
@@ -32,6 +36,41 @@ _PROVIDER_DEFAULTS: dict[str, dict[str, Any]] = {
 }
 
 _configs: list[dict] = []
+
+
+# ---------------------------------------------------------------------------
+# DB helpers
+# ---------------------------------------------------------------------------
+def _load_from_db() -> None:
+    rows = query(STUDIO_DB, "SELECT * FROM provider_configs ORDER BY created_at")
+    for row in rows:
+        _configs.append({
+            "id": row["id"],
+            "provider_id": row["provider_id"],
+            "name": row["name"],
+            "api_key": row["api_key"],
+            "base_url": row["base_url"],
+            "models": json.loads(row["models_json"] or "[]"),
+            "created_at": row["created_at"],
+        })
+
+
+def _save_to_db(config: dict) -> None:
+    execute(STUDIO_DB, (
+        "INSERT OR REPLACE INTO provider_configs (id, provider_id, name, api_key, base_url, models_json, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ), (
+        config["id"], config["provider_id"], config["name"],
+        config.get("api_key"), config.get("base_url"),
+        json.dumps(config.get("models", [])), config["created_at"],
+    ))
+
+
+def _delete_from_db(config_id: str) -> None:
+    execute(STUDIO_DB, "DELETE FROM provider_configs WHERE id = ?", (config_id,))
+
+
+_load_from_db()
 
 
 # ---------------------------------------------------------------------------
@@ -205,6 +244,7 @@ async def create_config(req: ProviderConfigCreate):
         "created_at": time.time(),
     }
     _configs.append(config)
+    _save_to_db(config)
     return {**config, "api_key": "***" if config["api_key"] else None}
 
 
@@ -220,6 +260,7 @@ async def update_config(config_id: str, body: ProviderConfigUpdate):
                 c["base_url"] = body.base_url
             if body.models is not None:
                 c["models"] = body.models
+            _save_to_db(c)
             return {**c, "api_key": "***" if c["api_key"] else None}
     raise HTTPException(404, "Provider config not found")
 
@@ -231,6 +272,7 @@ async def delete_config(config_id: str):
     _configs = [c for c in _configs if c["id"] != config_id]
     if len(_configs) == before:
         raise HTTPException(404, "Provider config not found")
+    _delete_from_db(config_id)
     return None
 
 
@@ -239,6 +281,7 @@ async def migrate_api_key(config_id: str, body: ApiKeyMigrate):
     for c in _configs:
         if c["id"] == config_id:
             c["api_key"] = body.api_key
+            _save_to_db(c)
             return {"migrated": True}
     raise HTTPException(404, "Provider config not found")
 

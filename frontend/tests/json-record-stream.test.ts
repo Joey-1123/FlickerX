@@ -219,7 +219,7 @@ function chunkedFile(text: string, name: string, chunkBytes: number): File {
 test("multi-byte characters split across File reads decode intact, not as replacement chars", async () => {
   // Every read boundary lands mid-character: 3-byte characters, chunks of 64 bytes + 1.
   const title = "日本語のプロンプト設計".repeat(400);
-  const records = [{ id: "unicode", title }, { id: "after", title: "🦥 sloth" }];
+  const records = [{ id: "unicode", title }, { id: "after", title: "☕ coffee" }];
   const file = chunkedFile(JSON.stringify(records), "chat-export.json", 65);
 
   const out: unknown[] = [];

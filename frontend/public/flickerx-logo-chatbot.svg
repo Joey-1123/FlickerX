@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Head circle -->
+  <circle cx="256" cy="190" r="110" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
+  <!-- Left eye -->
+  <circle cx="222" cy="185" r="14" fill="white"/>
+  <!-- Right eye -->
+  <circle cx="290" cy="185" r="14" fill="white"/>
+  <!-- Speech bubble -->
+  <ellipse cx="256" cy="325" rx="60" ry="35" fill="white"/>
+  <!-- Speech bubble tail -->
+  <polygon points="248,355 264,355 252,380" fill="white"/>
+</svg>

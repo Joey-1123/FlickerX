@@ -107,6 +107,82 @@ CREATE TABLE IF NOT EXISTS settings (
     value TEXT NOT NULL,
     updated_at TEXT DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS provider_configs (
+    id TEXT PRIMARY KEY,
+    provider_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    api_key TEXT,
+    base_url TEXT,
+    models_json TEXT DEFAULT '[]',
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS mcp_servers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    transport TEXT NOT NULL DEFAULT 'http',
+    command TEXT,
+    args_json TEXT DEFAULT '[]',
+    url TEXT,
+    headers_json TEXT DEFAULT '{}',
+    env_json TEXT DEFAULT '{}',
+    enabled INTEGER DEFAULT 1,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS image_gallery (
+    id TEXT PRIMARY KEY,
+    prompt TEXT,
+    negative_prompt TEXT,
+    width INTEGER,
+    height INTEGER,
+    steps INTEGER,
+    guidance REAL,
+    seed INTEGER,
+    batch_seed INTEGER,
+    batch_index INTEGER,
+    batch_size INTEGER,
+    model TEXT,
+    model_kind TEXT,
+    pinned INTEGER DEFAULT 0,
+    archived INTEGER DEFAULT 0,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS video_gallery (
+    id TEXT PRIMARY KEY,
+    prompt TEXT,
+    negative_prompt TEXT,
+    width INTEGER,
+    height INTEGER,
+    num_frames INTEGER,
+    fps INTEGER,
+    duration_s REAL,
+    steps INTEGER,
+    guidance REAL,
+    seed INTEGER,
+    model TEXT,
+    model_kind TEXT,
+    pinned INTEGER DEFAULT 0,
+    archived INTEGER DEFAULT 0,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS audio_gallery (
+    id TEXT PRIMARY KEY,
+    prompt TEXT,
+    model TEXT,
+    audio_type TEXT,
+    sample_rate INTEGER,
+    duration_s REAL,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS training_runs (
+    id TEXT PRIMARY KEY,
+    model_name TEXT,
+    display_name TEXT,
+    training_type TEXT,
+    status TEXT,
+    config_json TEXT,
+    completed_at REAL,
+    created_at REAL NOT NULL
+);
 """
 
 

@@ -1953,7 +1953,7 @@ const pickRandom = <T,>(arr: T[]): T =>
 type Welcome = { text: string; avatar: string };
 const DEFAULT_WELCOME: Welcome = {
   text: "What's on your mind today?",
-  avatar: "flickerx-gem.png",
+  avatar: "flickerx-mascot.svg",
 };
 
 function buildWelcome(hour: number, name: string): Welcome {
@@ -1961,29 +1961,29 @@ function buildWelcome(hour: number, name: string): Welcome {
   // Use the name on ~a third of lines (only direct salutations where it reads
   // naturally); the rest stay name-free so greetings don't feel repetitive.
   const base: Welcome[] = [
-    g(name ? `Good to see you, ${name}` : "Good to see you", "flickerx-gem.png"),
-    g("Ready when you are", "flickerx-gem.png"),
+    g(name ? `Good to see you, ${name}` : "Good to see you", "flickerx-mascot.svg"),
+    g("Ready when you are", "flickerx-mascot.svg"),
     DEFAULT_WELCOME,
-    g("How can I help?", "flickerx-gem.png"),
+    g("How can I help?", "flickerx-mascot.svg"),
   ];
   if (hour >= 4 && hour < 9) {
-    const morning = g(name ? `Good morning, ${name}` : "Good morning", "flickerx-gem.png");
+    const morning = g(name ? `Good morning, ${name}` : "Good morning", "flickerx-mascot.svg");
     return pickRandom([...base, morning]);
   }
   if (hour >= 17 && hour < 23) {
     const evening: Welcome[] = [
-      g(name ? `Good evening, ${name}` : "Good evening", "flickerx-gem.png"),
-      g("What's on for tonight?", "flickerx-gem.png"),
+      g(name ? `Good evening, ${name}` : "Good evening", "flickerx-mascot.svg"),
+      g("What's on for tonight?", "flickerx-mascot.svg"),
     ];
     // Lean toward an evening line, but a base greeting can still appear.
     return pickRandom(Math.random() < 0.75 ? evening : base);
   }
   if (hour >= 23 || hour < 4) {
     return pickRandom([
-      g("Night owl mode?", "flickerx-gem.png"),
-      g("Late night ideas?", "flickerx-gem.png"),
-      g("Up late with an idea?", "flickerx-gem.png"),
-      g(name ? `The night shift begins, ${name}` : "The night shift begins", "flickerx-gem.png"),
+      g("Night owl mode?", "flickerx-mascot.svg"),
+      g("Late night ideas?", "flickerx-mascot.svg"),
+      g("Up late with an idea?", "flickerx-mascot.svg"),
+      g(name ? `The night shift begins, ${name}` : "The night shift begins", "flickerx-mascot.svg"),
     ]);
   }
   return pickRandom(base);

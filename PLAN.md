@@ -106,6 +106,9 @@ All branding references renamed to `flickerx` across ~200 files:
 | GPU installer (Linux/macOS) | ✅ install.sh — CUDA, ROCm, Vulkan, Intel, Metal |
 | GPU installer (Windows) | ✅ install.ps1 — same backends |
 | Optional torch extras | ✅ `[project.optional-dependencies] torch` |
+| GPU runtime integration | ✅ gpu.py — auto-detect device, wire into inference/images/video/audio |
+| Persistence layer | ✅ SQLite tables for providers, MCP, galleries, training runs |
+| Documentation | ✅ docs/ — API reference, user guide, architecture, GPU setup |
 
 ---
 
@@ -200,9 +203,10 @@ bash install.sh --with-torch   # + image/video generation
 
 ## 8. Known Issues
 
-1. **Download progress in-memory** — lost on restart
+1. **Download progress in-memory** — lost on restart (galleries/providers/MCP/training now persisted)
 2. **No tests** — need to add incrementally
 3. **Duplicate Operation IDs** in research.py (low priority)
+4. **TTS placeholder** — audio generate returns silent WAV, not real TTS
 
 ---
 
