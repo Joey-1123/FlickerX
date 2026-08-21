@@ -16,7 +16,7 @@ set -euo pipefail
 #   bash install.sh --with-torch # also install torch+diffusers (image/video)
 # ──────────────────────────────────────────────────────────────────────────────
 
-REPO_URL="https://github.com/joey/flickerx.git"
+REPO_URL="https://github.com/Joey-1123/FlickerX.git"
 INSTALL_DIR="${FLICKERX_DIR:-$HOME/.flickerx}"
 VENV_DIR="$INSTALL_DIR/venv"
 SHIM_DIR="${HOME}/.local/bin"
