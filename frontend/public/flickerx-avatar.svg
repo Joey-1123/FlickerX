@@ -1,10 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#22c55e"/>
-      <stop offset="100%" style="stop-color:#16a34a"/>
+    <linearGradient id="g02" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff6b6b"/>
+      <stop offset="0.5" stop-color="#c45cfc"/>
+      <stop offset="1" stop-color="#5c9bfc"/>
     </linearGradient>
   </defs>
-  <circle cx="50" cy="50" r="50" fill="url(#g)"/>
-  <text x="50" y="62" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="white" letter-spacing="-1">FX</text>
+  <!-- Outer arc — top half -->
+  <path d="M18 50 A32 32 0 0 1 82 50" stroke="url(#g02)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- Outer arc — bottom half -->
+  <path d="M82 50 A32 32 0 0 1 18 50" stroke="url(#g02)" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+  <!-- Inner arc -->
+  <path d="M30 50 A20 20 0 0 1 70 50" stroke="url(#g02)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M70 50 A20 20 0 0 1 30 50" stroke="url(#g02)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.2"/>
+  <!-- Arrow tip top-right -->
+  <path d="M75 34 L82 50 L67 46" stroke="url(#g02)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+  <!-- Arrow tip bottom-left -->
+  <path d="M25 66 L18 50 L33 54" stroke="url(#g02)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" fill="none" opacity="0.35"/>
+  <!-- Center dot -->
+  <circle cx="50" cy="50" r="4" fill="url(#g02)"/>
 </svg>
