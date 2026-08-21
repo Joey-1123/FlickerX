@@ -172,6 +172,193 @@ def save_personalization(body: dict, user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
+# Embedding model settings
+# ---------------------------------------------------------------------------
+@router.get("/embedding-model")
+def get_embedding_model(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'embedding_model'")
+    if rows:
+        try:
+            stored = json.loads(rows[0]["value"])
+            return {
+                "embedding_model": stored.get("embedding_model", ""),
+                "embedding_gguf_repo": stored.get("embedding_gguf_repo", ""),
+                "default_embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+                "default_embedding_gguf_repo": "nomic-ai/nomic-embed-text-v1.5-GGUF",
+                "is_custom": bool(stored.get("embedding_model")),
+            }
+        except Exception:
+            pass
+    return {
+        "embedding_model": "",
+        "embedding_gguf_repo": "",
+        "default_embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "default_embedding_gguf_repo": "nomic-ai/nomic-embed-text-v1.5-GGUF",
+        "is_custom": False,
+    }
+
+
+@router.put("/embedding-model")
+def save_embedding_model(body: dict, user: dict = Depends(get_current_user)):
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('embedding_model', ?, datetime('now'))",
+            (json.dumps(body),))
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Hugging Face cache paths
+# ---------------------------------------------------------------------------
+@router.get("/hugging-face-cache")
+def get_hugging_face_cache(user: dict = Depends(get_current_user)):
+    import os
+    from pathlib import Path
+    cache_home = os.environ.get("HF_HOME", str(Path.home() / ".cache" / "huggingface"))
+    hub_cache = str(Path(cache_home) / "hub")
+    return {
+        "cache_home": cache_home,
+        "hub_cache": hub_cache,
+        "xet_cache": str(Path(cache_home) / "xet"),
+        "source": "environment" if os.environ.get("HF_HOME") else "default",
+        "editable": True,
+        "is_custom": bool(os.environ.get("HF_HOME")),
+        "available": True,
+        "writable": True,
+        "free_bytes": 0,
+        "environment_variable": "HF_HOME",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Preview sharing
+# ---------------------------------------------------------------------------
+@router.get("/preview-sharing")
+def get_preview_sharing(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'preview_sharing'")
+    enabled = True
+    if rows:
+        try:
+            enabled = json.loads(rows[0]["value"]).get("enabled", True)
+        except Exception:
+            pass
+    return {"enabled": enabled, "default_enabled": True}
+
+
+@router.put("/preview-sharing")
+def save_preview_sharing(body: dict, user: dict = Depends(get_current_user)):
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('preview_sharing', ?, datetime('now'))",
+            (json.dumps(body),))
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Upload limit (singular — frontend uses /upload-limit)
+# ---------------------------------------------------------------------------
+@router.get("/upload-limit")
+def get_upload_limit(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'upload_limits'")
+    if rows:
+        try:
+            limits = json.loads(rows[0]["value"])
+            return {
+                "max_upload_size_mb": limits.get("max_file_size_mb", 100),
+                "max_total_mb": limits.get("max_total_mb", 1024),
+                "allowed_types": limits.get("allowed_types", ["image/*", "audio/*", "video/*", "application/pdf"]),
+            }
+        except Exception:
+            pass
+    return {
+        "max_upload_size_mb": 100,
+        "max_total_mb": 1024,
+        "allowed_types": ["image/*", "audio/*", "video/*", "application/pdf"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Helper precache
+# ---------------------------------------------------------------------------
+@router.get("/helper-precache")
+def get_helper_precache(user: dict = Depends(get_current_user)):
+    return {"enabled": True, "default_enabled": True, "disabled_by_env": False}
+
+
+# ---------------------------------------------------------------------------
+# Coding agents detection
+# ---------------------------------------------------------------------------
+@router.get("/coding-agents")
+def get_coding_agents(user: dict = Depends(get_current_user)):
+    import shutil
+    detected = []
+    for agent in ("claude", "codex", "opencode", "cursor", "aider"):
+        if shutil.which(agent):
+            detected.append(agent)
+    return {"agents": detected, "detected": detected}
+
+
+# ---------------------------------------------------------------------------
+# Model memory settings
+# ---------------------------------------------------------------------------
+@router.get("/model-memory")
+def get_model_memory(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'model_memory'")
+    if rows:
+        try:
+            return json.loads(rows[0]["value"])
+        except Exception:
+            pass
+    return {"keep_resident": True, "no_ram_reserve": False, "auto_unload_minutes": 30}
+
+
+# ---------------------------------------------------------------------------
+# OpenAI auto-switch
+# ---------------------------------------------------------------------------
+@router.get("/openai-auto-switch")
+def get_openai_auto_switch(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'openai_auto_switch'")
+    if rows:
+        try:
+            return json.loads(rows[0]["value"])
+        except Exception:
+            pass
+    return {"enabled": False, "auto_unload_idle_seconds": 300}
+
+
+# ---------------------------------------------------------------------------
+# VRAM budget
+# ---------------------------------------------------------------------------
+@router.get("/vram-budget")
+def get_vram_budget(user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'vram_budget'")
+    if rows:
+        try:
+            return json.loads(rows[0]["value"])
+        except Exception:
+            pass
+    return {"fraction": 0.9, "is_stored": False}
+
+
+# ---------------------------------------------------------------------------
+# Remote access
+# ---------------------------------------------------------------------------
+@router.get("/remote-access")
+def get_remote_access(user: dict = Depends(get_current_user)):
+    return {"state": "disabled", "url": None, "error": None}
+
+
+# ---------------------------------------------------------------------------
+# Debug logs
+# ---------------------------------------------------------------------------
+@router.get("/debug/logs/sources")
+def get_debug_log_sources(user: dict = Depends(get_current_user)):
+    from config import LOGS_DIR
+    sources = []
+    if LOGS_DIR.exists():
+        for f in LOGS_DIR.iterdir():
+            if f.is_file() and f.suffix == ".log":
+                sources.append({"id": f.name, "name": f.name, "path": str(f), "size_bytes": f.stat().st_size})
+    return {"sources": sources, "default_source_id": sources[0]["id"] if sources else None}
+
+
+# ---------------------------------------------------------------------------
 # Generic settings by key — covers any /api/settings/{key} GET/PUT
 # ---------------------------------------------------------------------------
 @router.get("/{key}")
