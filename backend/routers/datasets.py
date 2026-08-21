@@ -209,10 +209,11 @@ async def local_dataset_options(req: LocalOptionsRequest):
 # ---------------------------------------------------------------------------
 @router.post("/upload")
 async def upload_dataset(file: UploadFile = File(...)):
-    dest = DATASETS_DIR / file.filename
+    safe_name = Path(file.filename).name
+    dest = DATASETS_DIR / safe_name
     with open(dest, "wb") as f:
         shutil.copyfileobj(file.file, f)
-    return {"filename": file.filename, "stored_path": str(dest)}
+    return {"filename": safe_name, "stored_path": str(dest)}
 
 
 # ---------------------------------------------------------------------------
@@ -249,7 +250,7 @@ async def delete_cached_dataset(body: DatasetCacheDeleteRequest):
     cache_path = body.cache_path
     if cache_path and os.path.exists(cache_path):
         shutil.rmtree(cache_path)
-    return None
+    return {"ok": True}
 
 
 # ---------------------------------------------------------------------------

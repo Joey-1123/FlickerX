@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import secrets
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -98,6 +99,13 @@ def delete_hugging_face_token(user: dict = Depends(get_current_user)):
     return {"ok": True}
 
 
+@router.put("/hugging-face-token/migrate")
+def migrate_hugging_face_token(body: HfTokenRequest, user: dict = Depends(get_current_user)):
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('hugging_face_token', ?, datetime('now'))",
+            (body.token,))
+    return {"ok": True, "token": body.token}
+
+
 # ---------------------------------------------------------------------------
 # Generation presets (image + video)
 # ---------------------------------------------------------------------------
@@ -161,4 +169,39 @@ def save_personalization(body: dict, user: dict = Depends(get_current_user)):
     execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('personalization', ?, datetime('now'))",
             (json.dumps(body),))
     return {"saved": True}
+
+
+# ---------------------------------------------------------------------------
+# Generic settings by key — covers any /api/settings/{key} GET/PUT
+# ---------------------------------------------------------------------------
+@router.get("/{key}")
+def get_setting_by_key(key: str, user: dict = Depends(get_current_user)):
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = ?", (key,))
+    if not rows:
+        return {"key": key, "value": None}
+    return {"key": key, "value": rows[0]["value"]}
+
+
+@router.put("/{key}")
+def put_setting_by_key(key: str, body: dict, user: dict = Depends(get_current_user)):
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+            (key, json.dumps(body) if isinstance(body, dict) else str(body)))
+    return {"ok": True}
+
+
+@router.delete("/{key}")
+def delete_setting_by_key(key: str, user: dict = Depends(get_current_user)):
+    execute(AUTH_DB, "DELETE FROM settings WHERE key = ?", (key,))
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Preview sharing — rotate signing secret
+# ---------------------------------------------------------------------------
+@router.post("/preview-links/rotate")
+def rotate_preview_links(user: dict = Depends(get_current_user)):
+    new_secret = secrets.token_urlsafe(32)
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('preview_signing_secret', ?, datetime('now'))",
+            (new_secret,))
+    return {"ok": True, "secret": new_secret}
 

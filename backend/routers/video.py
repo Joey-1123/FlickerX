@@ -363,7 +363,7 @@ async def video_gallery_delete(video_id: str):
     if gif_path.exists():
         gif_path.unlink()
     _delete_from_db(video_id)
-    return None
+    return {"ok": True}
 
 
 @router.delete("/gallery")
@@ -371,7 +371,7 @@ async def video_gallery_clear():
     global _gallery
     _gallery.clear()
     _clear_db()
-    return None
+    return {"ok": True}
 
 
 @router.get("/gallery/{video_id}/signed-url")

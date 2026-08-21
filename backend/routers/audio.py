@@ -256,7 +256,7 @@ async def audio_gallery_delete(clip_id: str):
     if len(_audio_gallery) == before:
         raise HTTPException(404, "Clip not found")
     _delete_from_db(clip_id)
-    return None
+    return {"ok": True}
 
 
 @router.delete("/gallery")

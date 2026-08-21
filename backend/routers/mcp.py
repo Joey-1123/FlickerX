@@ -285,7 +285,7 @@ async def delete_server(server_id: str):
     if len(_servers) == before:
         raise HTTPException(404, "MCP server not found")
     _delete_from_db(server_id)
-    return None
+    return {"ok": True}
 
 
 @router.post("/{server_id}/refresh")

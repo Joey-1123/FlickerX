@@ -273,7 +273,7 @@ async def delete_config(config_id: str):
     if len(_configs) == before:
         raise HTTPException(404, "Provider config not found")
     _delete_from_db(config_id)
-    return None
+    return {"ok": True}
 
 
 @router.put("/{config_id}/api-key/migrate")

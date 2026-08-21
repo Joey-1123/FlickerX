@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from auth import get_current_user, get_optional_user
+from auth import get_current_user
 from database import execute, query, STUDIO_DB
 from routers.inference import _inference_state, _inference_lock, ChatCompletionRequest
 
@@ -508,7 +508,8 @@ def export_chat():
 
 @router.get("/import-ledger")
 def import_ledger():
-    return {"threadIds": []}
+    rows = query(STUDIO_DB, "SELECT thread_id FROM chat_import_ledger ORDER BY created_at")
+    return {"threadIds": [r["thread_id"] for r in rows]}
 
 
 class ImportLedgerRequest(BaseModel):
@@ -517,7 +518,11 @@ class ImportLedgerRequest(BaseModel):
 
 @router.post("/import-ledger")
 def record_import_ledger(req: ImportLedgerRequest):
-    return {"accepted": len(req.threadIds), "inserted": 0}
+    before = query(STUDIO_DB, "SELECT COUNT(*) as c FROM chat_import_ledger")[0]["c"]
+    for tid in req.threadIds:
+        execute(STUDIO_DB, "INSERT OR IGNORE INTO chat_import_ledger (thread_id) VALUES (?)", (tid,))
+    after = query(STUDIO_DB, "SELECT COUNT(*) as c FROM chat_import_ledger")[0]["c"]
+    return {"accepted": len(req.threadIds), "inserted": after - before}
 
 
 # ===== Chat Settings =====
@@ -537,24 +542,6 @@ def save_chat_settings(body: dict):
             (json.dumps(settings),))
     return {"settings": settings}
 
-
-# ===== Research (stubs) =====
-
-@router.post("/research-runs")
-def create_research_run(body: dict):
-    return {"id": str(uuid.uuid4()), "status": "created"}
-
-
-@router.get("/research-runs/{run_id}")
-def get_research_run(run_id: str):
-    return {"id": run_id, "status": "not_found"}
-
-
-@router.get("/research-runs/active")
-def get_active_research_runs(threadId: str = ""):
-    return {"runs": [], "hasRun": False}
-
-
 # ===== Helpers =====
 
 def _row_to_dict(row) -> dict:
@@ -564,3 +551,4 @@ def _row_to_dict(row) -> dict:
         if field in d:
             d[field] = bool(d[field])
     return d
+

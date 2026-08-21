@@ -102,6 +102,10 @@ CREATE TABLE IF NOT EXISTS chat_attachments (
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS chat_import_ledger (
+    thread_id TEXT PRIMARY KEY,
+    created_at TEXT DEFAULT (datetime('now'))
+);
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
@@ -208,8 +212,9 @@ def _run_migrations(conn: sqlite3.Connection, migrations: list[tuple[str, ...]])
     for (sql,) in migrations:
         try:
             conn.execute(sql)
-        except Exception:
-            pass
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e):
+                logger.warning("migration_failed", sql=sql, error=str(e))
 
 
 def init_auth_db() -> None:
@@ -242,6 +247,12 @@ def init_studio_db() -> None:
         conn = _get_conn(STUDIO_DB)
         try:
             conn.executescript(_STUDIO_SCHEMA)
+            conn.executescript("""
+                CREATE INDEX IF NOT EXISTS idx_chat_messages_thread ON chat_messages(thread_id);
+                CREATE INDEX IF NOT EXISTS idx_chat_attachments_message ON chat_attachments(message_id);
+                CREATE INDEX IF NOT EXISTS idx_rag_documents_kb ON rag_documents(kb_id);
+                CREATE INDEX IF NOT EXISTS idx_rag_chunks_document ON rag_chunks(document_id);
+            """)
             conn.commit()
         finally:
             conn.close()

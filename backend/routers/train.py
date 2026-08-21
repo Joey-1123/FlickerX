@@ -144,7 +144,7 @@ async def train_start_request_status(start_request_id: str):
 async def train_start_request_acknowledge(start_request_id: str):
     if start_request_id in _start_requests:
         _start_requests[start_request_id]["acknowledged"] = True
-    return None
+    return {"ok": True}
 
 
 @router.post("/start-requests/{start_request_id}/cancel")
@@ -309,8 +309,43 @@ async def train_run_delete(run_id: str, delete_artifacts: bool = False):
     _runs = [r for r in _runs if r.get("job_id") != run_id]
     if len(_runs) == before:
         raise HTTPException(404, "Run not found")
-    _delete_run_from_db(run_id)
-    return {"status": "deleted", "message": "Run deleted", "artifacts_deleted": delete_artifacts, "artifacts_kept_reason": None}
+
+
+# ===== Diffusion training stubs =====
+
+@router.get("/diffusion/status")
+async def diffusion_status():
+    return {"status": "idle", "job_id": None, "is_training_running": False}
+
+
+@router.post("/diffusion/start")
+async def diffusion_start(body: dict):
+    return {"job_id": uuid.uuid4().hex[:12], "status": "started"}
+
+
+@router.post("/diffusion/stop")
+async def diffusion_stop(body: dict = {}):
+    return {"status": "stopped"}
+
+
+@router.get("/diffusion/info")
+async def diffusion_info():
+    return {"methods": ["lora", "dreambooth", "full"], "supported_models": []}
+
+
+@router.post("/diffusion/dataset")
+async def diffusion_dataset(body: dict):
+    return {"ok": True, "dataset_id": uuid.uuid4().hex[:8]}
+
+
+@router.get("/diffusion/dataset-examples")
+async def diffusion_dataset_examples():
+    return {"examples": []}
+
+
+@router.post("/diffusion/dataset/import-example")
+async def diffusion_import_example(body: dict):
+    return {"ok": True}
 
 
 @router.patch("/runs/{run_id}")

@@ -364,7 +364,7 @@ async def image_gallery_delete(image_id: str):
     if len(_gallery) == before:
         raise HTTPException(404, "Image not found")
     _delete_from_db(image_id)
-    return None
+    return {"ok": True}
 
 
 @router.delete("/gallery")
@@ -373,7 +373,7 @@ async def image_gallery_clear():
     count = len(_gallery)
     _gallery.clear()
     _clear_db()
-    return None
+    return {"ok": True}
 
 
 @router.get("/gallery/{image_id}/file")

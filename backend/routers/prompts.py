@@ -108,7 +108,7 @@ async def save_entry(entry_id: str, body: PromptEntry):
 @router.delete("/entries/{entry_id}")
 async def delete_entry(entry_id: str):
     execute(STUDIO_DB, "DELETE FROM prompt_entries WHERE id = ?", (entry_id,))
-    return None
+    return {"ok": True}
 
 
 @router.post("/entries/bulk")
@@ -164,7 +164,7 @@ async def save_list(list_id: str, body: PromptList):
 @router.delete("/lists/{list_id}")
 async def delete_list(list_id: str):
     execute(STUDIO_DB, "DELETE FROM prompt_lists WHERE id = ?", (list_id,))
-    return None
+    return {"ok": True}
 
 
 @router.post("/lists/bulk")

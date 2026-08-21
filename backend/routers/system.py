@@ -133,6 +133,7 @@ def system_status():
     }
 
 
+@router.get("/hardware")
 @router.get("/hardware-info")
 def hardware_info():
     return {

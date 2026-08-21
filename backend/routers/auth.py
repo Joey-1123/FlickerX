@@ -222,9 +222,12 @@ def refresh(req: RefreshRequest):
 
 
 @router.post("/logout")
-def logout(user: dict = Depends(get_current_user)):
-    # ponytail: real token revocation — delete all refresh tokens for this user
-    execute(AUTH_DB, "DELETE FROM refresh_tokens WHERE user_id = ?", (user["id"],))
+def logout(user: dict = Depends(get_current_user), body: RefreshRequest | None = None):
+    if body and body.refresh_token:
+        token_hash = hash_token(body.refresh_token)
+        execute(AUTH_DB, "DELETE FROM refresh_tokens WHERE token_hash = ?", (token_hash,))
+    else:
+        execute(AUTH_DB, "DELETE FROM refresh_tokens WHERE user_id = ?", (user["id"],))
     return {"ok": True}
 
 
@@ -299,8 +302,7 @@ def forgot_password(body: PasswordResetRequest):
     execute(AUTH_DB, "DELETE FROM password_resets WHERE user_id = ?", (rows[0]["id"],))
     execute(AUTH_DB, "INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
             (rows[0]["id"], token_hash, expires))
-    # ponytail: in production, send email with reset_token. For now return it.
-    return {"ok": True, "message": "If the email exists, a reset link has been sent.", "debug_token": reset_token}
+    return {"ok": True, "message": "If the email exists, a reset link has been sent."}
 
 
 @router.post("/reset-password")

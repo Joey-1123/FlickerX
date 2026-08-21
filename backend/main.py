@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import structlog
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -36,7 +36,7 @@ app = FastAPI(title="FlickerX Studio", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,14 +91,185 @@ def health():
     return {"status": "ok", "version": "0.1.0"}
 
 
+import json as _json
+import subprocess as _sp
+import re as _re
+import time as _time
+from datetime import datetime, timezone
+
+
+def _run_cmd(args: list[str], timeout: int = 10) -> str:
+    try:
+        r = _sp.run(args, capture_output=True, text=True, timeout=timeout)
+        return r.stdout.strip()
+    except Exception:
+        return ""
+
+
+def _get_installed_version(package: str) -> str:
+    out = _run_cmd(["pip", "show", package])
+    for line in out.splitlines():
+        if line.startswith("Version:"):
+            return line.split(":", 1)[1].strip()
+    return ""
+
+
+def _get_latest_pypi_version(package: str) -> str:
+    out = _run_cmd(["pip", "index", "versions", package], timeout=15)
+    if not out:
+        return ""
+    m = _re.search(r"LATEST:\s*(\S+)", out)
+    if m:
+        return m.group(1)
+    parts = out.split()
+    return parts[1] if len(parts) >= 2 else ""
+
+
+def _get_git_remote_version() -> str:
+    cwd = str(Path(__file__).parent.parent)
+    tag = _run_cmd(["git", "-C", cwd, "describe", "--tags", "--abbrev=0"], timeout=5)
+    if tag:
+        return tag.lstrip("v")
+    commit = _run_cmd(["git", "-C", cwd, "rev-parse", "--short", "HEAD"], timeout=5)
+    return f"0.0.0+{commit}" if commit else ""
+
+
 @app.get("/api/llama/update-status")
 def llama_update_status(force_refresh: bool = False):
-    return {"update_available": False, "current_version": "0.1.0", "latest_version": "0.1.0"}
+    installed = _get_installed_version("llama-cpp-python")
+    latest = _get_latest_pypi_version("llama-cpp-python") if force_refresh or not installed else installed
+    return {
+        "supported": True,
+        "update_available": bool(installed and latest and installed != latest),
+        "installed_tag": installed or None,
+        "latest_tag": latest or installed or "0.1.0",
+        "update_size_bytes": 0,
+        "job": {
+            "state": "idle",
+            "operation": None,
+            "requested_backend": None,
+            "message": "",
+            "from_tag": None,
+            "to_tag": None,
+            "reload_required": None,
+            "error": None,
+            "progress": None,
+            "started_at": None,
+            "finished_at": None,
+        },
+    }
 
 
 @app.get("/api/studio/update-status")
 def studio_update_status():
-    return {"update_available": False, "current_version": "0.1.0", "latest_version": "0.1.0"}
+    current = _get_git_remote_version() or "0.1.0"
+    return {
+        "can_show_web_notification": False,
+        "update_available": False,
+        "install_source": "pypi",
+        "latest_version": current,
+        "current_version": current,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.post("/api/shutdown")
+def shutdown_server():
+    import os, signal
+    os.kill(os.getpid(), signal.SIGTERM)
+    return {"ok": True}
+
+
+@app.get("/api/llama/backend")
+def llama_backend_get():
+    installed = _get_installed_version("llama-cpp-python")
+    backends = []
+    if installed:
+        backends.append({"backend": "llama-cpp", "available": True, "resolved_backend": "llama-cpp", "release_tag": installed, "download_size_bytes": 0})
+    else:
+        backends.append({"backend": "llama-cpp", "available": False, "resolved_backend": None, "release_tag": None, "download_size_bytes": 0})
+    return {
+        "supported": True,
+        "backend": "llama-cpp" if installed else None,
+        "backend_request": "auto",
+        "selection_applied": True,
+        "installed_tag": installed or None,
+        "options": backends,
+        "job": {"state": "idle", "operation": None, "requested_backend": None, "message": "", "error": None, "progress": None, "reload_required": None, "started_at": None, "finished_at": None},
+    }
+
+
+@app.post("/api/llama/backend")
+def llama_backend_post(backend: str = "auto"):
+    return {"started": False, "reason": "Backend switching not yet implemented", "message": "Use auto-detection", "job": {"state": "idle", "operation": None, "requested_backend": None, "message": "", "error": None, "progress": None, "reload_required": None, "started_at": None, "finished_at": None}}
+
+
+@app.get("/api/llama/update")
+@app.post("/api/llama/update")
+def llama_update():
+    installed = _get_installed_version("llama-cpp-python")
+    latest = _get_latest_pypi_version("llama-cpp-python")
+    if not installed:
+        return {"started": False, "reason": "llama-cpp-python is not installed", "message": "Install llama-cpp-python first", "job": {"state": "error", "operation": "update", "requested_backend": None, "message": "Not installed", "error": "Package not found", "progress": None, "reload_required": None, "started_at": None, "finished_at": None}}
+    if installed == latest:
+        return {"started": False, "reason": "Already up to date", "message": f"Running {installed}", "job": {"state": "idle", "operation": None, "requested_backend": None, "message": "", "error": None, "progress": None, "reload_required": None, "started_at": None, "finished_at": None}}
+    _run_cmd(["pip", "install", "--upgrade", "llama-cpp-python"], timeout=120)
+    new_ver = _get_installed_version("llama-cpp-python")
+    return {
+        "started": True,
+        "reason": None,
+        "message": f"Updated {installed} → {new_ver}",
+        "job": {
+            "state": "success",
+            "operation": "update",
+            "requested_backend": None,
+            "message": f"Updated {installed} → {new_ver}",
+            "from_tag": installed,
+            "to_tag": new_ver,
+            "reload_required": True,
+            "error": None,
+            "progress": 1.0,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "finished_at": datetime.now(timezone.utc).isoformat(),
+        },
+    }
+
+
+@app.get("/api/picker/validate-chat-template")
+@app.post("/api/picker/validate-chat-template")
+def validate_chat_template(body: dict | None = None):
+    template = (body or {}).get("template", "")
+    if not template:
+        return {"valid": False, "error": "Template is empty"}
+    depth = 0
+    for i, ch in enumerate(template):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth < 0:
+                return {"valid": False, "error": f"Unmatched '}}' at position {i}"}
+    if depth > 0:
+        return {"valid": False, "error": f"Unmatched '{{' — {depth} unclosed block(s)"}
+    blocks = {"if": 0, "for": 0, "set": 0}
+    for tag in blocks:
+        blocks[tag] = len(_re.findall(r"{%\s*" + tag + r"\b", template))
+    for tag, count in blocks.items():
+        end_count = len(_re.findall(r"{%\s*end" + tag + r"\s*%}", template))
+        if count != end_count:
+            return {"valid": False, "error": f"Unclosed '{tag}' block ({count} open, {end_count} close)"}
+    return {"valid": True, "error": None}
+
+
+@app.get("/api/youtube/transcript")
+@app.post("/api/youtube/transcript")
+def youtube_transcript():
+    raise HTTPException(status_code=501, detail="youtube_transcript_api package not installed. Run: pip install youtube-transcript-api")
+
+
+@app.get("/api/system")
+def system_info():
+    return {"status": "ok", "version": "0.1.0"}
 
 
 # Serve frontend static files (if built)

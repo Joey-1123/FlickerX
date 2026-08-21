@@ -225,7 +225,7 @@ async def delete_kb(kb_id: str):
     execute(STUDIO_DB, "DELETE FROM rag_chunks WHERE document_id IN (SELECT id FROM rag_documents WHERE kb_id = ?)", (kb_id,))
     execute(STUDIO_DB, "DELETE FROM rag_documents WHERE kb_id = ?", (kb_id,))
     execute(STUDIO_DB, "DELETE FROM rag_knowledge_bases WHERE id = ?", (kb_id,))
-    return None
+    return {"ok": True}
 
 
 @router.get("/knowledge-bases/{kb_id}/documents")
@@ -354,7 +354,7 @@ async def list_all_documents():
 async def delete_document(document_id: str):
     execute(STUDIO_DB, "DELETE FROM rag_chunks WHERE document_id = ?", (document_id,))
     execute(STUDIO_DB, "DELETE FROM rag_documents WHERE id = ?", (document_id,))
-    return None
+    return {"ok": True}
 
 
 @router.get("/documents/{document_id}/preview-target")
@@ -395,7 +395,7 @@ async def serve_document_file(document_id: str):
 async def search_chunks(body: dict):
     query_text = body.get("query", "")
     kb_id = body.get("kb_id")
-    limit = body.get("limit", 10)
+    limit = int(body.get("limit", 10))
 
     if not query_text:
         return {"chunks": []}
@@ -479,7 +479,7 @@ async def create_project_linked_folder(project_id: str, body: LinkedFolderCreate
 @router.delete("/linked-folders/{folder_id}")
 async def delete_linked_folder(folder_id: str, remove_index: bool = False):
     execute(STUDIO_DB, "DELETE FROM rag_linked_folders WHERE id = ?", (folder_id,))
-    return None
+    return {"ok": True}
 
 
 @router.post("/linked-folders/{folder_id}/sync")
