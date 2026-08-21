@@ -52,6 +52,9 @@ def _scan_local_models() -> list[dict]:
                 except Exception:
                     pass
             models.append({
+                "id": entry.name,
+                "display_name": entry.name,
+                "source": "models_dir",
                 "name": entry.name,
                 "path": str(entry),
                 "type": "gguf" if gguf_files else ("safetensors" if safetensor_files else "directory"),

@@ -285,6 +285,9 @@ def list_local_models():
             if entry.is_dir():
                 gguf_files = list(entry.glob("**/*.gguf"))
                 models.append({
+                    "id": entry.name,
+                    "display_name": entry.name,
+                    "source": "models_dir",
                     "name": entry.name,
                     "path": str(entry),
                     "type": "gguf" if gguf_files else "directory",
@@ -434,9 +437,12 @@ def sync_hub(user: dict = Depends(get_current_user)):
                 except Exception:
                     pass
             models_found.append({
+                "id": entry.name,
+                "display_name": entry.name,
+                "source": "models_dir",
                 "name": entry.name,
                 "path": str(entry),
-                "source": str(scan_dir),
+                "source_dir": str(scan_dir),
                 "type": "gguf" if gguf_files else ("safetensors" if safetensor_files else "directory"),
                 "has_config": config is not None,
                 "architecture": config.get("architectures", [None])[0] if config and "architectures" in config else None,
