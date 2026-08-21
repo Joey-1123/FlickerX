@@ -13,8 +13,8 @@ import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from backend.config import STUDIO_DB
-from backend.database import execute, query
+from config import STUDIO_DB
+from database import execute, query
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/mcp/servers", tags=["mcp"])

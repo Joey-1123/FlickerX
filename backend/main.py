@@ -19,12 +19,14 @@ from database import init_auth_db, init_studio_db
 
 logger = structlog.get_logger()
 
+# Create tables before router imports — routers call _load_from_db() at import time
+ensure_dirs()
+init_auth_db()
+init_studio_db()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ensure_dirs()
-    init_auth_db()
-    init_studio_db()
     logger.info("flickerx_backend_started", host=HOST, port=PORT, data_dir=str(STUDIO_HOME))
     yield
     logger.info("flickerx_backend_stopped")
