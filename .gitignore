@@ -29,6 +29,13 @@ __pycache__/
 *.pyo
 .venv/
 uv.lock
+*.egg-info/
+
+# Built CLI binary
+flickerx
+
+# Brand assets (local only)
+frontend/public/flickerx-sticker.png
 
 # Environment variables
 .env

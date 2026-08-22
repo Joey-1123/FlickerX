@@ -122,17 +122,42 @@ def list_owners():
 def cached_gguf():
     cached = []
     for cache_dir in (CACHE_DIR, MODELS_DIR):
-        if cache_dir.exists():
-            for entry in cache_dir.iterdir():
-                if entry.is_dir():
-                    gguf_files = list(entry.glob("**/*.gguf"))
-                    if gguf_files:
-                        cached.append({
-                            "repo_id": entry.name,
-                            "path": str(entry),
-                            "files": [{"name": f.name, "size": f.stat().st_size} for f in gguf_files],
-                            "total_size": sum(f.stat().st_size for f in gguf_files),
-                        })
+        if not cache_dir.exists():
+            continue
+        for entry in cache_dir.iterdir():
+            if not entry.is_dir():
+                continue
+            gguf_files = list(entry.glob("**/*.gguf"))
+            if not gguf_files:
+                continue
+            total = sum(f.stat().st_size for f in gguf_files)
+            newest = max(f.stat().st_mtime for f in gguf_files) if gguf_files else None
+            # Detect pipeline_tag from config
+            pipeline_tag = None
+            task = None
+            config_path = entry / "config.json"
+            if config_path.exists():
+                try:
+                    cfg = json.loads(config_path.read_text())
+                    pipeline_tag = cfg.get("pipeline_tag")
+                    task = cfg.get("task")
+                except Exception:
+                    pass
+            cached.append({
+                "repo_id": entry.name,
+                "load_id": entry.name,
+                "model_format": "gguf",
+                "runtime": "llama_cpp",
+                "size_bytes": total,
+                "cache_path": str(cache_dir),
+                "last_modified": int(newest) if newest else None,
+                "partial": False,
+                "pipeline_tag": pipeline_tag,
+                "task": task,
+                "tags": [],
+                "library_name": None,
+                "capabilities": {"can_chat": True, "can_train": False, "can_download": True, "can_delete": True},
+            })
     return {"cached": cached}
 
 
@@ -140,16 +165,46 @@ def cached_gguf():
 def cached_models():
     cached = []
     for cache_dir in (CACHE_DIR, MODELS_DIR):
-        if cache_dir.exists():
-            for entry in cache_dir.iterdir():
-                if entry.is_dir():
-                    size = sum(f.stat().st_size for f in entry.rglob("*") if f.is_file())
-                    if size > 0:
-                        cached.append({
-                            "repo_id": entry.name,
-                            "path": str(entry),
-                            "size": size,
-                        })
+        if not cache_dir.exists():
+            continue
+        for entry in cache_dir.iterdir():
+            if not entry.is_dir():
+                continue
+            size = sum(f.stat().st_size for f in entry.rglob("*") if f.is_file())
+            if size == 0:
+                continue
+            gguf_files = list(entry.glob("**/*.gguf"))
+            safetensors_files = list(entry.glob("**/*.safetensors"))
+            has_model_index = (entry / "model_index.json").exists()
+            newest = max((f.stat().st_mtime for f in entry.rglob("*") if f.is_file()), default=None)
+            fmt = "gguf" if gguf_files else ("safetensors" if safetensors_files else "unknown")
+            task = None
+            pipeline_tag = None
+            config_path = entry / "config.json"
+            if config_path.exists():
+                try:
+                    cfg = json.loads(config_path.read_text())
+                    task = cfg.get("task")
+                    pipeline_tag = cfg.get("pipeline_tag")
+                except Exception:
+                    pass
+            cached.append({
+                "repo_id": entry.name,
+                "load_id": entry.name,
+                "model_format": fmt,
+                "runtime": "llama_cpp" if fmt == "gguf" else "transformers",
+                "size_bytes": size,
+                "cache_path": str(cache_dir),
+                "last_modified": int(newest) if newest else None,
+                "partial": False,
+                "pipeline_tag": pipeline_tag,
+                "task": task,
+                "tags": [],
+                "library_name": None,
+                "single_file": bool(safetensors_files) and not has_model_index,
+                "companion": False,
+                "capabilities": {"can_chat": True, "can_train": False, "can_download": True, "can_delete": True},
+            })
     return {"cached": cached}
 
 
@@ -258,7 +313,28 @@ def active_downloads(repo_id: str = ""):
 
 @router.get("/gguf-download-progress")
 def gguf_download_progress(repo_id: str, variant: str = "", expected_bytes: int = 0):
-    return download_progress(repo_id, expected_bytes)
+    job_key = f"{repo_id}:{variant or 'default'}"
+    with _download_lock:
+        progress = _download_progress.get(job_key, _download_progress.get(f"{repo_id}:default", {}))
+    downloaded = progress.get("downloaded_bytes", 0)
+    state = progress.get("state", "idle")
+    # Check if complete on disk by looking at the model dir
+    complete_on_disk = False
+    model_dir = MODELS_DIR / repo_id.replace("/", "_")
+    if model_dir.exists():
+        gguf_files = list(model_dir.glob("**/*.gguf"))
+        if gguf_files:
+            complete_on_disk = True
+    return {
+        "downloaded_bytes": downloaded,
+        "completed_bytes": downloaded if state == "completed" else 0,
+        "complete_on_disk": complete_on_disk,
+        "expected_bytes": progress.get("expected_bytes", expected_bytes),
+        "progress": progress.get("progress", 0.0),
+        "cache_path": str(MODELS_DIR),
+        "target_present": complete_on_disk,
+        "cache_measured": True,
+    }
 
 
 def _record_download(repo_id: str, status: str) -> None:
@@ -269,10 +345,15 @@ def _record_download(repo_id: str, status: str) -> None:
 
 @router.get("/transport-status")
 def transport_status(repo_id: str, gguf_variant: str = ""):
-    has_aria2 = os.system("which aria2c > /dev/null 2>&1") == 0
-    has_git_lfs = os.system("which git-lfs > /dev/null 2>&1") == 0
-    mode = "aria2" if has_aria2 else ("git-lfs" if has_git_lfs else "default")
-    return {"mode": mode, "available": True, "aria2c": has_aria2, "git_lfs": has_git_lfs}
+    job_key = f"{repo_id}:{gguf_variant or 'default'}"
+    with _download_lock:
+        progress = _download_progress.get(job_key, {})
+    state = progress.get("state", "idle")
+    return {
+        "has_partial": state == "downloading",
+        "last_transport": None,
+        "resumable": state in ("starting", "downloading"),
+    }
 
 
 # --- Local models ---
@@ -282,19 +363,36 @@ def list_local_models():
     models = []
     if MODELS_DIR.exists():
         for entry in MODELS_DIR.iterdir():
-            if entry.is_dir():
-                gguf_files = list(entry.glob("**/*.gguf"))
-                models.append({
-                    "id": entry.name,
-                    "display_name": entry.name,
-                    "source": "models_dir",
-                    "name": entry.name,
-                    "path": str(entry),
-                    "type": "gguf" if gguf_files else "directory",
-                    "size_bytes": sum(f.stat().st_size for f in entry.rglob("*") if f.is_file()),
-                    "files": [f.name for f in gguf_files],
-                })
-    return {"models": models, "models_dir": str(MODELS_DIR)}
+            if not entry.is_dir():
+                continue
+            gguf_files = list(entry.glob("**/*.gguf"))
+            safetensors_files = list(entry.glob("**/*.safetensors"))
+            size = sum(f.stat().st_size for f in entry.rglob("*") if f.is_file())
+            if size == 0:
+                continue
+            fmt = "gguf" if gguf_files else ("safetensors" if safetensors_files else None)
+            runtime = "llama_cpp" if fmt == "gguf" else ("transformers" if fmt == "safetensors" else None)
+            newest = max((f.stat().st_mtime for f in entry.rglob("*") if f.is_file()), default=None)
+            models.append({
+                "id": entry.name,
+                "load_id": entry.name,
+                "display_name": entry.name,
+                "source": "models_dir",
+                "path": str(entry),
+                "size_bytes": size,
+                "model_format": fmt,
+                "runtime": runtime,
+                "capabilities": {"can_chat": True, "can_train": False, "can_download": True, "can_delete": True},
+                "updated_at": int(newest) if newest else None,
+                "partial": False,
+            })
+    return {
+        "models": models,
+        "models_dir": str(MODELS_DIR),
+        "hf_cache_dir": str(CACHE_DIR) if CACHE_DIR.exists() else None,
+        "lmstudio_dirs": [],
+        "ollama_dirs": [],
+    }
 
 
 @router.post("/local-model-eject")
@@ -333,12 +431,33 @@ def rename_local_model(body: dict, user: dict = Depends(get_current_user)):
 
 @router.delete("/delete-cached")
 def delete_cached_model(body: dict, user: dict = Depends(get_current_user)):
-    path = body.get("path", "")
-    if not path:
-        raise HTTPException(400, "No path provided")
-    p = Path(path)
+    repo_id = body.get("repo_id", "")
+    cache_path = body.get("cache_path", "")
+    variant = body.get("variant", "")
+    if not repo_id:
+        raise HTTPException(400, "No repo_id provided")
+    # Resolve the actual path
+    p = None
+    if cache_path:
+        p = Path(cache_path) / repo_id.replace("/", "_")
+        if not p.exists():
+            p = Path(cache_path) / repo_id
+    if not p or not p.exists():
+        p = MODELS_DIR / repo_id.replace("/", "_")
     if not p.exists():
-        return {"ok": True, "message": "Already deleted"}
+        p = MODELS_DIR / repo_id
+    if not p.exists():
+        for cache_dir in (CACHE_DIR, MODELS_DIR):
+            if cache_dir.exists():
+                for entry in cache_dir.iterdir():
+                    if entry.is_dir() and entry.name == repo_id.replace("/", "_"):
+                        p = entry
+                        break
+                    if entry.is_dir() and entry.name == repo_id:
+                        p = entry
+                        break
+    if not p or not p.exists():
+        return {"ok": True, "deleted_bytes": 0, "message": "Already deleted"}
     if not (p.resolve().is_relative_to(MODELS_DIR.resolve()) or p.resolve().is_relative_to(CACHE_DIR.resolve())):
         raise HTTPException(403, "Cannot delete outside models/cache directories")
     import shutil
@@ -349,33 +468,28 @@ def delete_cached_model(body: dict, user: dict = Depends(get_current_user)):
 
 @router.post("/delete-impact")
 def delete_impact(body: dict, user: dict = Depends(get_current_user)):
-    path = body.get("path", "")
-    if not path:
-        return {"ok": True, "impact": {}}
-    p = Path(path)
+    repo_id = body.get("repo_id", "")
+    variant = body.get("variant", "")
+    if not repo_id:
+        return {"repo_id": "", "variant": variant, "reclaimed_bytes": 0, "retained_companions": [], "freeable_companions": [], "blocked_by": []}
+    # Find the model path
+    p = MODELS_DIR / repo_id.replace("/", "_")
     if not p.exists():
-        return {"ok": True, "impact": {"exists": False}}
-    size = sum(f.stat().st_size for f in p.rglob("*") if f.is_file()) if p.is_dir() else p.stat().st_size
-    file_count = sum(1 for _ in p.rglob("*") if _.is_file()) if p.is_dir() else 1
-    # Check for adapters that reference this model
-    references = []
-    for model_dir in MODELS_DIR.iterdir() if MODELS_DIR.exists() else []:
-        if model_dir.is_dir():
-            adapter_cfg = model_dir / "adapter_config.json"
-            if adapter_cfg.exists():
-                try:
-                    cfg = json.loads(adapter_cfg.read_text())
-                    if cfg.get("base_model_name_or_path", "") in str(p):
-                        references.append(model_dir.name)
-                except Exception:
-                    pass
-    return {"ok": True, "impact": {
-        "exists": True,
-        "size_bytes": size,
-        "file_count": file_count,
-        "references": references,
-        "has_references": len(references) > 0,
-    }}
+        p = MODELS_DIR / repo_id
+    if not p.exists():
+        for cache_dir in (CACHE_DIR, MODELS_DIR):
+            if cache_dir.exists():
+                for entry in cache_dir.iterdir():
+                    if entry.is_dir() and entry.name == repo_id.replace("/", "_"):
+                        p = entry
+                        break
+                    if entry.is_dir() and entry.name == repo_id:
+                        p = entry
+                        break
+    if not p.exists():
+        return {"repo_id": repo_id, "variant": variant, "reclaimed_bytes": 0, "retained_companions": [], "freeable_companions": [], "blocked_by": []}
+    size = sum(f.stat().st_size for f in p.rglob("*") if f.is_file())
+    return {"repo_id": repo_id, "variant": variant, "reclaimed_bytes": size, "retained_companions": [], "freeable_companions": [], "blocked_by": []}
 
 
 @router.get("/orphan-companions")
@@ -389,19 +503,60 @@ def orphan_companions():
             if not entry.is_dir():
                 continue
             has_model_file = False
-            companion_files = []
             for f in entry.rglob("*"):
-                if f.is_file():
-                    if f.suffix in (".gguf", ".safetensors", ".bin", ".pt", ".pth", ".onnx"):
-                        has_model_file = True
-                    elif f.suffix in (".json", ".txt", ".py", ".model", ".tiktoken"):
-                        companion_files.append(f)
-            if not has_model_file and companion_files:
-                for cf in companion_files:
-                    sz = cf.stat().st_size
+                if f.is_file() and f.suffix in (".gguf", ".safetensors", ".bin", ".pt", ".pth", ".onnx"):
+                    has_model_file = True
+                    break
+            if not has_model_file:
+                sz = sum(f.stat().st_size for f in entry.rglob("*") if f.is_file())
+                if sz > 0:
                     total_bytes += sz
-                    orphans.append({"path": str(cf), "name": cf.name, "size_bytes": sz, "parent": entry.name})
+                    orphans.append({"repo_id": entry.name, "size_bytes": sz, "cache_path": str(cache_dir)})
     return {"companions": orphans, "total_bytes": total_bytes}
+
+
+# --- GGUF variants ---
+
+@router.get("/gguf-variants")
+def gguf_variants(repo_id: str, prefer_local_cache: bool = False, local_path: str = "", offline: bool = False):
+    variants = []
+    # Search MODELS_DIR and CACHE_DIR for this repo's GGUF files
+    for search_dir in (MODELS_DIR, CACHE_DIR):
+        if not search_dir.exists():
+            continue
+        model_dir = search_dir / repo_id.replace("/", "_")
+        if not model_dir.exists():
+            model_dir = search_dir / repo_id
+        if not model_dir.exists():
+            continue
+        for f in model_dir.rglob("*.gguf"):
+            quant = _parse_quant_from_filename(f.name)
+            variants.append({
+                "filename": f.name,
+                "quant": quant or f.name,
+                "display_label": None,
+                "size_bytes": f.stat().st_size,
+                "download_size_bytes": f.stat().st_size,
+                "downloaded": True,
+                "update_available": False,
+                "partial": False,
+                "dependency_key": None,
+            })
+    return {
+        "repo_id": repo_id,
+        "variants": variants,
+        "has_vision": False,
+        "default_variant": variants[0]["filename"] if variants else None,
+    }
+
+
+def _parse_quant_from_filename(name: str) -> str | None:
+    lower = name.lower()
+    for q in ("q2_k", "q3_k_s", "q3_k_m", "q3_k_l", "q4_0", "q4_k_s", "q4_k_m",
+              "q5_0", "q5_k_s", "q5_k_m", "q6_k", "q8_0", "f16", "f32"):
+        if q in lower:
+            return q.upper()
+    return None
 
 
 # --- Sync ---
@@ -465,9 +620,15 @@ def cancel_sync(user: dict = Depends(get_current_user)):
 def scan_folders():
     folders = []
     if MODELS_DIR.exists():
-        folders.append({"id": "default", "path": str(MODELS_DIR), "name": "Default"})
+        folders.append({"id": 0, "path": str(MODELS_DIR), "name": "Default", "created_at": ""})
     custom = _read_json_file(_SCAN_FOLDERS_FILE, [])
-    folders.extend(custom)
+    for i, folder in enumerate(custom):
+        folders.append({
+            "id": i + 1,
+            "path": folder.get("path", ""),
+            "name": folder.get("name", ""),
+            "created_at": folder.get("created_at", ""),
+        })
     return {"folders": folders}
 
 

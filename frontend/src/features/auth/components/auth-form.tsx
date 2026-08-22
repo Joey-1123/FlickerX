@@ -32,7 +32,7 @@ import {
   storeAuthTokens,
 } from "../session";
 
-type AuthMode = "login" | "change-password";
+type AuthMode = "login" | "signup" | "change-password";
 
 type AuthStatusResponse = {
   initialized: boolean;
@@ -68,6 +68,29 @@ async function loginWithPassword(
   return (await response.json()) as TokenResponse;
 }
 
+async function registerWithPassword(
+  username: string,
+  password: string,
+): Promise<TokenResponse> {
+  const response = await fetch(apiUrl("/api/auth/register"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username.trim(),
+      password,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorPayload = (await response.json().catch(() => null)) as { detail?: string } | null;
+    throw new Error(errorPayload?.detail ?? "Registration failed.");
+  }
+
+  return (await response.json()) as TokenResponse;
+}
+
 type AuthFormProps = {
   mode: AuthMode;
 };
@@ -75,6 +98,7 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
   const navigate = useNavigate();
   const isLoginMode = mode === "login";
+  const isSignupMode = mode === "signup";
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -91,6 +115,11 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
     let canceled = false;
 
     async function initializeAuthForm(): Promise<void> {
+      // Signup mode doesn't need auth status check
+      if (isSignupMode) {
+        if (!canceled) setStatusLoading(false);
+        return;
+      }
       // Always check the server first; localStorage flags can be stale (e.g.
       // tokens from a previous install). /api/auth/status is the source of
       // truth for requires_password_change.
@@ -149,7 +178,7 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
     return () => {
       canceled = true;
     };
-  }, [navigate]);
+  }, [navigate, isSignupMode]);
 
   // Seed password from bootstrap credentials injected into HTML by web CLI.
   useEffect(() => {
@@ -168,22 +197,24 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
     (mode === "change-password" && !requiresPasswordChange);
 
   let helperText: string | null = null;
-  if (initialized === false) {
+  if (initialized === false && !isSignupMode) {
     helperText = "Auth is still bootstrapping the default admin account.";
   } else if (isLoginMode && requiresPasswordChange) {
     helperText = "Sign in once with the seeded credentials to change the password.";
-  } else if (!isLoginMode && !requiresPasswordChange) {
+  } else if (!isLoginMode && !isSignupMode && !requiresPasswordChange) {
     helperText = "Password already updated. Use the login screen.";
   }
-  const title = isLoginMode ? "Welcome back" : "Setup your account";
-  const subtitle = isLoginMode  
+  const title = isSignupMode ? "Create account" : isLoginMode ? "Welcome back" : "Setup your account";
+  const subtitle = isSignupMode
+    ? "Sign up with a username and password."
+    : isLoginMode  
     ? "Sign in with your email and password."
     : "Choose a new password";
-  const submitLabel = isLoginMode ? "Login" : "Change password";
-  const showSwitchLink = !isLoginMode;
-  const switchText = "Password already setup? ";
-  const switchLinkTo = "/login";
-  const switchLinkText = "Back to login";
+  const submitLabel = isSignupMode ? "Sign up" : isLoginMode ? "Login" : "Change password";
+  const showSwitchLink = true;
+  const switchText = isSignupMode ? "Already have an account? " : isLoginMode ? "Don't have an account? " : "Password already setup? ";
+  const switchLinkTo = isLoginMode ? "/signup" : "/login";
+  const switchLinkText = isSignupMode ? "Back to login" : isLoginMode ? "Sign up" : "Back to login";
   const currentPassword = password || window.__FLICKERX_BOOTSTRAP__?.password || "";
   // On first boot the backend injects __FLICKERX_BOOTSTRAP__ and we silently
   // reuse that password; the Current password input is only rendered for the
@@ -207,7 +238,18 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
     event.preventDefault();
     setError(null);
 
-    if (!isLoginMode) {
+    if (isSignupMode) {
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
+
+    if (!isLoginMode && !isSignupMode) {
       // Mirror the disable gate: Enter / autofill can bypass the button.
       if (currentPassword.length < 8) {
         setError(
@@ -239,7 +281,9 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
     try {
       let token: TokenResponse;
 
-      if (isLoginMode) {
+      if (isSignupMode) {
+        token = await registerWithPassword(email, password);
+      } else if (isLoginMode) {
         token = await loginWithPassword(email, password);
       } else {
         let accessToken = getAuthToken();
@@ -287,10 +331,10 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
         token = (await response.json()) as TokenResponse;
       }
 
-      if (!isLoginMode) {
+      if (!isLoginMode && !isSignupMode) {
         setRequiresPasswordChange(false);
         setMustChangePassword(false);
-      } else {
+      } else if (!isSignupMode) {
         setMustChangePassword(token.must_change_password);
       }
       storeAuthTokens(token.access_token, token.refresh_token);
@@ -364,6 +408,75 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
               </Button>
             </div>
           </div>
+          </>
+        )}
+
+        {isSignupMode && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  className="pr-10"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:bg-transparent"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                minLength={8}
+                required
+              />
+            </div>
+            <p
+              className={`min-h-4 text-xs ${
+                password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              }`}
+              aria-live="polite"
+            >
+              {password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword
+                ? "Please ensure passwords match."
+                : "Must be at least 8 characters."}
+            </p>
           </>
         )}
 
@@ -473,6 +586,7 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
             statusLoading ||
             blockedByState ||
             (isLoginMode && (!email || password.length < 8)) ||
+            (isSignupMode && (!email || password.length < 8 || password !== confirmPassword)) ||
             invalidChangePasswordForm
           }
         >

@@ -2,6 +2,7 @@
 // Copyright 2026-present the FlickerX AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
 
 export { LoginPage } from "./login-page";
+export { SignupPage } from "./signup-page";
 export { ChangePasswordPage } from "./change-password-page";
 export { authFetch, logout, refreshSession } from "./api";
 export {

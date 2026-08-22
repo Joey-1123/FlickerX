@@ -109,31 +109,110 @@ def migrate_hugging_face_token(body: HfTokenRequest, user: dict = Depends(get_cu
 # ---------------------------------------------------------------------------
 # Generation presets (image + video)
 # ---------------------------------------------------------------------------
-_GENERATION_PRESETS = {
-    "image": {"width": 512, "height": 512, "steps": 20, "guidance_scale": 7.5, "seed": -1, "scheduler": "euler_a"},
-    "video": {"frames": 16, "fps": 8, "width": 256, "height": 256, "steps": 20, "guidance_scale": 7.5, "seed": -1},
-}
+_DEFAULT_IMAGE_PARAMS = {"negativePrompt": "", "width": 512, "height": 512, "steps": 20, "guidance": 7.5, "batchSize": 1, "runs": 1}
+_DEFAULT_VIDEO_PARAMS = {"negativePrompt": "", "width": 256, "height": 256, "durationSeconds": 2, "steps": 20, "guidance": 7.5, "flowShift": None, "audioFlowShift": None}
+_DEFAULTS_BY_KIND = {"image": _DEFAULT_IMAGE_PARAMS, "video": _DEFAULT_VIDEO_PARAMS}
 
 
-@router.get("/generation-presets")
-def get_generation_presets(user: dict = Depends(get_current_user)):
-    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = 'generation_presets'")
+@router.get("/generation-presets/{kind}")
+def get_generation_preset(kind: str, user: dict = Depends(get_current_user)):
+    if kind not in _DEFAULTS_BY_KIND:
+        return {"currentParams": _DEFAULT_IMAGE_PARAMS, "activePreset": "Default", "customPresets": []}
+    defaults = _DEFAULTS_BY_KIND[kind]
+    key = f"generation_presets_{kind}"
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = ?", (key,))
     if rows:
         try:
             stored = json.loads(rows[0]["value"])
-            merged = dict(_GENERATION_PRESETS)
-            merged.update(stored)
-            return {"presets": merged}
+            return {
+                "currentParams": stored.get("currentParams", defaults),
+                "activePreset": stored.get("activePreset", "Default"),
+                "customPresets": stored.get("customPresets", []),
+                "saved": True,
+            }
         except Exception:
             pass
-    return {"presets": _GENERATION_PRESETS}
+    return {"currentParams": defaults, "activePreset": "Default", "customPresets": [], "saved": False}
 
 
-@router.put("/generation-presets")
-def save_generation_presets(body: dict, user: dict = Depends(get_current_user)):
-    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('generation_presets', ?, datetime('now'))",
-            (json.dumps(body.get("presets", {})),))
-    return {"ok": True}
+@router.put("/generation-presets/{kind}")
+def save_generation_preset(kind: str, body: dict, user: dict = Depends(get_current_user)):
+    defaults = _DEFAULTS_BY_KIND.get(kind, _DEFAULT_IMAGE_PARAMS)
+    key = f"generation_presets_{kind}"
+    payload = {
+        "currentParams": body.get("currentParams", defaults),
+        "activePreset": body.get("activePreset", "Default"),
+        "customPresets": body.get("customPresets", []),
+    }
+    # Preserve existing custom presets if the save omits them
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = ?", (key,))
+    if rows:
+        try:
+            existing = json.loads(rows[0]["value"])
+            if not payload["customPresets"] and existing.get("customPresets"):
+                payload["customPresets"] = existing["customPresets"]
+        except Exception:
+            pass
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+            (key, json.dumps(payload)))
+    return {"saved": True}
+
+
+@router.put("/generation-presets/{kind}/custom")
+def upsert_generation_preset(kind: str, body: dict, user: dict = Depends(get_current_user)):
+    preset_name = body.get("name", "")
+    preset_params = body.get("params", {})
+    if not preset_name:
+        return {"detail": "Preset name is required"}, 400
+    key = f"generation_presets_{kind}"
+    custom = []
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = ?", (key,))
+    if rows:
+        try:
+            existing = json.loads(rows[0]["value"])
+            custom = existing.get("customPresets", [])
+        except Exception:
+            pass
+    custom = [p for p in custom if p.get("name") != preset_name]
+    custom.append({"name": preset_name, "params": preset_params})
+    # Read current state to preserve currentParams/activePreset
+    current = _DEFAULTS_BY_KIND.get(kind, _DEFAULT_IMAGE_PARAMS)
+    active = "Default"
+    if rows:
+        try:
+            existing = json.loads(rows[0]["value"])
+            current = existing.get("currentParams", current)
+            active = existing.get("activePreset", active)
+        except Exception:
+            pass
+    payload = {"currentParams": current, "activePreset": active, "customPresets": custom}
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+            (key, json.dumps(payload)))
+    return {"saved": True}
+
+
+@router.delete("/generation-presets/{kind}/custom")
+def delete_generation_preset(kind: str, name: str = "", user: dict = Depends(get_current_user)):
+    key = f"generation_presets_{kind}"
+    custom = []
+    current = _DEFAULTS_BY_KIND.get(kind, _DEFAULT_IMAGE_PARAMS)
+    active = "Default"
+    rows = query(AUTH_DB, "SELECT value FROM settings WHERE key = ?", (key,))
+    if rows:
+        try:
+            existing = json.loads(rows[0]["value"])
+            custom = existing.get("customPresets", [])
+            current = existing.get("currentParams", current)
+            active = existing.get("activePreset", active)
+        except Exception:
+            pass
+    custom = [p for p in custom if p.get("name") != name]
+    if active == name:
+        active = "Default"
+    payload = {"currentParams": current, "activePreset": active, "customPresets": custom}
+    execute(AUTH_DB, "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+            (key, json.dumps(payload)))
+    return {"deleted": True}
 
 
 # ---------------------------------------------------------------------------
