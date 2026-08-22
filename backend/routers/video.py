@@ -30,6 +30,13 @@ _status: dict[str, Any] = {
     "model": None,
     "model_kind": None,
     "device": "cpu",
+    "memory_mode": None,
+    "speed_mode": None,
+    "attention_backend": None,
+    "transformer_cache": None,
+    "transformer_quant": None,
+    "text_encoder_quant": None,
+    "h3_task": None,
 }
 
 _load_progress: dict = {}
@@ -122,12 +129,55 @@ class VideoGenerateRequest(BaseModel):
 # ---------------------------------------------------------------------------
 @router.get("/status")
 async def video_status():
+    loaded = _status["loaded"]
+    model = _status["model"] if loaded else None
+    model_kind = _status["model_kind"] if loaded else None
+    device = _status["device"] if loaded else None
+
+    engine = None
+    if model_kind == "gguf":
+        engine = "sd_cpp"
+    elif model_kind in ("diffusers", "single_file", "pipeline", None):
+        if loaded:
+            engine = "diffusers"
+
+    family = None
+    base_repo = None
+    if model:
+        parts = model.split("/", 1)
+        if len(parts) == 2:
+            base_repo = parts[0]
+            family = parts[1]
+        else:
+            family = model
+
     return {
-        "loaded": _status["loaded"],
-        "loading": _status["loading"],
-        "model": _status["model"],
-        "model_kind": _status["model_kind"],
-        "device": _status["device"],
+        "loaded": loaded,
+        "repo_id": model,
+        "family": family,
+        "base_repo": base_repo,
+        "device": device,
+        "dtype": "float16" if device and device != "cpu" else "float32" if device else None,
+        "model_kind": model_kind,
+        "engine": engine,
+        "gguf_variant": None,
+        "offload_policy": None,
+        "vae_tiling": False,
+        "memory_mode": _status["memory_mode"] if loaded else None,
+        "speed_mode": _status["speed_mode"] if loaded else None,
+        "speed_optims": [],
+        "attention_backend": _status["attention_backend"] if loaded else None,
+        "transformer_cache": _status["transformer_cache"] if loaded else None,
+        "transformer_quant": _status["transformer_quant"] if loaded else None,
+        "text_encoder_quant": _status["text_encoder_quant"] if loaded else None,
+        "has_audio": False,
+        "supports_cfg": False,
+        "supports_keyframes": False,
+        "supports_references": False,
+        "h3_task": _status["h3_task"] if loaded else None,
+        "defaults": None,
+        "resolved": None,
+        "control_provenance": None,
     }
 
 
@@ -186,6 +236,13 @@ async def video_load(req: VideoLoadRequest):
         _status["loading"] = False
         _status["model"] = model_id
         _status["device"] = device
+        _status["memory_mode"] = req.memory_mode
+        _status["speed_mode"] = req.speed_mode
+        _status["attention_backend"] = req.attention_backend
+        _status["transformer_cache"] = req.transformer_cache
+        _status["transformer_quant"] = req.transformer_quant
+        _status["text_encoder_quant"] = req.text_encoder_quant
+        _status["h3_task"] = req.h3_task
         _load_progress.update({"phase": "ready", "fraction": 1.0})
         return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": device}
 
@@ -208,7 +265,12 @@ async def video_download_plan(req: VideoLoadRequest):
 async def video_unload():
     global _pipeline
     _pipeline = None
-    _status.update({"loaded": False, "loading": False, "model": None, "model_kind": None})
+    _status.update({
+        "loaded": False, "loading": False, "model": None, "model_kind": None,
+        "memory_mode": None, "speed_mode": None, "attention_backend": None,
+        "transformer_cache": None, "transformer_quant": None, "text_encoder_quant": None,
+        "h3_task": None,
+    })
     _load_progress.clear()
     return {"loaded": False, "loading": False, "model": None, "model_kind": None, "device": _status["device"]}
 

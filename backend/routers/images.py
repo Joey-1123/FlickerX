@@ -31,6 +31,13 @@ _status: dict[str, Any] = {
     "model": None,
     "model_kind": None,
     "device": "cpu",
+    "cpu_offload": False,
+    "speed_mode": None,
+    "transformer_quant": None,
+    "text_encoder_quant": None,
+    "attention_backend": None,
+    "memory_mode": None,
+    "transformer_cache": None,
 }
 
 _load_progress: dict = {}
@@ -123,12 +130,51 @@ class DiffusionGenerateRequest(BaseModel):
 # ---------------------------------------------------------------------------
 @router.get("/status")
 async def image_status():
+    loaded = _status["loaded"]
+    model = _status["model"] if loaded else None
+    model_kind = _status["model_kind"] if loaded else None
+
+    family = None
+    base_repo = None
+    if model:
+        parts = model.split("/", 1)
+        if len(parts) == 2:
+            base_repo = parts[0]
+            family = parts[1]
+        else:
+            family = model
+
+    engine = None
+    if model_kind == "gguf":
+        engine = "sd_cpp"
+    elif model_kind in ("diffusers", "single_file", "pipeline", None):
+        if loaded:
+            engine = "diffusers"
+
     return {
-        "loaded": _status["loaded"],
+        "loaded": loaded,
         "loading": _status["loading"],
-        "model": _status["model"],
-        "model_kind": _status["model_kind"],
-        "device": _status["device"],
+        "repo_id": model,
+        "family": family,
+        "base_repo": base_repo,
+        "device": _status["device"] if loaded else None,
+        "dtype": "float16" if loaded and _status["device"] != "cpu" else "float32" if loaded else None,
+        "model_kind": model_kind,
+        "gguf_variant": None,
+        "cpu_offload": _status["cpu_offload"] if loaded else False,
+        "transformer_quant": _status["transformer_quant"] if loaded else None,
+        "text_encoder_quant": _status["text_encoder_quant"] if loaded else None,
+        "memory_mode": _status["memory_mode"] if loaded else None,
+        "offload_policy": None,
+        "speed_mode": _status["speed_mode"] if loaded else None,
+        "speed_optims": [],
+        "attention_backend": _status["attention_backend"] if loaded else None,
+        "transformer_cache": _status["transformer_cache"] if loaded else None,
+        "vae_tiling": False,
+        "supports_lora": loaded and model_kind != "gguf",
+        "supports_controlnet": loaded and model_kind != "gguf",
+        "workflows": None,
+        "resolved": None,
     }
 
 
@@ -202,6 +248,13 @@ async def image_load(req: DiffusionLoadRequest):
         _status["loading"] = False
         _status["model"] = model_id
         _status["device"] = device
+        _status["cpu_offload"] = bool(req.cpu_offload)
+        _status["speed_mode"] = req.speed_mode
+        _status["transformer_quant"] = req.transformer_quant
+        _status["text_encoder_quant"] = req.text_encoder_quant
+        _status["attention_backend"] = req.attention_backend
+        _status["memory_mode"] = req.memory_mode
+        _status["transformer_cache"] = req.transformer_cache
         _load_progress.update({"phase": "ready", "fraction": 1.0})
         return {"loaded": True, "loading": False, "model": model_id, "model_kind": _status["model_kind"], "device": device}
 
@@ -224,7 +277,12 @@ async def image_download_plan(req: DiffusionLoadRequest):
 async def image_unload():
     global _pipeline
     _pipeline = None
-    _status.update({"loaded": False, "loading": False, "model": None, "model_kind": None})
+    _status.update({
+        "loaded": False, "loading": False, "model": None, "model_kind": None,
+        "cpu_offload": False, "speed_mode": None, "transformer_quant": None,
+        "text_encoder_quant": None, "attention_backend": None, "memory_mode": None,
+        "transformer_cache": None,
+    })
     _load_progress.clear()
     return {"loaded": False, "loading": False, "model": None, "model_kind": None, "device": _status["device"]}
 
