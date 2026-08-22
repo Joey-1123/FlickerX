@@ -190,6 +190,8 @@ def llama_backend_get():
         backends.append({"backend": "llama-cpp", "available": False, "resolved_backend": None, "release_tag": None, "download_size_bytes": 0})
     return {
         "supported": True,
+        "reason": None,
+        "env_backend": None,
         "backend": "llama-cpp" if installed else None,
         "backend_request": "auto",
         "selection_applied": True,

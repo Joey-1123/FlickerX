@@ -220,7 +220,7 @@ async def list_registry(include_hidden: bool = False):
         {"id": pid, "name": pid.replace("_", " ").title(), **info}
         for pid, info in _PROVIDER_DEFAULTS.items()
     ]
-    return {"providers": providers}
+    return providers
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +229,7 @@ async def list_registry(include_hidden: bool = False):
 @router.get("/")
 async def list_configs():
     safe = [{**c, "api_key": "***" if c.get("api_key") else None} for c in _configs]
-    return {"providers": safe}
+    return safe
 
 
 @router.post("/")

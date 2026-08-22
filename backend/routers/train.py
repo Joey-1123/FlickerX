@@ -191,18 +191,46 @@ async def train_reset(req: TrainingResetRequest):
 @router.get("/status")
 async def train_status():
     if not _job:
-        return {"job_id": None, "phase": None, "is_training_running": False, "details": None, "metric_history": []}
+        return {
+            "job_id": None,
+            "start_request_id": None,
+            "start_request_state": None,
+            "phase": "idle",
+            "is_training_running": False,
+            "eval_enabled": False,
+            "message": "",
+            "error": None,
+            "warnings": [],
+            "details": None,
+            "metric_history": None,
+        }
     return {
         "job_id": _job["job_id"],
+        "start_request_id": None,
+        "start_request_state": None,
         "phase": _job["phase"],
         "is_training_running": _job["is_training_running"],
+        "eval_enabled": False,
+        "message": f"Step {_job['step']}/{_job['total_steps']}" if _job["is_training_running"] else _job["phase"],
+        "error": None,
+        "warnings": [],
         "details": {
-            "model": _job["model_name"],
+            "epoch": None,
             "step": _job["step"],
             "total_steps": _job["total_steps"],
             "loss": _job["loss"],
+            "learning_rate": _job.get("learning_rate"),
+            "output_dir": None,
         },
-        "metric_history": _metric_history[-50:],
+        "metric_history": {
+            "steps": [m.get("step", 0) for m in _metric_history[-50:]],
+            "loss": [m.get("loss", 0) for m in _metric_history[-50:]],
+            "lr": [m.get("learning_rate", 0) for m in _metric_history[-50:]],
+            "grad_norm": [],
+            "grad_norm_steps": [],
+            "eval_loss": [],
+            "eval_steps": [],
+        } if _metric_history else None,
     }
 
 
