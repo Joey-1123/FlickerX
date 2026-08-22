@@ -221,15 +221,15 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
   // admin-forced must_change_password path where no bootstrap is available.
   const hasBootstrapPassword = Boolean(window.__FLICKERX_BOOTSTRAP__?.password);
   const invalidChangePasswordForm =
-    !isLoginMode &&
+    !isLoginMode && !isSignupMode &&
     (currentPassword.length < 8 ||
       newPassword.length < 8 ||
       /\s/.test(newPassword) ||
       newPassword !== confirmPassword ||
       currentPassword === newPassword);
-  const showWhitespaceWarning = !isLoginMode && /\s/.test(newPassword);
+  const showWhitespaceWarning = !isLoginMode && !isSignupMode && /\s/.test(newPassword);
   const showPasswordMismatchWarning =
-    !isLoginMode &&
+    !isLoginMode && !isSignupMode &&
     newPassword.length > 0 &&
     confirmPassword.length > 0 &&
     newPassword !== confirmPassword;
@@ -480,7 +480,7 @@ export function AuthForm({ mode }: AuthFormProps): ReactElement | null {
           </>
         )}
 
-        {!isLoginMode && (
+        {!isLoginMode && !isSignupMode && (
           <>
             {!hasBootstrapPassword && (
               <div className="space-y-2">
