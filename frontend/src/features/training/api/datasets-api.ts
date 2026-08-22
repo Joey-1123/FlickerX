@@ -174,7 +174,9 @@ export async function aiAssistMapping({
     },
     body: JSON.stringify({
       columns,
-      samples: samples.slice(0, 5),
+      samples: samples.slice(0, 5).map((row) =>
+        columns.map((col) => String((row as Record<string, unknown>)[col] ?? "")),
+      ),
       dataset_name: datasetName || undefined,
       model_name: modelName || undefined,
       model_type: modelType || undefined,

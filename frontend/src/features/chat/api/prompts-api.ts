@@ -55,8 +55,8 @@ export async function bulkSavePromptEntries(entries: PromptEntry[]): Promise<num
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ entries }),
   });
-  const data = await parseJsonOrThrow<{ count: number }>(res);
-  return data.count;
+  const data = await parseJsonOrThrow<{ entries: PromptEntry[] }>(res);
+  return data.entries.length;
 }
 
 export async function listPromptLists(): Promise<PromptListEntry[]> {
@@ -86,6 +86,6 @@ export async function bulkSavePromptLists(lists: PromptListEntry[]): Promise<num
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lists }),
   });
-  const data = await parseJsonOrThrow<{ count: number }>(res);
-  return data.count;
+  const data = await parseJsonOrThrow<{ lists: PromptListEntry[] }>(res);
+  return data.lists.length;
 }

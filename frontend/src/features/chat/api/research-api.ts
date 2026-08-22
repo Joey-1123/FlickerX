@@ -46,6 +46,21 @@ function camelize(value: unknown): unknown {
   );
 }
 
+function snakify(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(snakify);
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+  return Object.fromEntries(
+    Object.entries(value as JsonObject).map(([key, child]) => [
+      key.replace(/([A-Z])/g, (_, letter: string) => `_${letter.toLowerCase()}`),
+      snakify(child),
+    ]),
+  );
+}
+
 async function json<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => null);
   if (!response.ok) {
@@ -71,7 +86,7 @@ export async function createResearchRun(
     await authFetch("/api/chat/research-runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify(snakify(input)),
     }),
   );
 }

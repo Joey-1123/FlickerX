@@ -269,6 +269,58 @@ def youtube_transcript():
     raise HTTPException(status_code=501, detail="youtube_transcript_api package not installed. Run: pip install youtube-transcript-api")
 
 
+@app.get("/api/studio/release-notes")
+async def release_notes(version: str = "", refresh: bool = False):
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.github.com/repos/Omii-004/FlickerX/releases/latest",
+                headers={"Accept": "application/vnd.github.v3+json"},
+            )
+            if resp.status_code != 200:
+                return {
+                    "version": version or "0.0.0",
+                    "markdown": None,
+                    "heading": None,
+                    "tag": None,
+                    "html_url": None,
+                    "matched": False,
+                    "truncated": False,
+                    "source": None,
+                    "release_notes_url": None,
+                    "error": f"GitHub API returned {resp.status_code}",
+                }
+            release = resp.json()
+            tag = release.get("tag_name", "")
+            body = release.get("body") or None
+            return {
+                "version": version or "0.0.0",
+                "markdown": body,
+                "heading": release.get("name"),
+                "tag": tag,
+                "html_url": release.get("html_url"),
+                "matched": tag == version if version else False,
+                "truncated": False,
+                "source": "github",
+                "release_notes_url": release.get("html_url"),
+                "error": None,
+            }
+    except Exception as exc:
+        return {
+            "version": version or "0.0.0",
+            "markdown": None,
+            "heading": None,
+            "tag": None,
+            "html_url": None,
+            "matched": False,
+            "truncated": False,
+            "source": None,
+            "release_notes_url": None,
+            "error": str(exc),
+        }
+
+
 @app.get("/api/system")
 def system_info():
     import time as _time

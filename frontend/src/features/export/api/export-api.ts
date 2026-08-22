@@ -99,7 +99,7 @@ export async function fetchExportSize(
     headers["X-HF-Token"] = hfToken;
   }
   const response = await authFetch(
-    `/api/models/export-size?model=${encodeURIComponent(modelId)}`,
+    `/api/export/export-size?model=${encodeURIComponent(modelId)}`,
     { signal, headers },
   );
   return parseJson<ExportSizeEstimate>(response);

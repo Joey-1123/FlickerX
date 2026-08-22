@@ -195,6 +195,7 @@ Before adding a package:
 - Fabricate file paths or environment variables
 - Claim tests passed without executing them
 - Make up CLI flags or library features
+- Leave stubs, TODOs, or placeholder implementations — implement fully or don't ship
 
 ### Responses
 - Summarise what changed and why
