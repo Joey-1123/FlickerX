@@ -252,8 +252,6 @@ def init_studio_db() -> None:
             conn.executescript("""
                 CREATE INDEX IF NOT EXISTS idx_chat_messages_thread ON chat_messages(thread_id);
                 CREATE INDEX IF NOT EXISTS idx_chat_attachments_message ON chat_attachments(message_id);
-                CREATE INDEX IF NOT EXISTS idx_rag_documents_kb ON rag_documents(kb_id);
-                CREATE INDEX IF NOT EXISTS idx_rag_chunks_document ON rag_chunks(document_id);
             """)
             conn.commit()
         finally:
