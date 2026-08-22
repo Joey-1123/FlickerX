@@ -28,3 +28,16 @@ torch = [
     "safetensors>=0.4.0",
     "Pillow>=10.0",
 ]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "config", "database", "auth", "middleware", "cli"]
+
+[tool.setuptools.packages.find]
+include = ["routers*", "services*", "models*"]
+
+[project.scripts]
+flickerx = "cli:main"

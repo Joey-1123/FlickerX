@@ -194,7 +194,24 @@ function Install-Backend {
 
     Write-Info "Installing llama-cpp-python ($($script:GpuBackend))..."
     if ($script:GpuBackend -eq "cpu") {
-        uv pip install "llama-cpp-python[server]>=0.3.0" --quiet
+        # Try pre-built wheel first (no compiler needed)
+        $installed = $false
+        try {
+            uv pip install "llama-cpp-python[server]>=0.3.0" --only-binary llama-cpp-python --quiet 2>$null
+            $installed = $true
+        } catch {}
+        if (-not $installed) {
+            # No pre-built wheel — need MSVC compiler
+            $hasCl = Get-Command cl.exe -ErrorAction SilentlyContinue
+            if (-not $hasCl) {
+                Write-Fail "No pre-built wheel available and no C compiler found."
+                Write-Info "Install Visual Studio Build Tools with C++ workload:"
+                Write-Info "  https://aka.ms/vs/17/release/vs_BuildTools.exe"
+                Write-Info "Select 'Desktop development with C++' workload, then re-run this installer."
+                exit 1
+            }
+            uv pip install "llama-cpp-python[server]>=0.3.0" --quiet
+        }
     } elseif ($script:GpuBackend -eq "cu*") {
         uv pip install "llama-cpp-python[server]>=0.3.0" `
             --extra-index-url "https://abetlen.github.io/llama-cpp-python/whl/$($script:GpuBackend)" --quiet

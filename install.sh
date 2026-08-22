@@ -263,7 +263,19 @@ install_backend() {
   # Install llama-cpp-python with GPU backend
   info "Installing llama-cpp-python ($LLAMA_GPU_BACKEND)..."
   if [[ "$LLAMA_GPU_BACKEND" == "cpu" ]]; then
-    uv pip install "llama-cpp-python[server]>=0.3.0" --quiet
+    # Try pre-built wheel first (no compiler needed)
+    if ! uv pip install "llama-cpp-python[server]>=0.3.0" --only-binary llama-cpp-python --quiet 2>/dev/null; then
+      # No pre-built wheel — need gcc/g++ for source build
+      if ! command -v gcc &>/dev/null && ! command -v g++ &>/dev/null; then
+        fail "No pre-built wheel available and no C compiler found.
+  Install build tools first:
+    Ubuntu/Debian: sudo apt install build-essential
+    Fedora/RHEL:   sudo dnf groupinstall 'Development Tools'
+    Arch:          sudo pacman -S base-devel
+  Then re-run this installer."
+      fi
+      uv pip install "llama-cpp-python[server]>=0.3.0" --quiet
+    fi
   elif [[ "$LLAMA_GPU_BACKEND" == "cu"* ]]; then
     uv pip install "llama-cpp-python[server]>=0.3.0" \
       --extra-index-url "https://abetlen.github.io/llama-cpp-python/whl/$LLAMA_GPU_BACKEND" --quiet
